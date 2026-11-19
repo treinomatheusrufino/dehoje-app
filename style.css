@@ -46,3 +46,10 @@ h2{border-bottom:3px solid var(--o);padding-bottom:4px}
 .pr{background:#E8F5EC;border:1px solid var(--o);border-radius:12px;padding:10px;margin-bottom:10px;text-align:center}
 .fb{padding:6px 0;border-top:1px solid var(--b);cursor:pointer}.fb:first-of-type{border-top:0}.star{color:var(--o)}
 .evo{width:100%;border-collapse:collapse;font-size:14px}.evo th,.evo td{padding:5px 4px;border-bottom:1px solid var(--b);text-align:center}.evo th:first-child,.evo td:first-child{text-align:left}
+
+.noimg{display:flex;align-items:center;justify-content:center;height:90px;font-size:34px;background:#F3FBF6;border-radius:10px;margin:0 auto;max-width:300px}
+.row .noimg{width:90px;flex:none;height:70px}.card .noimg{height:110px}
+.bar2{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}.bar2 input{margin:0}.bar2 button{flex:none;white-space:nowrap}
+.vid{margin:8px 0;font-weight:600;color:var(--od);border-color:var(--od)}.tnote{background:#F3FBF6;border-radius:10px;padding:8px;text-align:left}
+.msg{background:#F3FBF6;border:1px solid var(--o);border-radius:14px;padding:10px 12px;margin-bottom:10px}.msg p{margin:4px 0 0}
+.modal h3{margin-top:0}

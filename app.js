@@ -51,16 +51,49 @@ function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggl
 async function getLib() {
   if (library.length) return library;
   let from = 0, all = [];
-  for (;;) { const { data, error } = await sb.from('exercises').select('id,name,muscle_group,image_path,how_to').order('name').range(from, from + 999);
+  for (;;) { const { data, error } = await sb.from('exercises').select('id,name,muscle_group,image_path,how_to,created_by').order('name').range(from, from + 999);
     if (error) throw error; all = all.concat(data); if (data.length < 1000) break; from += 1000; }
   return library = all;
 }
+const im = (p, a = '') => p ? `<img loading=lazy src="${esc(p)}" alt="${esc(a)}">` : '<div class=noimg>🏋️</div>';
+let vids = null;
+async function getVids(force) { if (vids && !force) return vids; const { data } = await sb.from('trainer_exercise_notes').select('exercise_id,video_url,note'); vids = Object.fromEntries((data || []).map(r => [r.exercise_id, r])); return vids; }
+const okUrl = u => /^https?:\/\/\S+$/i.test(u || '');
+function mdl(html) { const d = document.createElement('div'); d.className = 'modal'; d.innerHTML = `<div class=box>${html}</div>`; document.body.appendChild(d); d.close = () => d.remove(); return d; }
+async function saveNote(exId, url, note) {
+  if (!url && !note) { await sb.from('trainer_exercise_notes').delete().eq('exercise_id', exId); }
+  else { const r = await sb.from('trainer_exercise_notes').upsert({ trainer_id: session.user.id, exercise_id: exId, video_url: url || null, note: note || null, updated_at: new Date().toISOString() }, { onConflict: 'trainer_id,exercise_id' }); if (r.error) throw r.error; }
+  await getVids(true);
+}
+async function exModal(ex, done) {
+  const v = (await getVids())[ex.id] || {}; const mine = ex.created_by && ex.created_by === session.user.id;
+  const d = mdl(`<h3>${esc(ex.name)}</h3><label class=muted>Link do vídeo (YouTube, TikTok, Instagram…)</label><input id=vu type=url inputmode=url placeholder="https://..." value="${esc(v.video_url || '')}"><label class=muted>Instruções ou dica do treinador (o aluno vê)</label><textarea id=vn>${esc(v.note || '')}</textarea><p id=vm class=err></p><button class=p id=vs>Salvar</button> <button id=vc>Cancelar</button>${mine ? ' <button class=danger id=vd>Excluir exercício</button>' : ''}`);
+  d.querySelector('#vc').onclick = d.close;
+  d.querySelector('#vs').onclick = async () => { const u = d.querySelector('#vu').value.trim(); if (u && !okUrl(u)) return d.querySelector('#vm').textContent = 'O link precisa começar com https://';
+    try { await saveNote(ex.id, u, d.querySelector('#vn').value.trim()); d.close(); done && done(); } catch (e) { d.querySelector('#vm').textContent = e.message; } };
+  if (mine) d.querySelector('#vd').onclick = async () => { if (!confirm('Excluir este exercício criado por você?')) return; const r = await sb.from('exercises').delete().eq('id', ex.id);
+    if (r.error) return d.querySelector('#vm').textContent = 'Não foi possível excluir (ele está em algum treino). ' + r.error.message; library = []; d.close(); done && done(); };
+}
+function createEx(cb, nome = '') {
+  const d = mdl(`<h3>Novo exercício</h3><label class=muted>Nome</label><input id=cn value="${esc(nome)}"><label class=muted>Músculo ou grupo</label><input id=cg placeholder="Ex.: Peito, Pernas…" value="Meus exercícios"><label class=muted>Link do vídeo (YouTube, TikTok, Instagram…)</label><input id=cu type=url inputmode=url placeholder="https://..."><label class=muted>Instruções ou dica (o aluno vê)</label><textarea id=cd></textarea><p id=cm2 class=err></p><button class=p id=cs>Criar exercício</button> <button id=cc>Cancelar</button>`);
+  d.querySelector('#cc').onclick = d.close;
+  d.querySelector('#cs').onclick = async () => { const name = d.querySelector('#cn').value.trim(), url = d.querySelector('#cu').value.trim(), m = d.querySelector('#cm2');
+    if (name.length < 3) return m.textContent = 'Digite o nome do exercício.'; if (url && !okUrl(url)) return m.textContent = 'O link precisa começar com https://';
+    const slug = 'u-' + session.user.id.slice(0, 8) + '-' + name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+    const r = await sb.from('exercises').insert({ slug, name, muscle_group: d.querySelector('#cg').value.trim() || 'Meus exercícios', created_by: session.user.id }).select('id,name,muscle_group,image_path,how_to,created_by').single();
+    if (r.error) return m.textContent = r.error.message;
+    await sb.from('exercise_aliases').insert({ exercise_id: r.data.id, alias: name });
+    try { await saveNote(r.data.id, url, d.querySelector('#cd').value.trim()); } catch {}
+    library = []; await getLib(); d.close(); cb && cb(r.data); };
+}
 async function lib() {
-  app.innerHTML = '<input id=s placeholder="Buscar exercício ou músculo"><div id=g class=grid>Carregando…</div>';
-  let items; try { items = await getLib(); } catch (e) { return app.innerHTML = `<p class=err>${esc(e.message)}</p>`; }
-  const draw = () => { const q = $('#s').value.toLowerCase(); $('#g').innerHTML = items.filter(x => (x.name + ' ' + x.muscle_group).toLowerCase().includes(q))
-    .map(x => `<div class=card><img loading=lazy src="${esc(x.image_path)}" alt="${esc(x.name)}"><b>${esc(x.name)}</b><small>${esc(x.muscle_group)}</small></div>`).join(''); };
+  app.innerHTML = '<div class=bar2><input id=s placeholder="Buscar exercício ou músculo"><button class=p id=nw>＋ Novo exercício</button></div><div id=g class=grid>Carregando…</div>';
+  let items, vs; try { items = await getLib(); vs = await getVids(); } catch (e) { return app.innerHTML = `<p class=err>${esc(e.message)}</p>`; }
+  const draw = () => { const q = $('#s').value.toLowerCase(); $('#g').innerHTML = items.filter(x => (x.name + ' ' + x.muscle_group).toLowerCase().includes(q)).slice(0, 300)
+    .map(x => `<div class=card>${im(x.image_path, x.name)}<b>${esc(x.name)}</b><small>${esc(x.muscle_group)}</small><button class=sm data-v=${x.id}>${vs[x.id]?.video_url ? '🎬 Vídeo ✓' : '🎬 Vídeo e dica'}</button></div>`).join(''); };
   $('#s').oninput = draw; draw();
+  $('#nw').onclick = () => createEx(() => lib());
+  $('#g').onclick = e => { const b = e.target.closest('[data-v]'); if (b) exModal(items.find(x => x.id == b.dataset.v), lib); };
 }
 function restOf(t) { const m = /(?:pausa|descanso|intervalo)\s*(?:de\s*)?(\d+)\s*(min(?:utos?)?|s(?:eg(?:undos?)?)?)\b/i.exec(t || ''); return m ? (/^m/i.test(m[2]) ? +m[1] * 60 : +m[1]) : 0; }
 export function parseFicha(text) {
@@ -96,11 +129,12 @@ export function parseFicha(text) {
 // ---------- escolher exercício (janela de busca)
 async function pick(cb) {
   const lb = await getLib(); const d = document.createElement('div'); d.className = 'modal';
-  d.innerHTML = '<div class=box><input id=ps placeholder="Buscar exercício" autofocus><div id=pl class=list></div><button id=pc>Cancelar</button></div>'; document.body.appendChild(d);
+  d.innerHTML = '<div class=box><input id=ps placeholder="Buscar exercício" autofocus><div id=pl class=list></div><button class=p id=pn>＋ Criar exercício novo</button> <button id=pc>Cancelar</button></div>'; document.body.appendChild(d);
   const draw = () => { const q = d.querySelector('#ps').value.toLowerCase(); d.querySelector('#pl').innerHTML = lb.filter(x => (x.name + ' ' + x.muscle_group).toLowerCase().includes(q)).slice(0, 40)
-    .map(x => `<div class=row data-id=${x.id}><img src="${esc(x.image_path)}" alt=""><div><b>${esc(x.name)}</b><br><small class=muted>${esc(x.muscle_group)}</small></div></div>`).join(''); };
+    .map(x => `<div class=row data-id=${x.id}>${im(x.image_path)}<div><b>${esc(x.name)}</b><br><small class=muted>${esc(x.muscle_group)}</small></div></div>`).join(''); };
   d.querySelector('#ps').oninput = draw; draw();
   d.querySelector('#pc').onclick = () => d.remove();
+  d.querySelector('#pn').onclick = () => { const n = d.querySelector('#ps').value; d.remove(); createEx(cb, n); };
   d.querySelector('#pl').onclick = e => { const r = e.target.closest('.row'); if (!r) return; d.remove(); cb(lb.find(x => x.id == r.dataset.id)); };
 }
 const nsets = t => { const m = /(\d+)\s*[xX×]/.exec(t || ''); return m ? Math.min(+m[1], 10) : 3; };
@@ -128,9 +162,11 @@ async function imp() {
         s.itens.forEach((it, ii) => { const ob = it.obs ? `<br><small class=muted>${esc(it.obs)}</small>` : ''; const bi = it.bi ? '<span class=tag>bi-set</span> ' : '';
           if (it.tipo === 'cardio') { h += `<div class=row>${it.ex ? `<img src="${esc(it.ex.image_path)}" alt="">` : ''}<div>⏱ <b>Cardio</b>${it.ex ? ' — ' + esc(it.ex.name.replace(/^Cardio:\s*/, '')) : ''}<br><small class=muted>${esc(it.texto)}</small></div></div>`; return; }
           tot++;
-          if (it.ex) h += `<div class=row><img src="${esc(it.ex.image_path)}" alt=""><div>${bi}<b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(it.ex.name)}</small>${ob}<br><button class=sm data-pk="${si},${ii}">Trocar</button></div></div>`;
-          else { rev++; h += `<div class=row><div>${bi}<b>${esc(it.texto)}</b><br><small class=warn>Sem desenho${it.sug ? ' (parecido: ' + esc(it.sug.name) + ')' : ''}</small>${ob}<br><button class="sm p" data-pk="${si},${ii}">Escolher exercício</button></div></div>`; } }); });
+          if (it.ex) h += `<div class=row>${im(it.ex.image_path)}<div>${bi}<b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(it.ex.name)}</small>${ob}<br><button class=sm data-pk="${si},${ii}">Trocar</button> <button class=sm data-vx=${it.ex.id}>🎬 Vídeo</button></div></div>`;
+          else { rev++; h += `<div class=row><div>${bi}<b>${esc(it.texto)}</b><br><small class=warn>Sem desenho${it.sug ? ' (parecido: ' + esc(it.sug.name) + ')' : ''}</small>${ob}<br><button class="sm p" data-pk="${si},${ii}">Escolher exercício</button> <button class=sm data-cr="${si},${ii}">＋ Criar novo</button></div></div>`; } }); });
       $('#r').innerHTML = `<p class=muted>${f.sessoes.length} treinos · ${tot} exercícios · ${rev} sem desenho</p>` + h + '<button class=p id=sv>Salvar para o aluno</button><p id=sm></p>';
+      $('#r').querySelectorAll('[data-vx]').forEach(b => b.onclick = () => exModal(lb.find(x => x.id == b.dataset.vx)));
+      $('#r').querySelectorAll('[data-cr]').forEach(b => b.onclick = () => { const [si, ii] = b.dataset.cr.split(',').map(Number); f.aluno = $('#an').value; f.rd = +$('#rd').value || 60; createEx(e => { f.sessoes[si].itens[ii].ex = e; view(); }, f.sessoes[si].itens[ii].busca); });
       $('#sv').onclick = () => salvar(f, $('#an').value.trim(), +$('#rd').value || 60);
       $('#r').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { const [si, ii] = b.dataset.pk.split(',').map(Number); f.aluno = $('#an').value; f.rd = +$('#rd').value || 60; pick(e => { f.sessoes[si].itens[ii].ex = e; view(); }); });
     };
@@ -177,25 +213,32 @@ async function students() {
   $('#ls').onclick = e => { const r = e.target.closest('[data-id]'); if (r) aluno(r.dataset.id); };
 }
 async function aluno(id) {
-  app.innerHTML = 'Carregando…';
+  app.innerHTML = 'Carregando…'; const lbq = await getLib();
   const [s, w, h, ev] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
     sb.from('workouts').select('id,name,position,workout_blocks(id,position,set_type,block_items(id,position,raw_text,note,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
-    sb.from('workout_sessions').select('started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
+    sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
     sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000)]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
   const st = s.data, url = linkOf(st.token);
   let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>
    <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class=btn href="https://wa.me/?text=${encodeURIComponent('Oi! Seu treino está aqui: ' + url)}" target=_blank>Enviar no WhatsApp</a>
    <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p></div>`;
+  x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
   (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2>`;
     wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => {
-      x += `<div class=row><img ${i.exercises ? `src="${esc(i.exercises.image_path)}"` : ''} alt=""><div>${b.set_type === 'biset' ? '<span class=tag>bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
-      ${i.kind === 'ex' ? `<button class=sm data-tr=${i.id}>Trocar</button> ` : ''}<button class=sm data-rm=${i.id}>Remover</button></div></div>`; })); });
+      x += `<div class=row>${im(i.exercises?.image_path)}<div>${b.set_type === 'biset' ? '<span class=tag>bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
+      ${i.kind === 'ex' ? `<button class=sm data-tr=${i.id}>Trocar</button> ` : ''}${i.exercise_id ? `<button class=sm data-vx=${i.exercise_id}>🎬 Vídeo</button> ` : ''}<button class=sm data-rm=${i.id}>Remover</button></div></div>`; })); });
   const evo = {}; (ev.data || []).forEach(l => { const n = l.block_items?.exercises?.name || l.block_items?.raw_text || '?'; const e = evo[n] || (evo[n] = { first: Number(l.load_kg), last: 0, best: 0, n: 0 }); e.last = Number(l.load_kg); e.best = Math.max(e.best, Number(l.load_kg)); e.n++; });
   const el = Object.entries(evo); if (el.length) x += '<h2>Evolução de cargas</h2><div class=box2><table class=evo><tr><th>Exercício</th><th>1ª</th><th>Última</th><th>Melhor</th></tr>' + el.map(([n, e]) => `<tr><td>${esc(n)}</td><td>${e.first}</td><td>${e.last} ${e.last > e.first ? '<span class=ok>▲</span>' : e.last < e.first ? '<span class=err>▼</span>' : ''}</td><td>${e.best}</td></tr>`).join('') + '</table><small class=muted>Cargas em kg.</small></div>';
-  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small>${esc(z.comment)}</small>` : ''}<br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
+  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small>${esc(z.comment)}</small>` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Excluir aluno</button></p>'; app.innerHTML = x;
+  app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
+  app.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const z = (h.data || []).find(q => q.id === b.dataset.rp);
+    const d = mdl(`<h3>Responder ao aluno</h3>${z.comment ? `<p class=muted>“${esc(z.comment)}”</p>` : ''}<textarea id=rt>${esc(z.trainer_reply || '')}</textarea><p id=rm class=err></p><button class=p id=rs>Enviar resposta</button> <button id=rc>Cancelar</button>`);
+    d.querySelector('#rc').onclick = d.close;
+    d.querySelector('#rs').onclick = async () => { const t = d.querySelector('#rt').value.trim(); const r = await sb.from('workout_sessions').update({ trainer_reply: t || null, trainer_reply_at: t ? new Date().toISOString() : null }).eq('id', z.id); if (r.error) return d.querySelector('#rm').textContent = r.error.message; d.close(); aluno(id); }; });
+  $('#ms').onclick = async () => { const r = await sb.from('students').update({ message: $('#msg').value.trim() || null }).eq('id', id); $('#ms').textContent = r.error ? 'Erro: ' + r.error.message : 'Recado salvo ✓'; };
   $('#bk').onclick = students; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
   app.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { if (confirm('Remover este exercício do treino?')) { await sb.from('block_items').delete().eq('id', b.dataset.rm); aluno(id); } });
@@ -250,6 +293,8 @@ async function studentView(token) {
     const ss = (P.sessions || []).map(x => new Date(x)), wkc = ss.filter(x => x >= mon).length, m30 = ss.filter(x => now - x < 30 * 864e5).length;
     const days = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, n) => { const a = new Date(mon); a.setDate(mon.getDate() + n); const b = new Date(a); b.setDate(a.getDate() + 1); const did = ss.some(x => x >= a && x < b); return `<span class="dot${did ? ' on' : ''}${n === dow ? ' today' : ''}">${l}</span>`; }).join('');
     h += `<div class=week><div class=dots>${days}</div><small class=muted><b>${wkc}</b> treino${wkc === 1 ? '' : 's'} esta semana · <b>${m30}</b> nos últimos 30 dias</small></div>`;
+    if (P.student.message) h += `<div class=msg><b>Recado do treinador</b><p class=pre>${esc(P.student.message)}</p></div>`;
+    (P.replies || []).slice(0, 2).forEach(r => { h += `<div class=msg><small class=muted>Resposta do treinador · ${new Date(r.at).toLocaleDateString('pt-BR')}</small><p class=pre>${esc(r.text)}</p></div>`; });
     h += '<p class=muted>Qual treino você vai fazer hoje?</p>';
     P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
       h += `<div class=wcard><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${w.items.length} exercícios</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>`; });
@@ -267,7 +312,7 @@ async function studentView(token) {
     if (s.cardio) { const i = s.items[0]; h += `<div class=exv><h3>⏱ Cardio</h3><p>${esc(i.exercise ? i.exercise.name.replace(/^Cardio:\s*/, '') : '')}</p>${i.exercise ? `<img src="${esc(i.exercise.image)}" alt="">` : ''}<p>${esc(i.text)}</p><label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> Cardio concluído</label></div>`; }
     else {
       s.items.forEach((i, ix) => { const ex = i.exercise;
-        h += `<div class=exv>${s.biset ? `<span class=tag>Bi-set · exercício ${'AB'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `<img src="${esc(ex.image)}" alt="${esc(ex.name)}"><small class=muted>${esc(ex.name)}</small>` : ''}${i.note ? `<p>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
+        h += `<div class=exv>${s.biset ? `<span class=tag>Bi-set · exercício ${'AB'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `${im(ex.image, ex.name)}<small class=muted>${esc(ex.name)}</small>` : ''}${i.video?.url && /^https?:\/\//i.test(i.video.url) ? `<a class="btn vid" href="${esc(i.video.url)}" target=_blank rel=noopener>▶ Ver vídeo</a>` : ''}${i.video?.note ? `<p class=tnote>💬 ${esc(i.video.note)}</p>` : ''}${i.note ? `<p>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
       const hasLast = s.items.some(i => i.last);
       h += `<div class=sets><b>Séries</b>${hasLast ? ' <button class=sm data-rep>Repetir última vez</button>' : ''}${s.biset ? ' <small class=muted>(faça A e B em sequência e marque ✓)</small>' : ''}`;
       for (let k = 1; k <= s.sets; k++) { const dn = st[`d_${idx}_${k}`];
