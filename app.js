@@ -104,7 +104,10 @@ async function imp() {
     for (const s of f.sessoes) {
       h += `<h2>${esc(s.nome)}${s.foco ? ' — ' + esc(s.foco) : ''}</h2>`;
       for (const it of s.itens) {
-        if (it.tipo === 'cardio') { h += `<div class=row><div>⏱ <b>Cardio</b><br><small class=muted>${esc(it.texto)}</small></div></div>`; continue; }
+        if (it.tipo === 'cardio') {
+          const q = it.texto.replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim(); let cx = null;
+          if (q.length > 3) { const { data } = await sb.rpc('match_exercise', { p_text: q }); const m = data?.[0]; const e = m && byId[m.exercise_id]; if (e && e.muscle_group === 'Cardio' && m.score >= 0.6) cx = e; }
+          h += `<div class=row>${cx ? `<img src="${esc(cx.image_path)}" alt="">` : ''}<div>⏱ <b>Cardio</b>${cx ? ' — ' + esc(cx.name.replace(/^Cardio:\s*/, '')) : ''}<br><small class=muted>${esc(it.texto)}</small></div></div>`; continue; }
         tot++; const { data } = await sb.rpc('match_exercise', { p_text: it.busca }); const m = data?.[0]; const ex = m && byId[m.exercise_id];
         const ob = it.obs ? `<br><small class=muted>${esc(it.obs)}</small>` : '';
         if (ex && m.score >= 0.6) h += `<div class=row><img src="${esc(ex.image_path)}" alt=""><div><b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(ex.name)}</small>${ob}</div></div>`;
