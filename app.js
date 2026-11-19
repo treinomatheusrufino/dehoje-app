@@ -43,10 +43,10 @@ function newPass() {
   $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
-  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios']].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['perfil', 'Perfil']].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
-function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students })[k](); }
+function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil })[k](); }
 
 async function getLib() {
   if (library.length) return library;
@@ -94,6 +94,26 @@ async function lib() {
   $('#s').oninput = draw; draw();
   $('#nw').onclick = () => createEx(() => lib());
   $('#g').onclick = e => { const b = e.target.closest('[data-v]'); if (b) exModal(items.find(x => x.id == b.dataset.v), lib); };
+}
+
+const nz = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? null : n; };
+const fmt = v => v == null ? '–' : String(Number(v)).replace('.', ',');
+const dbr = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+function shrink(file, max, type) { return new Promise((res, rej) => { const img = new Image(), u = URL.createObjectURL(file);
+  img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? res(b) : rej(new Error('imagem inválida')), type, .82); };
+  img.onerror = () => rej(new Error('Não consegui ler essa imagem.')); img.src = u; }); }
+async function perfil() {
+  const { data: p } = await sb.from('profiles').select('brand_name,brand_logo,phone').eq('id', session.user.id).maybeSingle(); const pr = p || {};
+  app.innerHTML = `<h2>Perfil e marca</h2><p class=muted>Aparece para os seus alunos no app deles.</p>
+   <label class=muted>Nome da sua marca</label><input id=bn placeholder="Matheus Rufino Treinamento" value="${esc(pr.brand_name || '')}">
+   <label class=muted>Seu WhatsApp (com DDD, só números) — o aluno vê um botão “Falar com meu treinador”</label><input id=ph inputmode=tel placeholder="5511999999999" value="${esc(pr.phone || '')}">
+   <label class=muted>Logo (imagem quadrada, de preferência com fundo transparente)</label>${pr.brand_logo ? `<p><img src="${esc(pr.brand_logo)}" alt="" style="width:64px;height:64px;object-fit:contain"></p>` : ''}<input id=lg type=file accept="image/*">
+   <button class=p id=sv2>Salvar</button><p id=pm></p>`;
+  $('#sv2').onclick = async () => { const m = $('#pm'); m.textContent = 'Salvando…'; try { let logo = pr.brand_logo || null; const f = $('#lg').files[0];
+      if (f) { const b = await shrink(f, 256, 'image/png'), path = `${session.user.id}/logo-${Date.now()}.png`; const u = await sb.storage.from('brand').upload(path, b, { contentType: 'image/png' }); if (u.error) throw u.error; logo = sb.storage.from('brand').getPublicUrl(path).data.publicUrl; }
+      const r = await sb.from('profiles').update({ brand_name: $('#bn').value.trim() || null, phone: $('#ph').value.replace(/\D/g, '') || null, brand_logo: logo }).eq('id', session.user.id);
+      if (r.error) throw r.error; m.innerHTML = '<span class=ok>Salvo ✓</span>'; perfil(); } catch (e) { m.innerHTML = `<span class=err>${esc(e.message)}</span>`; } };
 }
 function restOf(t) { const m = /(?:pausa|descanso|intervalo)\s*(?:de\s*)?(\d+)\s*(min(?:utos?)?|s(?:eg(?:undos?)?)?)\b/i.exec(t || ''); return m ? (/^m/i.test(m[2]) ? +m[1] * 60 : +m[1]) : 0; }
 export function parseFicha(text) {
@@ -199,38 +219,50 @@ async function salvar(f, nome, rd) {
 // ---------- alunos (treinador)
 async function students() {
   app.innerHTML = '<h2>Alunos</h2><div id=ls>Carregando…</div>';
-  const [{ data, error }, { data: ses }] = await Promise.all([sb.from('students').select('id,name,active,created_at').order('name'),
+  const [{ data, error }, { data: ses }] = await Promise.all([sb.from('students').select('id,name,active,created_at,plan_end').order('name'),
     sb.from('workout_sessions').select('student_id,started_at,rating,comment,workouts(name),students(name)').order('started_at', { ascending: false }).limit(300)]);
   if (error) return $('#ls').innerHTML = `<p class=err>${esc(error.message)}</p>`;
   const last = {}; (ses || []).forEach(z => { if (!last[z.student_id]) last[z.student_id] = z; });
   const dias = d => Math.floor((Date.now() - new Date(d)) / 864e5);
   let h = '';
+  const left = d => d ? Math.ceil((new Date(d + 'T23:59:59') - Date.now()) / 864e5) : null;
+  const att = []; data.forEach(s => { const l = last[s.id], d = l ? dias(l.started_at) : null, pl = left(s.plan_end);
+    if (pl !== null && pl <= 7) att.push(`<div class=fb data-id=${s.id}><b>${esc(s.name)}</b> <small class=warn>${pl < 0 ? 'plano vencido' : pl === 0 ? 'plano vence hoje' : `plano vence em ${pl} dia${pl === 1 ? '' : 's'}`}</small></div>`);
+    if (l && d > 7) att.push(`<div class=fb data-id=${s.id}><b>${esc(s.name)}</b> <small class=warn>sem treinar há ${d} dias</small></div>`); });
+  if (att.length) h += '<div class=box2><b>⚠ Precisam de atenção</b>' + att.join('') + '</div>';
   const fb = (ses || []).slice(0, 6);
   if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
   h += data.length ? data.map(s => { const l = last[s.id], d = l ? dias(l.started_at) : null;
-    return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small></div></div>`; }).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
+    return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small>${s.plan_end ? `<br><small class=muted>Plano até ${dbr(s.plan_end)}</small>` : ''}</div></div>`; }).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
   $('#ls').innerHTML = h;
   $('#ls').onclick = e => { const r = e.target.closest('[data-id]'); if (r) aluno(r.dataset.id); };
 }
 async function aluno(id) {
   app.innerHTML = 'Carregando…'; const lbq = await getLib();
-  const [s, w, h, ev] = await Promise.all([
+  const [s, w, h, ev, bm, ph] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
     sb.from('workouts').select('id,name,position,workout_blocks(id,position,set_type,block_items(id,position,raw_text,note,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
     sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
-    sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000)]);
+    sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000),
+    sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on'),
+    sb.from('progress_photos').select('*').eq('student_id', id).order('taken_on', { ascending: false })]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
   const st = s.data, url = linkOf(st.token);
   let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>
    <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class=btn href="https://wa.me/?text=${encodeURIComponent('Oi! Seu treino está aqui: ' + url)}" target=_blank>Enviar no WhatsApp</a>
    <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
+  x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div>`;
   (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2>`;
     wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => {
       x += `<div class=row>${im(i.exercises?.image_path)}<div>${b.set_type === 'biset' ? '<span class=tag>bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
       ${i.kind === 'ex' ? `<button class=sm data-tr=${i.id}>Trocar</button> ` : ''}${i.exercise_id ? `<button class=sm data-vx=${i.exercise_id}>🎬 Vídeo</button> ` : ''}<button class=sm data-rm=${i.id}>Remover</button></div></div>`; })); });
   const evo = {}; (ev.data || []).forEach(l => { const n = l.block_items?.exercises?.name || l.block_items?.raw_text || '?'; const e = evo[n] || (evo[n] = { first: Number(l.load_kg), last: 0, best: 0, n: 0 }); e.last = Number(l.load_kg); e.best = Math.max(e.best, Number(l.load_kg)); e.n++; });
   const el = Object.entries(evo); if (el.length) x += '<h2>Evolução de cargas</h2><div class=box2><table class=evo><tr><th>Exercício</th><th>1ª</th><th>Última</th><th>Melhor</th></tr>' + el.map(([n, e]) => `<tr><td>${esc(n)}</td><td>${e.first}</td><td>${e.last} ${e.last > e.first ? '<span class=ok>▲</span>' : e.last < e.first ? '<span class=err>▼</span>' : ''}</td><td>${e.best}</td></tr>`).join('') + '</table><small class=muted>Cargas em kg.</small></div>';
+  const ms = bm.data || [], f0 = ms[0];
+  x += `<h2>Avaliações</h2><div class=box2><div class=mgrid><label>Data<input id=m_d type=date value="${new Date().toISOString().slice(0, 10)}"></label><label>Peso (kg)<input id=m_w inputmode=decimal></label><label>% gordura<input id=m_f inputmode=decimal></label><label>Cintura (cm)<input id=m_wa inputmode=decimal></label><label>Quadril (cm)<input id=m_h inputmode=decimal></label><label>Peito (cm)<input id=m_c inputmode=decimal></label><label>Braço (cm)<input id=m_a inputmode=decimal></label><label>Coxa (cm)<input id=m_t inputmode=decimal></label></div><button class=p id=mb>Salvar avaliação</button> <small id=mm class=muted></small>`;
+  if (ms.length) x += '<div style="overflow:auto"><table class=evo><tr><th>Data</th><th>Peso</th><th>%G</th><th>Cint.</th><th>Quad.</th><th>Peit.</th><th>Braç.</th><th>Coxa</th><th></th></tr>' + [...ms].reverse().map(m => `<tr><td>${dbr(m.measured_on)}</td><td>${fmt(m.weight_kg)}${f0 && m.id !== f0.id && m.weight_kg != null && f0.weight_kg != null ? `<br><small class="${m.weight_kg < f0.weight_kg ? 'ok' : 'muted'}">${m.weight_kg - f0.weight_kg > 0 ? '+' : ''}${fmt(Math.round((m.weight_kg - f0.weight_kg) * 10) / 10)}</small>` : ''}</td><td>${fmt(m.body_fat_pct)}</td><td>${fmt(m.waist_cm)}</td><td>${fmt(m.hip_cm)}</td><td>${fmt(m.chest_cm)}</td><td>${fmt(m.arm_cm)}</td><td>${fmt(m.thigh_cm)}</td><td><button class=sm data-dm=${m.id}>×</button></td></tr>`).join('') + '</table></div>';
+  x += `</div><h2>Fotos de progresso</h2><div class=box2><input id=pf type=file accept="image/*" multiple><small class=muted>Só você vê as fotos. Elas são reduzidas automaticamente.</small><div id=pg class=pgrid></div></div>`;
   x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small>${esc(z.comment)}</small>` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Excluir aluno</button></p>'; app.innerHTML = x;
   app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
@@ -238,6 +270,18 @@ async function aluno(id) {
     const d = mdl(`<h3>Responder ao aluno</h3>${z.comment ? `<p class=muted>“${esc(z.comment)}”</p>` : ''}<textarea id=rt>${esc(z.trainer_reply || '')}</textarea><p id=rm class=err></p><button class=p id=rs>Enviar resposta</button> <button id=rc>Cancelar</button>`);
     d.querySelector('#rc').onclick = d.close;
     d.querySelector('#rs').onclick = async () => { const t = d.querySelector('#rt').value.trim(); const r = await sb.from('workout_sessions').update({ trainer_reply: t || null, trainer_reply_at: t ? new Date().toISOString() : null }).eq('id', z.id); if (r.error) return d.querySelector('#rm').textContent = r.error.message; d.close(); aluno(id); }; });
+  $('#ps').onclick = async () => { const r = await sb.from('students').update({ plan_name: $('#pn').value.trim() || null, plan_end: $('#pe').value || null }).eq('id', id); $('#ps').textContent = r.error ? 'Erro: ' + r.error.message : 'Plano salvo ✓'; };
+  $('#mb').onclick = async () => { const row = { student_id: id, measured_on: $('#m_d').value || undefined, weight_kg: nz($('#m_w').value), body_fat_pct: nz($('#m_f').value), waist_cm: nz($('#m_wa').value), hip_cm: nz($('#m_h').value), chest_cm: nz($('#m_c').value), arm_cm: nz($('#m_a').value), thigh_cm: nz($('#m_t').value) };
+    if ([row.weight_kg, row.body_fat_pct, row.waist_cm, row.hip_cm, row.chest_cm, row.arm_cm, row.thigh_cm].every(v => v == null)) return $('#mm').textContent = 'Preencha ao menos uma medida.';
+    const r = await sb.from('body_measurements').insert(row); if (r.error) return $('#mm').textContent = r.error.message; aluno(id); };
+  app.querySelectorAll('[data-dm]').forEach(b => b.onclick = async () => { if (confirm('Apagar esta avaliação?')) { await sb.from('body_measurements').delete().eq('id', b.dataset.dm); aluno(id); } });
+  const drawPh = async () => { const rows = ph.data || []; if (!rows.length) return; const { data: urls } = await sb.storage.from('progress').createSignedUrls(rows.map(r => r.path), 3600); const m = Object.fromEntries((urls || []).map(u => [u.path, u.signedUrl]));
+    $('#pg').innerHTML = rows.map(r => `<div class=ph><a href="${esc(m[r.path] || '#')}" target=_blank rel=noopener><img src="${esc(m[r.path] || '')}" alt=""></a><small class=muted>${dbr(r.taken_on)}</small> <button class=sm data-dp=${r.id}>×</button></div>`).join('');
+    app.querySelectorAll('[data-dp]').forEach(b => b.onclick = async () => { if (!confirm('Apagar esta foto?')) return; const r = rows.find(z => z.id === b.dataset.dp); await sb.storage.from('progress').remove([r.path]); await sb.from('progress_photos').delete().eq('id', r.id); aluno(id); }); };
+  drawPh();
+  $('#pf').onchange = async e => { const fs = [...e.target.files]; if (!fs.length) return; $('#pg').insertAdjacentHTML('afterbegin', '<small class=muted>Enviando…</small>');
+    try { for (const f of fs) { const b = await shrink(f, 1280, 'image/jpeg'), path = `${session.user.id}/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.jpg`; const u = await sb.storage.from('progress').upload(path, b, { contentType: 'image/jpeg' }); if (u.error) throw u.error;
+        const r = await sb.from('progress_photos').insert({ student_id: id, path }); if (r.error) throw r.error; } aluno(id); } catch (er) { $('#pg').innerHTML = `<span class=err>${esc(er.message)}</span>`; } };
   $('#ms').onclick = async () => { const r = await sb.from('students').update({ message: $('#msg').value.trim() || null }).eq('id', id); $('#ms').textContent = r.error ? 'Erro: ' + r.error.message : 'Recado salvo ✓'; };
   $('#bk').onclick = students; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
@@ -250,6 +294,8 @@ async function studentView(token) {
   nav.innerHTML = ''; const { data: P, error } = await sb.rpc('student_plan', { p_token: token });
   if (error || !P) return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>';
   document.body.classList.add('aluno');
+  const BR = P.brand || { name: 'DE HOJE' }; const hd = document.querySelector('header'); hd.querySelector('b').textContent = BR.name; document.title = BR.name;
+  if (BR.logo && /^https:\/\//.test(BR.logo)) hd.querySelector('img').src = BR.logo;
   const key = w => 'dh2_' + token + '_' + w;
   const ld = w => { try { return JSON.parse(localStorage.getItem(key(w))) || {}; } catch { return {}; } };
   const sv = (w, o) => { try { localStorage.setItem(key(w), JSON.stringify(o)); } catch {} };
@@ -286,7 +332,7 @@ async function studentView(token) {
   const startRest = sec => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec }; paintRest(); tick = setInterval(frame, 250); };
 
   // --- início: escolher o treino do dia
-  const home = () => { stopRest(); wk = null; document.title = 'DE HOJE'; unwake();
+  const home = () => { stopRest(); wk = null; document.title = BR.name; unwake();
     let h = `<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
     if (!P.workouts.length) { app.innerHTML = h + '<p class=muted>Seu treino ainda não foi cadastrado.</p>'; return; }
     const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);
@@ -295,10 +341,16 @@ async function studentView(token) {
     h += `<div class=week><div class=dots>${days}</div><small class=muted><b>${wkc}</b> treino${wkc === 1 ? '' : 's'} esta semana · <b>${m30}</b> nos últimos 30 dias</small></div>`;
     if (P.student.message) h += `<div class=msg><b>Recado do treinador</b><p class=pre>${esc(P.student.message)}</p></div>`;
     (P.replies || []).slice(0, 2).forEach(r => { h += `<div class=msg><small class=muted>Resposta do treinador · ${new Date(r.at).toLocaleDateString('pt-BR')}</small><p class=pre>${esc(r.text)}</p></div>`; });
+    const pl = P.plan_end ? Math.ceil((new Date(P.plan_end + 'T23:59:59') - Date.now()) / 864e5) : null;
+    if (pl !== null && pl <= 7) h += `<div class=msg><b>${pl < 0 ? 'Seu plano venceu' : pl === 0 ? 'Seu plano vence hoje' : `Seu plano termina em ${pl} dia${pl === 1 ? '' : 's'}`}</b><p>Fale com seu treinador para renovar e continuar evoluindo.</p></div>`;
+    const ms = P.measures || []; if (ms.length) { const a = ms[0], z = ms[ms.length - 1], df = (k, u) => ms.length > 1 && a[k] != null && z[k] != null ? ` (${z[k] - a[k] > 0 ? '+' : ''}${String(Math.round((z[k] - a[k]) * 10) / 10).replace('.', ',')} ${u})` : '';
+      const parts = []; if (z.weight != null) parts.push(`Peso <b>${String(z.weight).replace('.', ',')} kg</b>${df('weight', 'kg')}`); if (z.waist != null) parts.push(`Cintura <b>${String(z.waist).replace('.', ',')} cm</b>${df('waist', 'cm')}`); if (z.fat != null) parts.push(`Gordura <b>${String(z.fat).replace('.', ',')}%</b>${df('fat', '%')}`);
+      if (parts.length) h += `<div class=week><b>Seu progresso</b><br><small>${parts.join('<br>')}</small></div>`; }
     h += '<p class=muted>Qual treino você vai fazer hoje?</p>';
     P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
       h += `<div class=wcard><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${w.items.length} exercícios</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
+    if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. As cargas ficam salvas mesmo sem internet.</small></p>';
     app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); };
   const start = id => { wk = P.workouts.find(w => w.id === id); steps = stepsOf(wk); const o = ld(id); idx = Math.min(o.idx || 0, steps.length); upd(o => { o.started = true; o.t0 = o.t0 || Date.now(); }); wake(); play(); };

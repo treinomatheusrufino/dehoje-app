@@ -53,3 +53,6 @@ h2{border-bottom:3px solid var(--o);padding-bottom:4px}
 .vid{margin:8px 0;font-weight:600;color:var(--od);border-color:var(--od)}.tnote{background:#F3FBF6;border-radius:10px;padding:8px;text-align:left}
 .msg{background:#F3FBF6;border:1px solid var(--o);border-radius:14px;padding:10px 12px;margin-bottom:10px}.msg p{margin:4px 0 0}
 .modal h3{margin-top:0}
+
+.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 10px;margin-bottom:8px}.mgrid label{font-size:13px;color:var(--g)}.mgrid input{margin:2px 0 0}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}.ph img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px}.ph{text-align:center}
