@@ -61,18 +61,57 @@ async function lib() {
     .map(x => `<div class=card><img loading=lazy src="${esc(x.image_path)}" alt="${esc(x.name)}"><b>${esc(x.name)}</b><small>${esc(x.muscle_group)}</small></div>`).join(''); };
   $('#s').oninput = draw; draw();
 }
+export function parseFicha(text) {
+  const out = { aluno: '', meta: [], geral: [], sessoes: [] };
+  let cur = null, mode = 'head';
+  for (const raw of text.split(/\r?\n/)) {
+    const l = raw.trim().replace(/^[•*\-]\s+/, m => m);
+    if (!l || /^[⸺—–_\-=]{2,}$/.test(l) || /^⸻$/.test(l)) continue;
+    const t = l.replace(/^[*•]\s*/, '');
+    let m = /^TREINO\s+([A-Z0-9]+)\b\s*[:\-–]?\s*(.*)$/i.exec(l);
+    if (m) { cur = { nome: 'Treino ' + m[1].toUpperCase(), foco: m[2] || '', itens: [] }; out.sessoes.push(cur); mode = 'sess'; continue; }
+    if (/^ORIENTA/i.test(l)) { mode = 'geral'; continue; }
+    if (mode === 'head') { if (!out.aluno && !/:/.test(l)) out.aluno = l; else if (/:/.test(l)) out.meta.push(l); continue; }
+    if (mode === 'geral') { if (/^(BOM TREINO|MR )/i.test(l)) { mode = 'fim'; continue; } out.geral.push(t); continue; }
+    if (/^(BOM TREINO|MR TREINAMENTO)/i.test(l)) { mode = 'fim'; continue; }
+    if (!cur || mode === 'fim') continue;
+    m = /^(\d+)\s*[.)\-]\s*(.+)$/.exec(l);
+    if (!m) { if (!cur.itens.length && !cur.foco) cur.foco = l; else if (cur.itens.length) cur.itens[cur.itens.length - 1].obs = (cur.itens[cur.itens.length - 1].obs ? cur.itens[cur.itens.length - 1].obs + ' ' : '') + l; continue; }
+    const body = m[2].trim();
+    if (/^CARDIO/i.test(body)) { const livre = /^CARDIO\s+LIVRE/i.test(body); const resto = body.replace(/^CARDIO\s*(LIVRE)?\s*:?\s*/i, '').trim(); cur.itens.push({ tipo: 'cardio', texto: livre ? (resto ? 'Livre: ' + resto : 'Livre') : (resto || 'Livre') }); continue; }
+    const [first, ...rest] = body.split(/\s+[–—-]\s+/);
+    const detalhe = rest.join(' – ');
+    const parts = [first]; let det = detalhe;
+    if (detalhe.includes(' + ')) { const q = detalhe.split(/\s+\+\s+/); det = q.shift(); parts.push(...q); }
+    parts.forEach((p, i) => {
+      const alt = /\(([^)]*)\)/.exec(p); const nome = p.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+      cur.itens.push({ tipo: 'ex', texto: p.trim(), busca: nome, obs: [i === 0 ? det : '', alt ? alt[1] : ''].filter(Boolean).join(' · ') });
+    });
+  }
+  return out;
+}
+
 async function imp() {
-  app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole a ficha de treino, um exercício por linha. O app reconhece o exercício e mostra o desenho.</p>
-  <textarea id=t placeholder="Supino reto 4x10&#10;Crucifixo inclinado 3x12&#10;Stiff com barra 3x10"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
+  app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho.</p>
+  <textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
   $('#go').onclick = async () => {
-    const lines = $('#t').value.split('\n').map(l => l.trim()).filter(Boolean); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
-    $('#r').innerHTML = 'Lendo…'; let h = '';
-    for (const l of lines) {
-      const { data } = await sb.rpc('match_exercise', { p_text: l }); const m = data?.[0]; const ex = m && byId[m.exercise_id];
-      h += ex ? `<div class=row><img src="${esc(ex.image_path)}" alt=""><div><b>${esc(l)}</b><br><small class=muted>${esc(ex.name)}</small></div></div>`
-              : `<div class=row><div><b>${esc(l)}</b><br><small class=warn>Não reconheci este exercício — revisar</small></div></div>`;
+    const f = parseFicha($('#t').value); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
+    if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei nenhum "TREINO A/B/C". Confira o texto.</p>';
+    $('#r').innerHTML = 'Lendo…'; let h = '', rev = 0, tot = 0;
+    if (f.aluno) h += `<h2>${esc(f.aluno)}</h2>`;
+    if (f.meta.length) h += `<p class=muted>${f.meta.map(esc).join('<br>')}</p>`;
+    if (f.geral.length) h += `<details><summary>Orientações gerais (${f.geral.length})</summary><ul>${f.geral.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>`;
+    for (const s of f.sessoes) {
+      h += `<h2>${esc(s.nome)}${s.foco ? ' — ' + esc(s.foco) : ''}</h2>`;
+      for (const it of s.itens) {
+        if (it.tipo === 'cardio') { h += `<div class=row><div>⏱ <b>Cardio</b><br><small class=muted>${esc(it.texto)}</small></div></div>`; continue; }
+        tot++; const { data } = await sb.rpc('match_exercise', { p_text: it.busca }); const m = data?.[0]; const ex = m && byId[m.exercise_id];
+        const ob = it.obs ? `<br><small class=muted>${esc(it.obs)}</small>` : '';
+        if (ex && m.score >= 0.6) h += `<div class=row><img src="${esc(ex.image_path)}" alt=""><div><b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(ex.name)}</small>${ob}</div></div>`;
+        else { rev++; h += `<div class=row><div><b>${esc(it.texto)}</b><br><small class=warn>Sem desenho — revisar${ex ? ' (parecido: ' + esc(ex.name) + ')' : ''}</small>${ob}</div></div>`; }
+      }
     }
-    $('#r').innerHTML = h || '<p class=muted>Nada para ler.</p>';
+    $('#r').innerHTML = `<p class=muted>${f.sessoes.length} treinos · ${tot} exercícios · ${rev} para revisar</p>` + h;
   };
 }
 boot();
