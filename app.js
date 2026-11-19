@@ -250,7 +250,7 @@ async function aluno(id) {
   const st = s.data, url = linkOf(st.token);
   let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>
    <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class=btn href="https://wa.me/?text=${encodeURIComponent('Oi! Seu treino está aqui: ' + url)}" target=_blank>Enviar no WhatsApp</a>
-   <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p></div>`;
+   <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
   x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div>`;
   (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2>`;
@@ -283,6 +283,7 @@ async function aluno(id) {
     try { for (const f of fs) { const b = await shrink(f, 1280, 'image/jpeg'), path = `${session.user.id}/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.jpg`; const u = await sb.storage.from('progress').upload(path, b, { contentType: 'image/jpeg' }); if (u.error) throw u.error;
         const r = await sb.from('progress_photos').insert({ student_id: id, path }); if (r.error) throw r.error; } aluno(id); } catch (er) { $('#pg').innerHTML = `<span class=err>${esc(er.message)}</span>`; } };
   $('#ms').onclick = async () => { const r = await sb.from('students').update({ message: $('#msg').value.trim() || null }).eq('id', id); $('#ms').textContent = r.error ? 'Erro: ' + r.error.message : 'Recado salvo ✓'; };
+  $('#nl').onclick = async () => { if (!confirm('Gerar um novo link? O link antigo deixa de funcionar e o aluno precisará do novo.')) return; const tk = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, ''); const r = await sb.from('students').update({ token: tk }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); };
   $('#bk').onclick = students; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
   app.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { if (confirm('Remover este exercício do treino?')) { await sb.from('block_items').delete().eq('id', b.dataset.rm); aluno(id); } });
