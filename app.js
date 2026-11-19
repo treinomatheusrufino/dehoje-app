@@ -8,7 +8,8 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 
 async function boot() {
   const { data } = await sb.auth.getSession(); session = data.session;
-  sb.auth.onAuthStateChange((_e, s) => { session = s; });
+  sb.auth.onAuthStateChange((ev, s) => { session = s; if (ev === 'PASSWORD_RECOVERY') newPass(); });
+  if (location.hash.includes('type=recovery')) return;
   if (!session) return login();
   await loadProfile(); menu(); show('lib');
 }
@@ -27,10 +28,18 @@ $('#out').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 function login() {
   nav.innerHTML = '';
   app.innerHTML = `<h2>Entrar</h2><input id=e type=email placeholder="E-mail" autocomplete=email><input id=p type=password placeholder="Senha (mín. 8 caracteres)" autocomplete=current-password>
-  <button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button><p id=m class=err></p>`;
+  <button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button> <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
   const go = async (fn) => { $('#m').textContent = ''; const r = await fn({ email: $('#e').value.trim(), password: $('#p').value });
-    if (r.error) return $('#m').textContent = r.error.message; if (r.data.session) location.reload(); else $('#m').textContent = 'Confirme o e-mail que enviamos e depois entre.'; };
+    if (r.error) return $('#m').textContent = r.error.message;
+    if (r.data.session) return location.reload();
+    $('#m').textContent = r.data.user && r.data.user.identities && r.data.user.identities.length === 0 ? 'Este e-mail já tem conta. Use Entrar ou Esqueci a senha.' : 'Confirme o e-mail que enviamos e depois entre.'; };
   $('#in').onclick = () => go(c => sb.auth.signInWithPassword(c)); $('#up').onclick = () => go(c => sb.auth.signUp(c));
+  $('#fg').onclick = async () => { const e = $('#e').value.trim(); if (!e) return $('#m').textContent = 'Digite seu e-mail acima.';
+    const r = await sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + location.pathname }); $('#m').textContent = r.error ? r.error.message : 'Se o e-mail tiver conta, enviamos um link para criar nova senha. Veja também o spam.'; };
+}
+function newPass() {
+  nav.innerHTML = ''; app.innerHTML = '<h2>Nova senha</h2><input id=n type=password placeholder="Nova senha (mín. 8 caracteres)" autocomplete=new-password><button class=p id=sv>Salvar</button><p id=m class=err></p>';
+  $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
   nav.innerHTML = [['lib', 'Exercícios'], ['imp', 'Importar ficha']].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
