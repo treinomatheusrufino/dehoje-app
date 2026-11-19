@@ -163,16 +163,26 @@ async function salvar(f, nome, rd) {
 // ---------- alunos (treinador)
 async function students() {
   app.innerHTML = '<h2>Alunos</h2><div id=ls>Carregando…</div>';
-  const { data, error } = await sb.from('students').select('id,name,active,created_at').order('name'); if (error) return $('#ls').innerHTML = `<p class=err>${esc(error.message)}</p>`;
-  $('#ls').innerHTML = data.length ? data.map(s => `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b></div></div>`).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
-  $('#ls').onclick = e => { const r = e.target.closest('.row'); if (r) aluno(r.dataset.id); };
+  const [{ data, error }, { data: ses }] = await Promise.all([sb.from('students').select('id,name,active,created_at').order('name'),
+    sb.from('workout_sessions').select('student_id,started_at,rating,comment,workouts(name),students(name)').order('started_at', { ascending: false }).limit(300)]);
+  if (error) return $('#ls').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  const last = {}; (ses || []).forEach(z => { if (!last[z.student_id]) last[z.student_id] = z; });
+  const dias = d => Math.floor((Date.now() - new Date(d)) / 864e5);
+  let h = '';
+  const fb = (ses || []).slice(0, 6);
+  if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
+  h += data.length ? data.map(s => { const l = last[s.id], d = l ? dias(l.started_at) : null;
+    return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small></div></div>`; }).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
+  $('#ls').innerHTML = h;
+  $('#ls').onclick = e => { const r = e.target.closest('[data-id]'); if (r) aluno(r.dataset.id); };
 }
 async function aluno(id) {
   app.innerHTML = 'Carregando…';
-  const [s, w, h] = await Promise.all([
+  const [s, w, h, ev] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
     sb.from('workouts').select('id,name,position,workout_blocks(id,position,set_type,block_items(id,position,raw_text,note,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
-    sb.from('workout_sessions').select('started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10)]);
+    sb.from('workout_sessions').select('started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
+    sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000)]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
   const st = s.data, url = linkOf(st.token);
   let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>
@@ -182,6 +192,8 @@ async function aluno(id) {
     wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => {
       x += `<div class=row><img ${i.exercises ? `src="${esc(i.exercises.image_path)}"` : ''} alt=""><div>${b.set_type === 'biset' ? '<span class=tag>bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
       ${i.kind === 'ex' ? `<button class=sm data-tr=${i.id}>Trocar</button> ` : ''}<button class=sm data-rm=${i.id}>Remover</button></div></div>`; })); });
+  const evo = {}; (ev.data || []).forEach(l => { const n = l.block_items?.exercises?.name || l.block_items?.raw_text || '?'; const e = evo[n] || (evo[n] = { first: Number(l.load_kg), last: 0, best: 0, n: 0 }); e.last = Number(l.load_kg); e.best = Math.max(e.best, Number(l.load_kg)); e.n++; });
+  const el = Object.entries(evo); if (el.length) x += '<h2>Evolução de cargas</h2><div class=box2><table class=evo><tr><th>Exercício</th><th>1ª</th><th>Última</th><th>Melhor</th></tr>' + el.map(([n, e]) => `<tr><td>${esc(n)}</td><td>${e.first}</td><td>${e.last} ${e.last > e.first ? '<span class=ok>▲</span>' : e.last < e.first ? '<span class=err>▼</span>' : ''}</td><td>${e.best}</td></tr>`).join('') + '</table><small class=muted>Cargas em kg.</small></div>';
   x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small>${esc(z.comment)}</small>` : ''}<br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Excluir aluno</button></p>'; app.innerHTML = x;
   $('#bk').onclick = students; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
@@ -208,6 +220,16 @@ async function studentView(token) {
     return out; };
   const beep = () => { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = .15; o.start(); setTimeout(() => { o.stop(); c.close(); }, 350); } catch {} };
 
+  let lock = null;
+  const wake = async () => { try { if (navigator.wakeLock && !lock) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); } } catch {} };
+  const unwake = () => { try { lock && lock.release(); } catch {} lock = null; };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wk) wake(); });
+  const pk = 'dh2_pending_' + token;
+  const flush = async () => { let q = []; try { q = JSON.parse(localStorage.getItem(pk)) || []; } catch {} if (!q.length) return; const rest = [];
+    for (const a of q) { try { const r = await sb.rpc('student_finish', a); if (r.error && !/inválido/.test(r.error.message)) rest.push(a); } catch { rest.push(a); } }
+    try { localStorage.setItem(pk, JSON.stringify(rest)); } catch {} };
+  window.addEventListener('online', flush); flush();
+
   // --- cronômetro de pausa (semicírculo)
   const LEN = Math.PI * 80;
   const stopRest = () => { rest = null; clearInterval(tick); tick = null; const r = $('#rest'); if (r) r.innerHTML = ''; };
@@ -221,15 +243,20 @@ async function studentView(token) {
   const startRest = sec => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec }; paintRest(); tick = setInterval(frame, 250); };
 
   // --- início: escolher o treino do dia
-  const home = () => { stopRest(); wk = null; document.title = 'DE HOJE';
+  const home = () => { stopRest(); wk = null; document.title = 'DE HOJE'; unwake();
     let h = `<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
     if (!P.workouts.length) { app.innerHTML = h + '<p class=muted>Seu treino ainda não foi cadastrado.</p>'; return; }
+    const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);
+    const ss = (P.sessions || []).map(x => new Date(x)), wkc = ss.filter(x => x >= mon).length, m30 = ss.filter(x => now - x < 30 * 864e5).length;
+    const days = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, n) => { const a = new Date(mon); a.setDate(mon.getDate() + n); const b = new Date(a); b.setDate(a.getDate() + 1); const did = ss.some(x => x >= a && x < b); return `<span class="dot${did ? ' on' : ''}${n === dow ? ' today' : ''}">${l}</span>`; }).join('');
+    h += `<div class=week><div class=dots>${days}</div><small class=muted><b>${wkc}</b> treino${wkc === 1 ? '' : 's'} esta semana · <b>${m30}</b> nos últimos 30 dias</small></div>`;
     h += '<p class=muted>Qual treino você vai fazer hoje?</p>';
     P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
       h += `<div class=wcard><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${w.items.length} exercícios</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
+    h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. As cargas ficam salvas mesmo sem internet.</small></p>';
     app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); };
-  const start = id => { wk = P.workouts.find(w => w.id === id); steps = stepsOf(wk); const o = ld(id); idx = Math.min(o.idx || 0, steps.length); upd(o => { o.started = true; }); play(); };
+  const start = id => { wk = P.workouts.find(w => w.id === id); steps = stepsOf(wk); const o = ld(id); idx = Math.min(o.idx || 0, steps.length); upd(o => { o.started = true; o.t0 = o.t0 || Date.now(); }); wake(); play(); };
   const go = n => { idx = Math.max(0, Math.min(steps.length, n)); upd(o => { o.idx = idx; }); play(); window.scrollTo(0, 0); };
 
   // --- um exercício por vez
@@ -241,7 +268,8 @@ async function studentView(token) {
     else {
       s.items.forEach((i, ix) => { const ex = i.exercise;
         h += `<div class=exv>${s.biset ? `<span class=tag>Bi-set · exercício ${'AB'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `<img src="${esc(ex.image)}" alt="${esc(ex.name)}"><small class=muted>${esc(ex.name)}</small>` : ''}${i.note ? `<p>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
-      h += `<div class=sets><b>Séries</b>${s.biset ? ' <small class=muted>(faça A e B em sequência e marque ✓)</small>' : ''}`;
+      const hasLast = s.items.some(i => i.last);
+      h += `<div class=sets><b>Séries</b>${hasLast ? ' <button class=sm data-rep>Repetir última vez</button>' : ''}${s.biset ? ' <small class=muted>(faça A e B em sequência e marque ✓)</small>' : ''}`;
       for (let k = 1; k <= s.sets; k++) { const dn = st[`d_${idx}_${k}`];
         h += `<div class="setrow${dn ? ' done' : ''}"><span class=sn>${k}</span><div class=ins>${s.items.map((i, ix) => `<div class=pair>${s.biset ? `<small>${'AB'[ix] || ix + 1}</small>` : ''}<input inputmode=decimal placeholder="${i.last?.load ?? 'kg'}" aria-label=kg data-i=${i.id} data-s=${k} data-f=load value="${esc(st[`${i.id}_${k}_load`] || '')}"><input inputmode=numeric placeholder="reps" aria-label=reps data-i=${i.id} data-s=${k} data-f=reps value="${esc(st[`${i.id}_${k}_reps`] || '')}"></div>`).join('')}</div><button class="okb${dn ? ' on' : ''}" data-d=${k} aria-label="Série ${k} feita">✓</button></div>`; }
       h += '</div>'; }
@@ -250,15 +278,19 @@ async function studentView(token) {
     app.querySelector('[data-home]').onclick = home; app.querySelector('[data-prev]').onclick = () => go(idx - 1);
     app.querySelector('[data-next]').onclick = () => go(idx + 1); app.querySelector('[data-skip]').onclick = () => go(idx + 1);
     app.querySelectorAll('input[data-i]').forEach(e => e.oninput = () => upd(o => { o[`${e.dataset.i}_${e.dataset.s}_${e.dataset.f}`] = e.value; }));
+    const rp = app.querySelector('[data-rep]'); if (rp) rp.onclick = () => { upd(o => { s.items.forEach(i => { if (!i.last) return; for (let k = 1; k <= s.sets; k++) { if (!o[`${i.id}_${k}_load`] && i.last.load != null) o[`${i.id}_${k}_load`] = String(i.last.load); if (!o[`${i.id}_${k}_reps`] && i.last.reps != null) o[`${i.id}_${k}_reps`] = String(i.last.reps); } }); }); play(); };
     app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => upd(o => { o['c' + e.dataset.c] = e.checked; }));
     app.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; let now; upd(o => { now = !o[`d_${idx}_${k}`]; o[`d_${idx}_${k}`] = now; });
       b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); if (now) startRest(s.rest); });
   };
 
   // --- final
+  const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? 0 : n; };
   const finish = () => { stopRest(); const o = ld(wk.id); let feitas = 0; Object.keys(o).forEach(k => { if (/^d_/.test(k) && o[k]) feitas++; });
+    let vol = 0; const prs = []; wk.items.forEach(i => { if (i.kind === 'cardio') return; let mx = 0; for (let k = 1; k <= 12; k++) { const l = num(o[`${i.id}_${k}_load`]), r = num(o[`${i.id}_${k}_reps`]); vol += l * r; mx = Math.max(mx, l); } if (mx > 0 && i.best != null && mx > Number(i.best)) prs.push(`${i.exercise ? i.exercise.name : i.text}: ${mx} kg`); });
+    const min = o.t0 ? Math.max(1, Math.round((Date.now() - o.t0) / 60000)) : null;
     app.innerHTML = `<div class=ptop><button data-back>←</button><b>Treino concluído?</b><span></span></div><div class=bar><i style="width:100%"></i></div>
-      <div class=box2><p><b>${feitas}</b> séries marcadas. Como foi o treino?</p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
+      <div class=box2><div class=stats><div><b>${feitas}</b><small>séries</small></div><div><b>${Math.round(vol)}</b><small>kg levantados</small></div>${min ? `<div><b>${min}</b><small>min</small></div>` : ''}</div>${prs.length ? `<div class=pr>🏆 <b>Novo recorde!</b><br>${prs.map(esc).join('<br>')}</div>` : ''}<p><b>Como foi o treino de hoje?</b></p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
       <textarea id=cm placeholder="Comentário (opcional)">${esc(o.comment || '')}</textarea><button class=p id=fin>Concluir treino</button><p id=fm></p></div>`;
     app.querySelector('[data-back]').onclick = () => go(steps.length - 1);
     app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { upd(z => { z.comment = $('#cm').value; z.rating = +b.dataset.r; }); finish(); });
@@ -266,10 +298,14 @@ async function studentView(token) {
     $('#fin').onclick = async () => { const z = ld(wk.id), logs = [];
       wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
       $('#fm').textContent = 'Enviando…';
-      const r = await sb.rpc('student_finish', { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: z.comment || '', p_logs: logs });
-      if (r.error) return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`;
+      const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: z.comment || '', p_logs: logs };
+      let r; try { r = await sb.rpc('student_finish', args); } catch (e) { r = { error: { message: 'network' } }; }
+      let queued = false;
+      if (r.error) { if (/inválido/.test(r.error.message)) return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`;
+        try { const q = JSON.parse(localStorage.getItem(pk)) || []; q.push(args); localStorage.setItem(pk, JSON.stringify(q)); queued = true; } catch { return $('#fm').innerHTML = '<span class=err>Sem conexão. Tente novamente.</span>'; } }
       try { localStorage.removeItem(key(wk.id)); } catch {}
-      app.innerHTML = '<h2>Treino concluído! 💪</h2><p>Parabéns! Seu treinador já pode ver o seu resultado.</p><button class=p id=hm>Voltar ao início</button>'; $('#hm').onclick = home; };
+      unwake();
+      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : '<p>Seu treinador já pode ver o seu resultado.</p>'}<button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
   };
   home();
 }

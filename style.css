@@ -39,3 +39,10 @@ h2{border-bottom:3px solid var(--o);padding-bottom:4px}
 .restbox{border:2px solid var(--o);border-radius:16px;padding:8px 12px;margin-bottom:12px;text-align:center;background:#F3FBF6}
 .gauge{width:100%;max-width:300px}.gt{fill:none;stroke:var(--b);stroke-width:14;stroke-linecap:round}.ga{fill:none;stroke:var(--o);stroke-width:14;stroke-linecap:round}
 .gs{font-size:44px;font-weight:800;fill:var(--n)}.gl{font-size:10px;fill:var(--g)}.rbtn{display:flex;gap:8px;justify-content:center}.rbtn button{padding:7px 12px}
+
+.week{border:1px solid var(--b);border-radius:14px;padding:10px 12px;margin-bottom:12px;text-align:center}.dots{display:flex;justify-content:center;gap:8px;margin-bottom:6px}
+.dot{width:30px;height:30px;border-radius:50%;border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--g)}.dot.on{background:var(--od);border-color:var(--od);color:#fff}.dot.today{border:2px solid var(--o)}
+.stats{display:flex;justify-content:space-around;margin-bottom:10px}.stats div{text-align:center}.stats b{display:block;font-size:26px}.stats small{color:var(--g)}
+.pr{background:#E8F5EC;border:1px solid var(--o);border-radius:12px;padding:10px;margin-bottom:10px;text-align:center}
+.fb{padding:6px 0;border-top:1px solid var(--b);cursor:pointer}.fb:first-of-type{border-top:0}.star{color:var(--o)}
+.evo{width:100%;border-collapse:collapse;font-size:14px}.evo th,.evo td{padding:5px 4px;border-bottom:1px solid var(--b);text-align:center}.evo th:first-child,.evo td:first-child{text-align:left}
