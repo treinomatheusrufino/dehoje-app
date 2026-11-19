@@ -62,6 +62,7 @@ async function lib() {
     .map(x => `<div class=card><img loading=lazy src="${esc(x.image_path)}" alt="${esc(x.name)}"><b>${esc(x.name)}</b><small>${esc(x.muscle_group)}</small></div>`).join(''); };
   $('#s').oninput = draw; draw();
 }
+function restOf(t) { const m = /(?:pausa|descanso|intervalo)\s*(?:de\s*)?(\d+)\s*(min(?:utos?)?|s(?:eg(?:undos?)?)?)\b/i.exec(t || ''); return m ? (/^m/i.test(m[2]) ? +m[1] * 60 : +m[1]) : 0; }
 export function parseFicha(text) {
   const out = { aluno: '', meta: [], geral: [], sessoes: [] };
   let cur = null, mode = 'head', gid = 0;
@@ -86,7 +87,7 @@ export function parseFicha(text) {
     if (detalhe.includes(' + ')) { const q = detalhe.split(/\s+\+\s+/); det = q.shift(); parts.push(...q); }
     parts.forEach((p, i) => {
       const alt = /\(([^)]*)\)/.exec(p); const nome = p.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-      cur.itens.push({ tipo: 'ex', texto: p.trim(), busca: nome, bi: parts.length > 1 ? gid : 0, obs: [i === 0 ? det : '', alt ? alt[1] : ''].filter(Boolean).join(' · ') });
+      cur.itens.push({ tipo: 'ex', texto: p.trim(), busca: nome, rest: restOf(body), bi: parts.length > 1 ? gid : 0, obs: [i === 0 ? det : '', alt ? alt[1] : ''].filter(Boolean).join(' · ') });
     });
   }
   return out;
@@ -120,7 +121,7 @@ async function imp() {
         if (e && m.score >= 0.6 && (it.tipo !== 'cardio' || e.muscle_group === 'Cardio')) it.ex = e; else if (e && it.tipo === 'ex') it.sug = e; }
     }
     const view = () => {
-      let h = `<label class=muted>Nome do aluno</label><input id=an value="${esc(f.aluno)}">`, rev = 0, tot = 0;
+      let h = `<label class=muted>Nome do aluno</label><input id=an value="${esc(f.aluno)}"><label class=muted>Pausa padrão entre as séries (segundos)</label><input id=rd type=number inputmode=numeric value="${f.rd || 60}">`, rev = 0, tot = 0;
       if (f.meta.length) h += `<p class=muted>${f.meta.map(esc).join('<br>')}</p>`;
       if (f.geral.length) h += `<details><summary>Orientações gerais (${f.geral.length})</summary><ul>${f.geral.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>`;
       f.sessoes.forEach((s, si) => { h += `<h2>${esc(s.nome)}${s.foco ? ' — ' + esc(s.foco) : ''}</h2>`;
@@ -130,13 +131,13 @@ async function imp() {
           if (it.ex) h += `<div class=row><img src="${esc(it.ex.image_path)}" alt=""><div>${bi}<b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(it.ex.name)}</small>${ob}<br><button class=sm data-pk="${si},${ii}">Trocar</button></div></div>`;
           else { rev++; h += `<div class=row><div>${bi}<b>${esc(it.texto)}</b><br><small class=warn>Sem desenho${it.sug ? ' (parecido: ' + esc(it.sug.name) + ')' : ''}</small>${ob}<br><button class="sm p" data-pk="${si},${ii}">Escolher exercício</button></div></div>`; } }); });
       $('#r').innerHTML = `<p class=muted>${f.sessoes.length} treinos · ${tot} exercícios · ${rev} sem desenho</p>` + h + '<button class=p id=sv>Salvar para o aluno</button><p id=sm></p>';
-      $('#sv').onclick = () => salvar(f, $('#an').value.trim());
-      $('#r').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { const [si, ii] = b.dataset.pk.split(',').map(Number); f.aluno = $('#an').value; pick(e => { f.sessoes[si].itens[ii].ex = e; view(); }); });
+      $('#sv').onclick = () => salvar(f, $('#an').value.trim(), +$('#rd').value || 60);
+      $('#r').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { const [si, ii] = b.dataset.pk.split(',').map(Number); f.aluno = $('#an').value; f.rd = +$('#rd').value || 60; pick(e => { f.sessoes[si].itens[ii].ex = e; view(); }); });
     };
     view();
   };
 }
-async function salvar(f, nome) {
+async function salvar(f, nome, rd) {
   const msg = $('#sm'); if (!nome) return msg.innerHTML = '<span class=err>Digite o nome do aluno.</span>';
   msg.textContent = 'Salvando…'; const uid = session.user.id;
   try {
@@ -150,7 +151,7 @@ async function salvar(f, nome) {
       const w = await sb.from('workouts').insert({ trainer_id: uid, student_id: st.id, name: s.nome + (s.foco ? ' — ' + s.foco : ''), position: si, raw_text: s.itens.map(i => i.texto).join('\n') }).select('id').single(); if (w.error) throw w.error;
       const blocks = []; s.itens.forEach(it => { const last = blocks[blocks.length - 1];
         if (it.bi && last && last.bi === it.bi) last.items.push(it); else blocks.push({ bi: it.bi, tipo: it.tipo, items: [it] }); });
-      const br = await sb.from('workout_blocks').insert(blocks.map((b, i) => ({ workout_id: w.data.id, position: i, set_type: b.tipo === 'cardio' ? 'cardio' : b.bi ? 'biset' : 'normal' }))).select('id,position'); if (br.error) throw br.error;
+      const br = await sb.from('workout_blocks').insert(blocks.map((b, i) => ({ workout_id: w.data.id, position: i, set_type: b.tipo === 'cardio' ? 'cardio' : b.bi ? 'biset' : 'normal', sets: b.tipo === 'cardio' ? null : Math.max(...b.items.map(i => nsets(i.obs))), rest_seconds: b.tipo === 'cardio' ? null : (b.items.map(i => i.rest).find(Boolean) || rd) }))).select('id,position'); if (br.error) throw br.error;
       const rows = []; blocks.forEach((b, i) => { const id = br.data.find(x => x.position === i).id;
         b.items.forEach((it, k) => rows.push({ block_id: id, position: k, exercise_id: it.ex ? it.ex.id : null, raw_text: it.texto, note: it.obs || null, kind: it.tipo, needs_review: !it.ex })); });
       const ir = await sb.from('block_items').insert(rows); if (ir.error) throw ir.error;
@@ -189,42 +190,87 @@ async function aluno(id) {
   $('#dl').onclick = async () => { if (confirm(`Excluir ${st.name} e todos os treinos e históricos dele? Isso não pode ser desfeito.`)) { await sb.from('students').delete().eq('id', id); students(); } };
 }
 
-// ---------- tela do aluno (sem login)
+// ---------- tela do aluno (sem login): treino do dia, exercício por exercício
 async function studentView(token) {
   nav.innerHTML = ''; const { data: P, error } = await sb.rpc('student_plan', { p_token: token });
   if (error || !P) return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>';
-  const key = w => 'dh_' + token + '_' + w; const ld = w => { try { return JSON.parse(localStorage.getItem(key(w))) || {}; } catch { return {}; } };
+  document.body.classList.add('aluno');
+  const key = w => 'dh2_' + token + '_' + w;
+  const ld = w => { try { return JSON.parse(localStorage.getItem(key(w))) || {}; } catch { return {}; } };
   const sv = (w, o) => { try { localStorage.setItem(key(w), JSON.stringify(o)); } catch {} };
-  let cur = P.workouts[0]?.id;
-  const draw = () => {
-    const w = P.workouts.find(z => z.id === cur); if (!w) return app.innerHTML = `<h2>Olá, ${esc(P.student.name)}</h2><p class=muted>Seu treino ainda não foi cadastrado.</p>`;
-    const st = ld(w.id);
-    let h = `<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2><div class=tabs>${P.workouts.map(z => `<button data-w=${z.id} class="${z.id === cur ? 'on' : ''}">${esc(z.name.split(' — ')[0])}</button>`).join('')}</div>`;
-    if (w.name.includes(' — ')) h += `<p class=muted>${esc(w.name.split(' — ').slice(1).join(' — '))}</p>`;
-    w.items.forEach(i => {
-      if (i.kind === 'cardio') { h += `<div class=row><div><label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> ⏱ <b>Cardio</b></label><br><small class=muted>${esc(i.text)}</small></div></div>`; return; }
-      const n = nsets(i.note || i.text), ex = i.exercise;
-      h += `<div class=ex>${ex ? `<img src="${esc(ex.image)}" alt="">` : ''}<div><b>${i.biset ? '<span class=tag>bi-set</span> ' : ''}${esc(i.text)}</b>${ex ? `<br><small class=muted>${esc(ex.name)}</small>` : ''}${i.note ? `<br><small>${esc(i.note)}</small>` : ''}${i.last ? `<br><small class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</small>` : ''}
-        ${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}
-        <div class=sets>${Array.from({ length: n }, (_, k) => `<div class=set><span>${k + 1}</span><input inputmode=decimal placeholder="kg" data-i=${i.id} data-s=${k + 1} data-f=load value="${esc(st[`${i.id}_${k + 1}_load`] || '')}"><input inputmode=numeric placeholder="reps" data-i=${i.id} data-s=${k + 1} data-f=reps value="${esc(st[`${i.id}_${k + 1}_reps`] || '')}"></div>`).join('')}</div></div></div>`; });
+  const upd = (fn) => { const o = ld(wk.id); fn(o); sv(wk.id, o); return o; };
+  let wk = null, steps = [], idx = 0, rest = null, tick = null;
+  const stepsOf = w => { const out = [], seen = {};
+    w.items.forEach(i => { if (i.kind === 'cardio') return out.push({ cardio: true, items: [i] });
+      if (i.biset && seen[i.group]) return seen[i.group].items.push(i);
+      const st = { items: [i], biset: i.biset }; if (i.biset) seen[i.group] = st; out.push(st); });
+    out.forEach(x => { if (x.cardio) return; x.sets = x.items[0].sets || Math.max(...x.items.map(i => nsets(i.note || i.text))); x.rest = Math.max(...x.items.map(i => i.rest || 60)); });
+    return out; };
+  const beep = () => { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = .15; o.start(); setTimeout(() => { o.stop(); c.close(); }, 350); } catch {} };
+
+  // --- cronômetro de pausa (semicírculo)
+  const LEN = Math.PI * 80;
+  const stopRest = () => { rest = null; clearInterval(tick); tick = null; const r = $('#rest'); if (r) r.innerHTML = ''; };
+  const paintRest = () => { const r = $('#rest'); if (!r) return; if (!rest) return r.innerHTML = '';
+    r.innerHTML = `<div class=restbox><svg viewBox="0 0 200 112" class=gauge><path d="M20 100 A80 80 0 0 1 180 100" class=gt /><path id=arc d="M20 100 A80 80 0 0 1 180 100" class=ga stroke-dasharray="${LEN} ${LEN}" /><text id=sec x=100 y=88 text-anchor=middle class=gs></text><text x=100 y=108 text-anchor=middle class=gl>segundos de pausa</text></svg>
+      <div class=rbtn><button data-r="-15">−15s</button><button data-r="skip">Pular pausa</button><button data-r="15">+15s</button></div></div>`;
+    r.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { if (b.dataset.r === 'skip') return stopRest(); const d = +b.dataset.r * 1000; rest.end += d; rest.total = Math.max(5, rest.total + d / 1000); frame(); });
+    frame(); };
+  const frame = () => { if (!rest) return; const left = Math.max(0, rest.end - Date.now()), sec = Math.ceil(left / 1000); const t = $('#sec'), a = $('#arc'); if (t) t.textContent = sec; if (a) a.setAttribute('stroke-dasharray', `${LEN * Math.min(1, left / (rest.total * 1000))} ${LEN}`);
+    if (left <= 0) { clearInterval(tick); tick = null; beep(); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {} const r = $('#rest'); if (r) r.innerHTML = '<div class=restbox><b class=ok>Pausa concluída! Bora para a próxima série 💪</b></div>'; rest = null; setTimeout(() => { if (!rest && $('#rest')) $('#rest').innerHTML = ''; }, 3500); } };
+  const startRest = sec => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec }; paintRest(); tick = setInterval(frame, 250); };
+
+  // --- início: escolher o treino do dia
+  const home = () => { stopRest(); wk = null; document.title = 'DE HOJE';
+    let h = `<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
+    if (!P.workouts.length) { app.innerHTML = h + '<p class=muted>Seu treino ainda não foi cadastrado.</p>'; return; }
+    h += '<p class=muted>Qual treino você vai fazer hoje?</p>';
+    P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
+      h += `<div class=wcard><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${w.items.length} exercícios</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
-    h += `<div class=box2><b>Como foi o treino?</b><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(st.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div><textarea id=cm placeholder="Comentário (opcional)">${esc(st.comment || '')}</textarea><button class=p id=fin>Finalizar treino</button><p id=fm></p></div>`;
-    app.innerHTML = h;
-    app.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { cur = b.dataset.w; draw(); });
-    app.querySelectorAll('input[data-i]').forEach(e => e.oninput = () => { const o = ld(w.id); o[`${e.dataset.i}_${e.dataset.s}_${e.dataset.f}`] = e.value; sv(w.id, o); });
-    app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { const o = ld(w.id); o['c' + e.dataset.c] = e.checked; sv(w.id, o); });
-    app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const o = ld(w.id); o.comment = $('#cm').value; o.rating = +b.dataset.r; sv(w.id, o); draw(); });
-    $('#cm').oninput = () => { const o = ld(w.id); o.comment = $('#cm').value; sv(w.id, o); };
-    $('#fin').onclick = async () => {
-      const o = ld(w.id), logs = [];
-      w.items.forEach(i => { if (i.kind === 'cardio') return; for (let k = 1; k <= nsets(i.note || i.text); k++) { const l = o[`${i.id}_${k}_load`], r = o[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
-      $('#fm').textContent = 'Enviando…';
-      const r = await sb.rpc('student_finish', { p_token: token, p_workout: w.id, p_rating: o.rating || 0, p_comment: o.comment || '', p_logs: logs });
-      if (r.error) return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`;
-      try { localStorage.removeItem(key(w.id)); } catch {}
-      app.innerHTML = '<h2>Treino concluído! 💪</h2><p>Parabéns! Seu treinador já pode ver o seu resultado.</p><button class=p onclick="location.reload()">Voltar ao treino</button>';
-    };
+    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); };
+  const start = id => { wk = P.workouts.find(w => w.id === id); steps = stepsOf(wk); const o = ld(id); idx = Math.min(o.idx || 0, steps.length); upd(o => { o.started = true; }); play(); };
+  const go = n => { idx = Math.max(0, Math.min(steps.length, n)); upd(o => { o.idx = idx; }); play(); window.scrollTo(0, 0); };
+
+  // --- um exercício por vez
+  const play = () => {
+    if (idx >= steps.length) return finish();
+    const s = steps[idx], st = ld(wk.id), p = wk.name.split(' — ');
+    let h = `<div class=ptop><button data-home aria-label=Início>←</button><b>${esc(p[0])}</b><span class=muted>${idx + 1} / ${steps.length}</span></div><div class=bar><i style="width:${idx / steps.length * 100}%"></i></div><div id=rest></div>`;
+    if (s.cardio) { const i = s.items[0]; h += `<div class=exv><h3>⏱ Cardio</h3><p>${esc(i.exercise ? i.exercise.name.replace(/^Cardio:\s*/, '') : '')}</p>${i.exercise ? `<img src="${esc(i.exercise.image)}" alt="">` : ''}<p>${esc(i.text)}</p><label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> Cardio concluído</label></div>`; }
+    else {
+      s.items.forEach((i, ix) => { const ex = i.exercise;
+        h += `<div class=exv>${s.biset ? `<span class=tag>Bi-set · exercício ${'AB'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `<img src="${esc(ex.image)}" alt="${esc(ex.name)}"><small class=muted>${esc(ex.name)}</small>` : ''}${i.note ? `<p>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
+      h += `<div class=sets><b>Séries</b>${s.biset ? ' <small class=muted>(faça A e B em sequência e marque ✓)</small>' : ''}`;
+      for (let k = 1; k <= s.sets; k++) { const dn = st[`d_${idx}_${k}`];
+        h += `<div class="setrow${dn ? ' done' : ''}"><span class=sn>${k}</span><div class=ins>${s.items.map((i, ix) => `<div class=pair>${s.biset ? `<small>${'AB'[ix] || ix + 1}</small>` : ''}<input inputmode=decimal placeholder="${i.last?.load ?? 'kg'}" aria-label=kg data-i=${i.id} data-s=${k} data-f=load value="${esc(st[`${i.id}_${k}_load`] || '')}"><input inputmode=numeric placeholder="reps" aria-label=reps data-i=${i.id} data-s=${k} data-f=reps value="${esc(st[`${i.id}_${k}_reps`] || '')}"></div>`).join('')}</div><button class="okb${dn ? ' on' : ''}" data-d=${k} aria-label="Série ${k} feita">✓</button></div>`; }
+      h += '</div>'; }
+    h += `<div class=pbar><button data-prev ${idx ? '' : 'disabled'}>Anterior</button><button data-skip>Pular</button><button class=p data-next>${idx === steps.length - 1 ? 'Finalizar' : 'Próximo'}</button></div>`;
+    app.innerHTML = h; paintRest();
+    app.querySelector('[data-home]').onclick = home; app.querySelector('[data-prev]').onclick = () => go(idx - 1);
+    app.querySelector('[data-next]').onclick = () => go(idx + 1); app.querySelector('[data-skip]').onclick = () => go(idx + 1);
+    app.querySelectorAll('input[data-i]').forEach(e => e.oninput = () => upd(o => { o[`${e.dataset.i}_${e.dataset.s}_${e.dataset.f}`] = e.value; }));
+    app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => upd(o => { o['c' + e.dataset.c] = e.checked; }));
+    app.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; let now; upd(o => { now = !o[`d_${idx}_${k}`]; o[`d_${idx}_${k}`] = now; });
+      b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); if (now) startRest(s.rest); });
   };
-  draw();
+
+  // --- final
+  const finish = () => { stopRest(); const o = ld(wk.id); let feitas = 0; Object.keys(o).forEach(k => { if (/^d_/.test(k) && o[k]) feitas++; });
+    app.innerHTML = `<div class=ptop><button data-back>←</button><b>Treino concluído?</b><span></span></div><div class=bar><i style="width:100%"></i></div>
+      <div class=box2><p><b>${feitas}</b> séries marcadas. Como foi o treino?</p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
+      <textarea id=cm placeholder="Comentário (opcional)">${esc(o.comment || '')}</textarea><button class=p id=fin>Concluir treino</button><p id=fm></p></div>`;
+    app.querySelector('[data-back]').onclick = () => go(steps.length - 1);
+    app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { upd(z => { z.comment = $('#cm').value; z.rating = +b.dataset.r; }); finish(); });
+    $('#cm').oninput = () => upd(z => { z.comment = $('#cm').value; });
+    $('#fin').onclick = async () => { const z = ld(wk.id), logs = [];
+      wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
+      $('#fm').textContent = 'Enviando…';
+      const r = await sb.rpc('student_finish', { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: z.comment || '', p_logs: logs });
+      if (r.error) return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`;
+      try { localStorage.removeItem(key(wk.id)); } catch {}
+      app.innerHTML = '<h2>Treino concluído! 💪</h2><p>Parabéns! Seu treinador já pode ver o seu resultado.</p><button class=p id=hm>Voltar ao início</button>'; $('#hm').onclick = home; };
+  };
+  home();
 }
 boot();
