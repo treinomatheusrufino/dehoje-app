@@ -103,6 +103,16 @@ function shrink(file, max, type) { return new Promise((res, rej) => { const img 
   img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? res(b) : rej(new Error('imagem inválida')), type, .82); };
   img.onerror = () => rej(new Error('Não consegui ler essa imagem.')); img.src = u; }); }
+// ---------- arquivos (aluno e treinador)
+const KINDS = { foto: '📷 Foto de progresso', avaliacao: '📋 Avaliação física', laudo: '🩺 Laudo / exame médico', outro: '📎 Outro arquivo' };
+const safeName = n => String(n || 'arquivo').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9._-]+/g, '-').slice(-80) || 'arquivo';
+const kb = n => n > 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+async function prepFile(f) { // fotos são reduzidas (economiza espaço e dados); outros arquivos vão como estão
+  if (/^image\/(jpeg|png|webp|heic|heif)$/i.test(f.type) && f.size > 400 * 1024) { try { const blob = await shrink(f, 1600, 'image/jpeg'); return { blob, name: f.name.replace(/\.[^.]+$/, '') + '.jpg', type: 'image/jpeg' }; } catch {} }
+  return { blob: f, name: f.name, type: f.type || 'application/octet-stream' }; }
+function fileCard(r, url, actions, who) { const img = /^image\//.test(r.mime || '') && url;
+  return `<div class=fcard>${img ? `<a href="${esc(url)}" target=_blank rel=noopener><img src="${esc(url)}" alt=""></a>` : `<div class=ficon>${(KINDS[r.kind] || '📎').split(' ')[0]}</div>`}<div class=finfo><b>${esc(KINDS[r.kind] || 'Arquivo')}</b><br><small class=muted>${esc(r.title || '')}${r.size_bytes ? ' · ' + kb(r.size_bytes) : ''} · ${r.taken_on ? dbr(r.taken_on) : new Date(r.created_at).toLocaleDateString('pt-BR')}</small>${r.note ? `<br><small>${esc(r.note)}</small>` : ''}<br><small class="badge${r.shared || r.uploaded_by === 'treinador' ? '' : ' priv'}">${esc(who)}</small><br>${url ? `<a class="btn sm" href="${esc(url)}" target=_blank rel=noopener>Abrir</a> ` : ''}${actions || ''}</div></div>`; }
+
 async function perfil() {
   const { data: p } = await sb.from('profiles').select('brand_name,brand_logo,phone').eq('id', session.user.id).maybeSingle(); const pr = p || {};
   app.innerHTML = `<h2>Perfil e marca</h2><p class=muted>Aparece para os seus alunos no app deles.</p>
@@ -279,9 +289,11 @@ async function salvar(f, nome, rd) {
 // ---------- alunos (treinador)
 async function students() {
   app.innerHTML = '<h2>Alunos</h2><div id=ls>Carregando…</div>';
-  const [{ data, error }, { data: ses }] = await Promise.all([sb.from('students').select('id,name,active,created_at,plan_end').order('name'),
-    sb.from('workout_sessions').select('student_id,started_at,rating,comment,workouts(name),students(name)').order('started_at', { ascending: false }).limit(300)]);
+  const [{ data: all, error }, { data: ses }, { data: ups }] = await Promise.all([sb.from('students').select('id,name,active,created_at,plan_end,code').order('name'),
+    sb.from('workout_sessions').select('student_id,started_at,rating,comment,workouts(name),students(name)').order('started_at', { ascending: false }).limit(300),
+    sb.from('student_uploads').select('student_id,kind,created_at,students(name)').eq('uploaded_by', 'aluno').order('created_at', { ascending: false }).limit(5)]);
   if (error) return $('#ls').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  const data = all.filter(s => s.active !== false), arch = all.filter(s => s.active === false);
   const last = {}; (ses || []).forEach(z => { if (!last[z.student_id]) last[z.student_id] = z; });
   const dias = d => Math.floor((Date.now() - new Date(d)) / 864e5);
   let h = '';
@@ -291,24 +303,25 @@ async function students() {
     if (l && d > 7) att.push(`<div class=fb data-id=${s.id}><b>${esc(s.name)}</b> <small class=warn>sem treinar há ${d} dias</small></div>`); });
   if (att.length) h += '<div class=box2><b>⚠ Precisam de atenção</b>' + att.join('') + '</div>';
   const fb = (ses || []).slice(0, 6);
+  if ((ups || []).length) h += '<div class=box2><b>Arquivos novos dos alunos</b>' + ups.map(u => `<div class=fb data-id=${u.student_id}><b>${esc(u.students?.name || '')}</b> <small class=muted>${esc(KINDS[u.kind] || 'Arquivo')} · ${new Date(u.created_at).toLocaleDateString('pt-BR')}</small></div>`).join('') + '</div>';
   if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small class=pre>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
   h += data.length ? data.map(s => { const l = last[s.id], d = l ? dias(l.started_at) : null;
     return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small>${s.plan_end ? `<br><small class=muted>Plano até ${dbr(s.plan_end)}</small>` : ''}</div></div>`; }).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
+  if (arch.length) h += `<details class=arch><summary>Alunos arquivados (${arch.length})</summary>${arch.map(s => `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class=muted>Arquivado · toque para ver ou reativar</small></div></div>`).join('')}</details>`;
   $('#ls').innerHTML = h;
   $('#ls').onclick = e => { const r = e.target.closest('[data-id]'); if (r) aluno(r.dataset.id); };
 }
 async function aluno(id) {
   app.innerHTML = 'Carregando…'; const lbq = await getLib();
-  const [s, w, h, ev, bm, ph] = await Promise.all([
+  const [s, w, h, ev, bm] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
     sb.from('workouts').select('id,name,position,day_note,workout_blocks(id,position,set_type,sets,rest_seconds,block_items(id,position,raw_text,note,reps,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
     sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
     sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000),
-    sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on'),
-    sb.from('progress_photos').select('*').eq('student_id', id).order('taken_on', { ascending: false })]);
+    sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on')]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
   const st = s.data, url = linkOf(st.token);
-  let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>
+  let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>${st.code ? `<p class=muted>ID do aluno: <b>${esc(st.code)}</b> <small>(só identificação, não dá acesso)</small></p>` : ''}${st.active === false ? '<p class=warn>Aluno arquivado — o link está desativado. <button class=sm id=react>Reativar</button></p>' : ''}
    <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class=btn href="https://wa.me/?text=${encodeURIComponent('Oi! Seu treino está aqui: ' + url)}" target=_blank>Enviar no WhatsApp</a>
    <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
@@ -325,9 +338,11 @@ async function aluno(id) {
   const ms = bm.data || [], f0 = ms[0];
   x += `<h2>Avaliações</h2><div class=box2><div class=mgrid><label>Data<input id=m_d type=date value="${new Date().toISOString().slice(0, 10)}"></label><label>Peso (kg)<input id=m_w inputmode=decimal></label><label>% gordura<input id=m_f inputmode=decimal></label><label>Cintura (cm)<input id=m_wa inputmode=decimal></label><label>Quadril (cm)<input id=m_h inputmode=decimal></label><label>Peito (cm)<input id=m_c inputmode=decimal></label><label>Braço (cm)<input id=m_a inputmode=decimal></label><label>Coxa (cm)<input id=m_t inputmode=decimal></label></div><button class=p id=mb>Salvar avaliação</button> <small id=mm class=muted></small>`;
   if (ms.length) x += '<div style="overflow:auto"><table class=evo><tr><th>Data</th><th>Peso</th><th>%G</th><th>Cint.</th><th>Quad.</th><th>Peit.</th><th>Braç.</th><th>Coxa</th><th></th></tr>' + [...ms].reverse().map(m => `<tr><td>${dbr(m.measured_on)}</td><td>${fmt(m.weight_kg)}${f0 && m.id !== f0.id && m.weight_kg != null && f0.weight_kg != null ? `<br><small class="${m.weight_kg < f0.weight_kg ? 'ok' : 'muted'}">${m.weight_kg - f0.weight_kg > 0 ? '+' : ''}${fmt(Math.round((m.weight_kg - f0.weight_kg) * 10) / 10)}</small>` : ''}</td><td>${fmt(m.body_fat_pct)}</td><td>${fmt(m.waist_cm)}</td><td>${fmt(m.hip_cm)}</td><td>${fmt(m.chest_cm)}</td><td>${fmt(m.arm_cm)}</td><td>${fmt(m.thigh_cm)}</td><td><button class=sm data-dm=${m.id}>×</button></td></tr>`).join('') + '</table></div>';
-  x += `</div><h2>Fotos de progresso</h2><div class=box2><input id=pf type=file accept="image/*" multiple><small class=muted>Só você vê as fotos. Elas são reduzidas automaticamente.</small><div id=pg class=pgrid></div></div>`;
+  x += `</div><h2>Arquivos e fotos</h2><div class=box2><b>Enviar para ${esc(st.name.split(' ')[0])}</b><select id=tk>${Object.entries(KINDS).map(([k, v]) => `<option value=${k}>${v}</option>`).join('')}</select><input id=tf type=file accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"><input id=tn placeholder="Observação (opcional)">
+   <fieldset class=share><legend><b>Deixar visível para o aluno?</b></legend><label><input type=radio name=tsh value=1> Sim, o aluno também vê</label><label><input type=radio name=tsh value=0> Não, só eu vejo</label></fieldset><button class=p id=tsv>Enviar arquivo</button> <small id=tm></small>
+   <div id=tl class=flist>Carregando…</div><small class=muted>Fotos, avaliações e laudos que o aluno marcar como “só eu vejo” não aparecem aqui — é escolha dele.</small></div>`;
   x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
-  x += '<p><button id=dl class=danger>Excluir aluno</button></p>'; app.innerHTML = x;
+  x += '<p><button id=dl class=danger>Arquivar aluno</button> <small class=muted>O link para de funcionar, mas nada é apagado. Dá para reativar.</small></p>'; app.innerHTML = x;
   app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
   app.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const z = (h.data || []).find(q => q.id === b.dataset.rp);
     const d = mdl(`<h3>Responder ao aluno</h3>${z.comment ? `<p class=muted>“${esc(z.comment)}”</p>` : ''}<textarea id=rt>${esc(z.trainer_reply || '')}</textarea><p id=rm class=err></p><button class=p id=rs>Enviar resposta</button> <button id=rc>Cancelar</button>`);
@@ -338,16 +353,26 @@ async function aluno(id) {
     if ([row.weight_kg, row.body_fat_pct, row.waist_cm, row.hip_cm, row.chest_cm, row.arm_cm, row.thigh_cm].every(v => v == null)) return $('#mm').textContent = 'Preencha ao menos uma medida.';
     const r = await sb.from('body_measurements').insert(row); if (r.error) return $('#mm').textContent = r.error.message; aluno(id); };
   app.querySelectorAll('[data-dm]').forEach(b => b.onclick = async () => { if (confirm('Apagar esta avaliação?')) { await sb.from('body_measurements').delete().eq('id', b.dataset.dm); aluno(id); } });
-  const drawPh = async () => { const rows = ph.data || []; if (!rows.length) return; const { data: urls } = await sb.storage.from('progress').createSignedUrls(rows.map(r => r.path), 3600); const m = Object.fromEntries((urls || []).map(u => [u.path, u.signedUrl]));
-    $('#pg').innerHTML = rows.map(r => `<div class=ph><a href="${esc(m[r.path] || '#')}" target=_blank rel=noopener><img src="${esc(m[r.path] || '')}" alt=""></a><small class=muted>${dbr(r.taken_on)}</small> <button class=sm data-dp=${r.id}>×</button></div>`).join('');
-    app.querySelectorAll('[data-dp]').forEach(b => b.onclick = async () => { if (!confirm('Apagar esta foto?')) return; const r = rows.find(z => z.id === b.dataset.dp); await sb.storage.from('progress').remove([r.path]); await sb.from('progress_photos').delete().eq('id', r.id); aluno(id); }); };
-  drawPh();
-  $('#pf').onchange = async e => { const fs = [...e.target.files]; if (!fs.length) return; $('#pg').insertAdjacentHTML('afterbegin', '<small class=muted>Enviando…</small>');
-    try { for (const f of fs) { const b = await shrink(f, 1280, 'image/jpeg'), path = `${session.user.id}/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.jpg`; const u = await sb.storage.from('progress').upload(path, b, { contentType: 'image/jpeg' }); if (u.error) throw u.error;
-        const r = await sb.from('progress_photos').insert({ student_id: id, path }); if (r.error) throw r.error; } aluno(id); } catch (er) { $('#pg').innerHTML = `<span class=err>${esc(er.message)}</span>`; } };
+  const drawFiles = async () => { const box = $('#tl'); if (!box) return;
+    const { data: fsx, error: fe } = await sb.from('student_uploads').select('*').eq('student_id', id).order('created_at', { ascending: false }).limit(300);
+    if (fe) return box.innerHTML = `<p class=err>${esc(fe.message)}</p>`;
+    const rows = fsx || []; if (!rows.length) return box.innerHTML = '<p class=muted>Nenhum arquivo ainda.</p>';
+    const { data: urls } = await sb.storage.from('student-files').createSignedUrls(rows.map(r => r.path), 3600); const m = Object.fromEntries((urls || []).filter(u => u.signedUrl).map(u => [u.path, u.signedUrl]));
+    box.innerHTML = rows.map(r => fileCard(r, m[r.path], r.uploaded_by === 'treinador' ? `<button class=sm data-tsh=${r.id} data-v=${r.shared ? 0 : 1}>${r.shared ? 'Esconder do aluno' : 'Mostrar ao aluno'}</button> <button class=sm data-trm=${r.id}>Remover</button>` : '', r.uploaded_by === 'aluno' ? 'Enviado pelo aluno' : (r.shared ? 'Você enviou · aluno vê' : 'Você enviou · só você vê'))).join('');
+    box.querySelectorAll('[data-tsh]').forEach(b => b.onclick = async () => { const r = await sb.from('student_uploads').update({ shared: b.dataset.v === '1' }).eq('id', b.dataset.tsh); if (r.error) return alert(r.error.message); drawFiles(); });
+    box.querySelectorAll('[data-trm]').forEach(b => b.onclick = async () => { if (!confirm('Remover este arquivo da lista? Ele continua guardado com segurança.')) return; const r = await sb.from('student_uploads').update({ deleted_at: new Date().toISOString() }).eq('id', b.dataset.trm); if (r.error) return alert(r.error.message); drawFiles(); }); };
+  drawFiles();
+  $('#tsv').onclick = async () => { const f = $('#tf').files[0], m = $('#tm'), sh = app.querySelector('input[name=tsh]:checked');
+    if (!f) return m.innerHTML = '<span class=err>Escolha um arquivo.</span>'; if (!sh) return m.innerHTML = '<span class=err>Escolha se o aluno pode ver.</span>';
+    if (f.size > 25 * 1024 * 1024) return m.innerHTML = '<span class=err>Arquivo maior que 25 MB.</span>';
+    $('#tsv').disabled = true; m.textContent = 'Enviando…';
+    try { const { blob, name, type } = await prepFile(f); const path = `${id}/treinador/${crypto.randomUUID()}-${safeName(name)}`;
+      const u = await sb.storage.from('student-files').upload(path, blob, { contentType: type }); if (u.error) throw u.error;
+      const r = await sb.from('student_uploads').insert({ student_id: id, trainer_id: session.user.id, uploaded_by: 'treinador', kind: $('#tk').value, title: f.name.slice(0, 200), note: $('#tn').value.trim() || null, path, mime: type, size_bytes: blob.size, shared: sh.value === '1', status: 'ok' }); if (r.error) throw r.error;
+      m.innerHTML = '<span class=ok>Enviado ✓</span>'; $('#tf').value = ''; $('#tn').value = ''; drawFiles(); } catch (er) { m.innerHTML = `<span class=err>${esc(er.message)}</span>`; } finally { $('#tsv').disabled = false; } };
   $('#ms').onclick = async () => { const r = await sb.from('students').update({ message: $('#msg').value.trim() || null }).eq('id', id); $('#ms').textContent = r.error ? 'Erro: ' + r.error.message : 'Recado salvo ✓'; };
   $('#nl').onclick = async () => { if (!confirm('Gerar um novo link? O link antigo deixa de funcionar e o aluno precisará do novo.')) return; const tk = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, ''); const r = await sb.from('students').update({ token: tk }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); };
-  $('#bk').onclick = students; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
+  $('#bk').onclick = students; if ($('#react')) $('#react').onclick = async () => { const r = await sb.from('students').update({ active: true }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); }; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
   app.querySelectorAll('[data-ed]').forEach(bt => bt.onclick = () => { const { i, b } = itemsById[bt.dataset.ed]; const cardio = i.kind === 'cardio';
     const d = mdl(`<h3>${esc(i.raw_text)}</h3>${cardio ? '' : `<div class=mgrid><label>Séries<input id=e_s type=number inputmode=numeric min=1 max=10 value="${b.sets || 3}"></label><label>Repetições<input id=e_r placeholder="ex.: 8-12, 40s, falha" value="${esc(i.reps || '')}"></label><label>Pausa (segundos)<input id=e_p type=number inputmode=numeric min=0 max=900 value="${b.rest_seconds ?? 60}"></label></div>${b.set_type === 'biset' ? '<p class=muted>Bi-set: séries e pausa valem para os dois exercícios.</p>' : ''}`}<label class=muted>${cardio ? 'Descrição do cardio (ex.: 4x 20s / 10s de pausa)' : 'Nome como o aluno vê'}</label><input id=e_t value="${esc(i.raw_text)}"><label class=muted>Observação do exercício (o aluno vê)</label><textarea id=e_n style="min-height:80px">${esc(i.note || '')}</textarea><p id=e_m class=err></p><button class=p id=e_ok>Salvar</button> <button id=e_c>Cancelar</button>`);
@@ -364,7 +389,7 @@ async function aluno(id) {
     const nb = await sb.from('workout_blocks').insert({ workout_id: wid, position: pos, set_type: 'normal', sets: 3, rest_seconds: 60 }).select('id').single(); if (nb.error) return alert(nb.error.message);
     const ni = await sb.from('block_items').insert({ block_id: nb.data.id, position: 0, exercise_id: e.id, raw_text: e.name, reps: '10', kind: 'ex', needs_review: false }); if (ni.error) return alert(ni.error.message); aluno(id); }));
   app.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { if (confirm('Remover este exercício do treino?')) { await sb.from('block_items').delete().eq('id', b.dataset.rm); aluno(id); } });
-  $('#dl').onclick = async () => { if (confirm(`Excluir ${st.name} e todos os treinos e históricos dele? Isso não pode ser desfeito.`)) { await sb.from('students').delete().eq('id', id); students(); } };
+  $('#dl').onclick = async () => { if (!confirm(`Arquivar ${st.name}? O link dele para de funcionar, mas treinos, histórico, fotos e arquivos ficam guardados. Você pode reativar depois.`)) return; const r = await sb.from('students').update({ active: false }).eq('id', id); if (r.error) return alert(r.error.message); students(); };
 }
 
 // ---------- tela do aluno (sem login): treino do dia, exercício por exercício
@@ -437,9 +462,42 @@ async function studentView(token) {
       const nEx = stepsOf(w).length;
       h += `<div class=wcard><div class=wc1><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${nEx} exercício${nEx === 1 ? '' : 's'}</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
+    h += `<div class=wcard><div class=wc1><div><b>📁 Meus arquivos</b><br><small class=muted>Fotos de progresso, avaliações, laudos e exames</small></div><button data-files>Abrir</button></div></div>`;
     if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
+    if (P.student.code) h += `<p class=muted><small>Seu ID: <b>${esc(P.student.code)}</b></small></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. As cargas ficam salvas mesmo sem internet.</small></p>';
-    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); };
+    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; };
+
+  // --- meus arquivos (o aluno escolhe se o treinador vê)
+  const callF = async body => { const { data, error } = await sb.functions.invoke('student-files', { body: { token, ...body } });
+    if (error) { let m = error.message; try { const c = await error.context?.json(); if (c?.error) m = c.error; } catch {} if (/Failed to fetch|NetworkError|Load failed/i.test(m)) m = 'Sem internet agora. Tente de novo quando a conexão voltar.'; throw new Error(m); }
+    if (data?.error) throw new Error(data.error); return data; };
+  const files = async () => { stopRest(); wk = null; unwake(); window.scrollTo(0, 0);
+    app.innerHTML = `<div class=ptop><button data-home aria-label=Início>←</button><b>Meus arquivos</b><span></span></div>
+      <div class=box2><b>Enviar arquivo ou foto</b><label class=muted>Tipo</label><select id=fk>${Object.entries(KINDS).map(([k, v]) => `<option value=${k}>${v}</option>`).join('')}</select>
+      <input id=ff type=file accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"><label class=muted>Data</label><input id=fd type=date value="${new Date().toISOString().slice(0, 10)}"><input id=fn placeholder="Observação (opcional)">
+      <fieldset class=share><legend><b>Deixar visível para o seu treinador?</b></legend><label><input type=radio name=sh value=1> Sim, meu treinador pode ver</label><label><input type=radio name=sh value=0> Não, só eu vejo</label></fieldset>
+      <button class=p id=fs>Enviar</button> <small id=fm></small><p class=muted><small>Você pode mudar essa escolha depois em cada arquivo. Tamanho máximo: 25 MB.</small></p></div><div id=fl>Carregando…</div>`;
+    app.querySelector('[data-home]').onclick = home;
+    const list = async () => { const box = $('#fl'); try { const { files: fs } = await callF({ action: 'list' }); const mine = fs.filter(f => f.uploaded_by === 'aluno'), tr = fs.filter(f => f.uploaded_by === 'treinador');
+        let h = '<h3>Enviados por você</h3>' + (mine.length ? mine.map(f => fileCard(f, f.url, `<button class=sm data-sh=${f.id} data-v=${f.shared ? 0 : 1}>${f.shared ? 'Deixar só para mim' : 'Mostrar ao treinador'}</button> <button class=sm data-rm=${f.id}>Remover</button>`, f.shared ? '👁 Seu treinador vê' : '🔒 Só você vê')).join('') : '<p class=muted>Nada enviado ainda.</p>');
+        if (tr.length) h += '<h3>Do seu treinador</h3>' + tr.map(f => fileCard(f, f.url, '', 'Enviado pelo treinador')).join('');
+        box.innerHTML = h;
+        box.querySelectorAll('[data-sh]').forEach(b => b.onclick = async () => { b.disabled = true; try { await callF({ action: 'share', id: b.dataset.sh, shared: b.dataset.v === '1' }); list(); } catch (e) { alert(e.message); b.disabled = false; } });
+        box.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { if (!confirm('Remover este arquivo da sua lista? Ele fica guardado com segurança e não é apagado.')) return; try { await callF({ action: 'remove', id: b.dataset.rm }); list(); } catch (e) { alert(e.message); } });
+      } catch (e) { box.innerHTML = `<p class=err>${esc(e.message)}</p>`; } };
+    list();
+    $('#fs').onclick = async () => { const f = $('#ff').files[0], m = $('#fm'), sh = app.querySelector('input[name=sh]:checked');
+      if (!f) return m.innerHTML = '<span class=err>Escolha um arquivo ou foto.</span>';
+      if (!sh) return m.innerHTML = '<span class=err>Responda se o seu treinador pode ver.</span>';
+      if (f.size > 25 * 1024 * 1024) return m.innerHTML = '<span class=err>Arquivo maior que 25 MB.</span>';
+      $('#fs').disabled = true; m.textContent = 'Enviando…';
+      try { const { blob, name, type } = await prepFile(f);
+        const r = await callF({ action: 'upload', kind: $('#fk').value, name, title: f.name, mime: type, size: blob.size, shared: sh.value === '1', note: $('#fn').value.trim(), taken_on: $('#fd').value });
+        const u = await sb.storage.from('student-files').uploadToSignedUrl(r.path, r.token, blob, { contentType: type }); if (u.error) throw new Error(u.error.message);
+        await callF({ action: 'confirm', id: r.id });
+        m.innerHTML = '<span class=ok>Enviado e salvo ✓</span>'; $('#ff').value = ''; $('#fn').value = ''; app.querySelectorAll('input[name=sh]').forEach(x => x.checked = false); list();
+      } catch (e) { m.innerHTML = `<span class=err>Não foi enviado: ${esc(e.message)}</span>`; } finally { $('#fs').disabled = false; } }; };
   const start = id => { wk = P.workouts.find(w => w.id === id); steps = stepsOf(wk); const o = ld(id); idx = Math.min(o.idx || 0, steps.length); upd(o => { o.started = true; o.t0 = o.t0 || Date.now(); }); wake(); play(); };
   const go = n => { idx = Math.max(0, Math.min(steps.length, n)); upd(o => { o.idx = idx; }); play(); window.scrollTo(0, 0); };
 
@@ -502,14 +560,17 @@ async function studentView(token) {
       const comentario = [String(z.comment || '').trim(), ...notas].filter(Boolean).join('\n');
       wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
       $('#fm').textContent = 'Enviando…'; $('#fin').disabled = true;
-      const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: comentario, p_logs: logs };
+      if (!z.cid) { z.cid = crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ Math.random() * 16 >> c / 4).toString(16)); sv(wk.id, z); }
+      const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: comentario, p_logs: logs, p_client: z.cid };
       let r; try { r = await sb.rpc('student_finish', args); } catch (e) { r = { error: { message: 'network' } }; }
       let queued = false;
       if (r.error) { if (/inválido/.test(r.error.message)) { $('#fin').disabled = false; return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`; }
         try { const q = JSON.parse(localStorage.getItem(pk)) || []; q.push(args); localStorage.setItem(pk, JSON.stringify(q)); queued = true; } catch { return $('#fm').innerHTML = '<span class=err>Sem conexão. Tente novamente.</span>'; } }
       try { localStorage.removeItem(key(wk.id)); } catch {}
       unwake();
-      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : '<p>Seu treinador já pode ver o seu resultado.</p>'}<button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
+      const wpp = BR.phone && String(z.comment || '').trim() ? `https://wa.me/${encodeURIComponent(BR.phone)}?text=${encodeURIComponent(`🏋️ ${P.student.name} concluiu o ${wk.name.split(' — ')[0]} (${new Date().toLocaleDateString('pt-BR')})\nNota: ${'★'.repeat(z.rating)}${'☆'.repeat(5 - z.rating)}\nComentário: ${String(z.comment).trim()}`)}` : '';
+      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : '<p>Seu treinador já pode ver o seu resultado.</p>'}${wpp ? `<div class=msg><b>Enviar seu comentário no WhatsApp do treinador</b><p>Vamos abrir o WhatsApp com a mensagem pronta — é só tocar em <b>Enviar</b>.</p><a class="btn p wpp" href="${esc(wpp)}" target=_blank rel=noopener>💬 Abrir WhatsApp</a></div>` : ''}<button class=p id=hm>Voltar ao início</button>`;
+      if (wpp) setTimeout(() => { try { window.open(wpp, '_blank'); } catch {} }, 400); $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
   };
   home();
 }
