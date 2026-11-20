@@ -120,6 +120,7 @@ async function perfil() {
   app.innerHTML = `<h2>Perfil e marca</h2><p class=muted>Aparece para os seus alunos no app deles.</p>
    <label class=muted>Nome da sua marca</label><input id=bn placeholder="Matheus Rufino Treinamento" value="${esc(pr.brand_name || '')}">
    <label class=muted>Seu WhatsApp (com DDD, só números) — o aluno vê um botão “Falar com meu treinador”</label><input id=ph inputmode=tel placeholder="5511999999999" value="${esc(pr.phone || '')}">
+   <p class=muted style="margin:10px 0 4px">Assim seus alunos veem no app:</p><div class="trbar prev">${pr.brand_logo ? `<img src="${esc(pr.brand_logo)}" alt="">` : '<span class=trini>?</span>'}<div><small>Seu treinador</small><b>${esc(pr.brand_name || 'Nome da sua marca')}</b></div></div>
    <label class=muted>Logo (imagem quadrada, de preferência com fundo transparente)</label>${pr.brand_logo ? `<p><img src="${esc(pr.brand_logo)}" alt="" style="width:64px;height:64px;object-fit:contain"></p>` : ''}<input id=lg type=file accept="image/*">
    <div class=box2><b>💬 WhatsApp automático</b><p class=muted>Quando o aluno finalizar o treino com comentário, a mensagem chega sozinha no seu WhatsApp — ele não precisa fazer nada.</p>
    <details${pr.wa_apikey ? '' : ' open'}><summary>Como ativar (uma vez só, 2 minutos)</summary><ol class=steps><li>Abra <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target=_blank rel=noopener>esta página do CallMeBot</a> e copie o número do robô que aparece lá.</li><li>Salve esse número nos contatos do seu celular (nome: CallMeBot).</li><li>No WhatsApp, mande para ele exatamente: <b>I allow callmebot to send me messages</b></li><li>Ele responde com <b>APIKEY</b> e um número. Copie só o número.</li><li>Cole abaixo, toque em <b>Salvar</b> e depois em <b>Enviar teste</b>.</li></ol></details>
@@ -415,8 +416,11 @@ async function studentView(token) {
   if (!offline) setTimeout(() => { const urls = new Set(); P.workouts.forEach(w => w.items.forEach(i => i.exercise?.image && urls.add(i.exercise.image))); urls.forEach(u => fetch(u).catch(() => {})); }, 1500);
   window.addEventListener('online', async () => { if (!offline) return; try { const r = await sb.rpc('student_plan', { p_token: token }); if (!r.error && r.data) { localStorage.setItem(planKey, JSON.stringify(r.data)); offline = false; const b = $('#offb'); if (b) b.remove(); } } catch {} });
   document.body.classList.add('aluno');
-  const BR = P.brand || { name: 'DE HOJE' }; const hd = document.querySelector('header'); hd.querySelector('b').textContent = BR.name; document.title = BR.name;
-  if (BR.logo && /^https:\/\//.test(BR.logo)) hd.querySelector('img').src = BR.logo;
+  // o app é sempre DE HOJE; a marca do treinador aparece logo abaixo
+  const BR = P.brand || {}; const trName = BR.name && BR.name !== 'DE HOJE' ? BR.name : ''; document.title = 'DE HOJE';
+  const tb = document.createElement('div'); tb.className = 'trbar';
+  tb.innerHTML = `${BR.logo && /^https:\/\//.test(BR.logo) ? `<img src="${esc(BR.logo)}" alt="">` : `<span class=trini>${esc((trName || 'T').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase())}</span>`}<div><small>Seu treinador</small><b>${esc(trName || 'Seu treinador')}</b></div>`;
+  if (trName || BR.logo) document.querySelector('header').after(tb);
   const key = w => 'dh2_' + token + '_' + w;
   const ld = w => { try { return JSON.parse(localStorage.getItem(key(w))) || {}; } catch { return {}; } };
   const sv = (w, o) => { try { localStorage.setItem(key(w), JSON.stringify(o)); } catch {} };
@@ -462,7 +466,7 @@ async function studentView(token) {
     work(); };
 
   // --- início: escolher o treino do dia
-  const home = () => { stopRest(); wk = null; document.title = BR.name; unwake();
+  const home = () => { stopRest(); wk = null; document.title = 'DE HOJE'; unwake();
     let h = `${offline ? '<div class=msg id=offb><b>📴 Modo offline</b><p>Pode treinar normalmente. Seus resultados ficam guardados no celular e vão para o treinador quando a internet voltar.</p></div>' : ''}<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
     if (!P.workouts.length) { app.innerHTML = h + '<p class=muted>Seu treino ainda não foi cadastrado.</p>'; return; }
     const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);

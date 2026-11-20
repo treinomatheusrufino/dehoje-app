@@ -1,4 +1,4 @@
-const V='dehoje-v19', LIB='dehoje-lib-1', IMG='dehoje-img-1';
+const V='dehoje-v20', LIB='dehoje-lib-1', IMG='dehoje-img-1';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','index.html','app.js','style.css','manifest.webmanifest','icons/icon-192.png'])))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>![V,LIB,IMG].includes(x)).map(x=>caches.delete(x)))).then(()=>clients.claim())));
 const put=(n,r,res)=>{if(res&&(res.ok||res.type==='opaque')){const cp=res.clone();caches.open(n).then(c=>c.put(r,cp))}return res};
