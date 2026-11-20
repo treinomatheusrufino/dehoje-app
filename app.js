@@ -10,33 +10,45 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { 
 
 async function boot() {
   if (location.hash.startsWith('#/a/')) return studentView(location.hash.slice(4));
+  const inv = /^#\/convite\/([A-Za-z0-9-]+)/.exec(location.hash); if (inv) { try { localStorage.setItem('dh_invite', inv[1].toUpperCase()); } catch {} history.replaceState(null, '', location.pathname); }
   const { data } = await sb.auth.getSession(); session = data.session;
   sb.auth.onAuthStateChange((ev, s) => { session = s; if (ev === 'PASSWORD_RECOVERY') newPass(); });
   if (location.hash.includes('type=recovery')) return;
   if (!session) return login();
-  await loadProfile(); menu(); show('stu');
+  await loadProfile(); if (!profile || ['pendente', 'bloqueado'].includes(profile.plan)) return gate(); menu(); show('stu');
 }
 async function loadProfile() {
   const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
   profile = data;
   if (!profile) {
     const name = session.user.user_metadata?.full_name || session.user.email;
-    const r = await sb.from('profiles').insert({ id: session.user.id, role: 'trainer', full_name: name, owner_id: session.user.id }).select().single();
-    profile = r.data;
+    await sb.from('profiles').insert({ id: session.user.id, role: 'trainer', full_name: name, owner_id: session.user.id });
+    profile = (await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle()).data || { plan: 'pendente' };
   }
   $('#out').hidden = false;
+  if (profile.plan === 'pendente' && invCode()) { const r = await sb.rpc('redeem_invite', { p_code: invCode() }); if (!r.error) { try { localStorage.removeItem('dh_invite'); } catch {} profile = (await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle()).data; } else profile.inviteError = r.error.message; }
+}
+function gate() { // conta sem convite ou bloqueada
+  nav.innerHTML = '';
+  if (profile.plan === 'bloqueado') return app.innerHTML = '<h2>Conta bloqueada</h2><p>Fale com o responsável pelo DE HOJE para reativar.</p>';
+  app.innerHTML = `<h2>Falta o código de convite</h2><p class=muted>O DE HOJE está em fase de teste por convite. Digite o código que você recebeu.</p>${profile.inviteError ? `<p class=err>${esc(profile.inviteError)}</p>` : ''}<input id=gc placeholder="DEMO-XXXXXX" autocapitalize=characters><button class=p id=gb>Liberar minha conta</button><p id=gm class=err></p>`;
+  $('#gb').onclick = async () => { const r = await sb.rpc('redeem_invite', { p_code: $('#gc').value }); if (r.error) return $('#gm').textContent = r.error.message; try { localStorage.removeItem('dh_invite'); } catch {} location.reload(); };
 }
 $('#out').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
+const invCode = () => { try { return localStorage.getItem('dh_invite') || ''; } catch { return ''; } };
 function login() {
-  nav.innerHTML = '';
-  app.innerHTML = `<h2>Entrar</h2><input id=e type=email placeholder="E-mail" autocomplete=email><input id=p type=password placeholder="Senha (mín. 8 caracteres)" autocomplete=current-password>
-  <button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button> <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
+  nav.innerHTML = ''; const ic = invCode();
+  app.innerHTML = `${ic ? `<div class=msg><b>Você foi convidado para testar o DE HOJE 🎉</b><p>Crie sua conta abaixo com seu e-mail e uma senha. Seu código de convite <b>${esc(ic)}</b> já está aplicado.</p></div>` : ''}<h2>${ic ? 'Criar conta de treinador' : 'Entrar'}</h2><input id=e type=email placeholder="E-mail" autocomplete=email><input id=p type=password placeholder="Senha (mín. 8 caracteres)" autocomplete=${ic ? 'new-password' : 'current-password'}>
+  <label class=muted>Código de convite (só para criar conta nova)</label><input id=ic placeholder="DEMO-XXXXXX" value="${esc(ic)}" autocapitalize=characters>
+  ${ic ? '<button class=p id=up>Criar minha conta</button> <button id=in>Já tenho conta — entrar</button>' : '<button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button>'} <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
   const go = async (fn) => { $('#m').textContent = ''; const r = await fn({ email: $('#e').value.trim(), password: $('#p').value });
     if (r.error) return $('#m').textContent = r.error.message;
     if (r.data.session) return location.reload();
     $('#m').textContent = r.data.user && r.data.user.identities && r.data.user.identities.length === 0 ? 'Este e-mail já tem conta. Use Entrar ou Esqueci a senha.' : 'Confirme o e-mail que enviamos e depois entre.'; };
-  $('#in').onclick = () => go(c => sb.auth.signInWithPassword(c)); $('#up').onclick = () => go(c => sb.auth.signUp(c));
+  $('#in').onclick = () => { const c = $('#ic').value.trim(); if (c) try { localStorage.setItem('dh_invite', c.toUpperCase()); } catch {} go(c => sb.auth.signInWithPassword(c)); };
+  $('#up').onclick = () => { const c = $('#ic').value.trim().toUpperCase(); if (!c) return $('#m').textContent = 'Para criar conta, digite o código de convite que você recebeu.'; try { localStorage.setItem('dh_invite', c); } catch {}
+    go(x => sb.auth.signUp({ ...x, options: { emailRedirectTo: location.origin + location.pathname } })); };
   $('#fg').onclick = async () => { const e = $('#e').value.trim(); if (!e) return $('#m').textContent = 'Digite seu e-mail acima.';
     const r = await sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + location.pathname }); $('#m').textContent = r.error ? r.error.message : 'Se o e-mail tiver conta, enviamos um link para criar nova senha. Veja também o spam.'; };
 }
@@ -45,10 +57,12 @@ function newPass() {
   $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
-  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['perfil', 'Perfil']].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
+    d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''}`; nav.before(d); }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
-function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil })[k](); }
+function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin })[k](); }
 
 async function getLib() {
   if (library.length) return library;
@@ -240,6 +254,14 @@ async function pick(cb) {
 const linkOf = tk => location.origin + location.pathname + '#/a/' + tk;
 
 // ---------- importar ficha
+async function recog(f, byId) { // liga cada linha da ficha a um exercício da biblioteca (com desenho)
+  for (const s of f.sessoes) for (const it of s.itens) {
+    let q = it.tipo === 'cardio' ? it.texto.replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim() : it.busca; it.ex = null;
+    if (/copenhagen/i.test(q) && /joelho/i.test(it.obs || '')) q += ' com joelho apoiado'; else if (/copenhagen/i.test(q) && /p[eé]/i.test(it.obs || '') && /apoiad/i.test(it.obs || '')) q += ' com pé apoiado';
+    if (q.length > 3) { const { data } = await sb.rpc('match_exercise', { p_text: q }); const m = data?.[0]; const e = m && byId[m.exercise_id];
+      if (e && m.score >= 0.6 && (it.tipo !== 'cardio' || e.muscle_group === 'Cardio')) it.ex = e; else if (e && it.tipo === 'ex') it.sug = e; }
+  }
+}
 async function imp() {
   app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p>
   <textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
@@ -247,12 +269,7 @@ async function imp() {
     const f = parseFicha($('#t').value); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
     if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei exercícios. Escreva um por linha, com séries e repetições (ex.: "Supino reto 4x10").</p>';
     $('#r').innerHTML = 'Lendo…';
-    for (const s of f.sessoes) for (const it of s.itens) {
-      let q = it.tipo === 'cardio' ? it.texto.replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim() : it.busca; it.ex = null;
-      if (/copenhagen/i.test(q) && /joelho/i.test(it.obs || '')) q += ' com joelho apoiado'; else if (/copenhagen/i.test(q) && /p[eé]/i.test(it.obs || '') && /apoiad/i.test(it.obs || '')) q += ' com pé apoiado';
-      if (q.length > 3) { const { data } = await sb.rpc('match_exercise', { p_text: q }); const m = data?.[0]; const e = m && byId[m.exercise_id];
-        if (e && m.score >= 0.6 && (it.tipo !== 'cardio' || e.muscle_group === 'Cardio')) it.ex = e; else if (e && it.tipo === 'ex') it.sug = e; }
-    }
+    await recog(f, byId);
     const view = () => {
       let h = `<label class=muted>Nome do aluno</label><input id=an value="${esc(f.aluno)}"><label class=muted>Pausa padrão entre as séries (segundos)</label><input id=rd type=number inputmode=numeric value="${f.rd || 60}">`, rev = 0, tot = 0;
       if (f.meta.length) h += `<p class=muted>${f.meta.map(esc).join('<br>')}</p>`;
@@ -293,7 +310,53 @@ async function salvar(f, nome, rd) {
       const ir = await sb.from('block_items').insert(rows); if (ir.error) throw ir.error;
     }
     msg.innerHTML = `<span class=ok>Treino salvo!</span> <button class=p id=op>Abrir aluno e enviar link</button>`; $('#op').onclick = () => { show('stu'); aluno(st.id); };
-  } catch (e) { msg.innerHTML = `<span class=err>${esc(e.message)}</span>`; }
+    return st.id;
+  } catch (e) { msg.innerHTML = `<span class=err>${esc(e.message)}</span>`; return null; }
+}
+
+const SAMPLE = `TREINO A – Peito + Costas + Abdômen
+1. Supino reto — 3x 10 a 12 | Pausa: 60s
+2. Remada baixa — 3x 10 a 12 | Pausa: 60s
+3. Elevação lateral + Tríceps na corda — 3x 12 | Pausa: 60s
+4. Prancha — 3x 30s | Pausa: 30s
+5. CARDIO — 4x 20s | Pausa: 10s
+Fase excêntrica lenta de 3s em todos os exercícios
+
+TREINO B – Pernas + Glúteos
+1. Agachamento goblet — 3x 10 a 12 | Pausa: 90s
+2. Cadeira extensora — 3x 12 a 15 | Pausa: 60s
+3. Mesa flexora — 3x 12 | Pausa: 60s
+4. Elevação pélvica — 3x 12 | Pausa: 60s
+5. CARDIO LIVRE — 10 minutos na esteira ou bicicleta`;
+
+// ---------- painel do dono (versão de teste)
+async function admin() {
+  app.innerHTML = '<h2>Admin — versão de teste</h2><div id=ad>Carregando…</div>';
+  const { data: o, error } = await sb.rpc('admin_overview'); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  const base = location.origin + location.pathname, link = c => base + '#/convite/' + c;
+  const wtxt = c => `Olá! Você foi convidado para testar o DE HOJE, o app de treinos para personal trainers.\n\n1) Abra este link e crie sua conta: ${link(c)}\n2) Seu código de convite: ${c}\n\nNa aba Alunos tem um teste guiado: em 2 minutos você cria um aluno com ficha de exemplo e manda o link para ele.`;
+  const dt = d => d ? new Date(d).toLocaleDateString('pt-BR') : '–';
+  let h = `<div class=box2><b>Novo convite</b><p class=muted>Cada convite libera 1 treinador. Você controla quantos alunos ele pode ter e por quantos dias.</p><div class=mgrid><label>Nome (para você lembrar)<input id=il placeholder="Ex.: João Personal"></label><label>Alunos permitidos<input id=im type=number inputmode=numeric value=1 min=1 max=50></label><label>Dias de teste<input id=idd type=number inputmode=numeric value=30 min=1 max=365></label></div><button class=p id=ib>Gerar convite</button><div id=ir></div></div>`;
+  const tr = o.trainers || []; h += `<h2>Treinadores (${tr.length})</h2>`;
+  h += tr.length ? tr.map(t => { const left = t.demo_until ? Math.ceil((new Date(t.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
+    const st = t.plan === 'pro' ? '<span class=badge>Liberado (sem limite)</span>' : t.plan === 'bloqueado' ? '<span class="badge priv">Bloqueado</span>' : `<span class=badge>Teste · ${left > 0 ? `${left} dia${left === 1 ? '' : 's'}` : 'terminou'}</span>`;
+    return `<div class=box2><b>${esc(t.brand || t.label || t.email)}</b> ${st}<br><small class=muted>${esc(t.email || '')}${t.label ? ' · convite: ' + esc(t.label) : ''} · desde ${dt(t.created_at)}</small>
+      <div class=stats><div><b>${t.students}${t.plan === 'demo' ? '/' + (t.max || 1) : ''}</b><small>alunos</small></div><div><b>${t.sessions}</b><small>treinos feitos</small></div><div><b>${t.files}</b><small>arquivos</small></div><div><b>${t.wa ? '✓' : '–'}</b><small>WhatsApp</small></div></div>
+      <small class=muted>Último treino de aluno: ${t.last ? new Date(t.last).toLocaleString('pt-BR') : 'nenhum ainda'}</small><br>
+      ${t.plan !== 'pro' ? `<button class=sm data-ext=${t.id}>+15 dias</button> <button class=sm data-max=${t.id} data-m=${(t.max || 1) + 1}>+1 aluno</button> ` : ''}${t.plan === 'bloqueado' ? `<button class=sm data-unb=${t.id}>Desbloquear</button> ` : `<button class="sm danger" data-blk=${t.id}>Bloquear</button> `}${t.plan === 'pro' ? `<button class=sm data-dem=${t.id}>Voltar para teste</button>` : `<button class=sm data-pro=${t.id}>Liberar sem limite</button>`}</div>`; }).join('') : '<p class=muted>Nenhum treinador entrou ainda. Gere um convite acima e envie.</p>';
+  const iv = o.invites || []; h += `<h2>Convites (${iv.length})</h2>` + (iv.length ? iv.map(i => `<div class=row><div><b>${esc(i.code)}</b>${i.label ? ' · ' + esc(i.label) : ''}<br><small class=muted>${i.max} aluno${i.max > 1 ? 's' : ''} · ${i.days} dias · criado ${dt(i.created_at)}</small><br>${i.revoked ? '<small class=err>Cancelado</small>' : i.used_at ? `<small class=ok>Usado por ${esc(i.used_by_email || '')} em ${dt(i.used_at)}</small>` : `<small class=warn>Aguardando o treinador</small><br><button class=sm data-cp="${esc(link(i.code))}">Copiar link</button> <a class="btn sm" target=_blank rel=noopener href="https://wa.me/?text=${encodeURIComponent(wtxt(i.code))}">Enviar no WhatsApp</a> <button class=sm data-rv=${esc(i.code)}>Cancelar</button>`}</div></div>`).join('') : '<p class=muted>Nenhum convite ainda.</p>');
+  $('#ad').innerHTML = h;
+  const act = async (fn, args) => { const r = await sb.rpc(fn, args); if (r.error) return alert(r.error.message); admin(); };
+  $('#ib').onclick = async () => { const r = await sb.rpc('admin_create_invite', { p_label: $('#il').value.trim(), p_max: +$('#im').value || 1, p_days: +$('#idd').value || 30 }); if (r.error) return $('#ir').innerHTML = `<p class=err>${esc(r.error.message)}</p>`;
+    $('#ir').innerHTML = `<div class=msg><b>Convite criado: ${esc(r.data)}</b><input readonly value="${esc(link(r.data))}"><a class="btn p" target=_blank rel=noopener href="https://wa.me/?text=${encodeURIComponent(wtxt(r.data))}">💬 Enviar no WhatsApp</a> <button id=ic2>Atualizar lista</button></div>`; $('#ic2').onclick = admin; };
+  app.querySelectorAll('[data-cp]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.cp); b.textContent = 'Copiado!'; } catch { prompt('Copie o link:', b.dataset.cp); } });
+  app.querySelectorAll('[data-rv]').forEach(b => b.onclick = () => confirm('Cancelar este convite?') && act('admin_revoke_invite', { p_code: b.dataset.rv }));
+  app.querySelectorAll('[data-ext]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.ext, p_plan: 'demo', p_extra_days: 15 }));
+  app.querySelectorAll('[data-max]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.max, p_plan: 'demo', p_extra_days: 0, p_max: +b.dataset.m }));
+  app.querySelectorAll('[data-blk]').forEach(b => b.onclick = () => confirm('Bloquear este treinador? Ele e os alunos dele perdem o acesso (nada é apagado).') && act('admin_set_trainer', { p_id: b.dataset.blk, p_plan: 'bloqueado' }));
+  app.querySelectorAll('[data-unb]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.unb, p_plan: 'demo', p_extra_days: 0 }));
+  app.querySelectorAll('[data-pro]').forEach(b => b.onclick = () => confirm('Liberar este treinador sem limite de alunos e sem prazo?') && act('admin_set_trainer', { p_id: b.dataset.pro, p_plan: 'pro' }));
+  app.querySelectorAll('[data-dem]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.dem, p_plan: 'demo', p_extra_days: 15 }));
 }
 
 // ---------- alunos (treinador)
@@ -315,10 +378,14 @@ async function students() {
   const fb = (ses || []).slice(0, 6);
   if ((ups || []).length) h += '<div class=box2><b>Arquivos novos dos alunos</b>' + ups.map(u => `<div class=fb data-id=${u.student_id}><b>${esc(u.students?.name || '')}</b> <small class=muted>${esc(KINDS[u.kind] || 'Arquivo')} · ${new Date(u.created_at).toLocaleDateString('pt-BR')}</small></div>`).join('') + '</div>';
   if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small class=pre>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
+  if (!data.length) h += `<div class="box2 guide"><b>🚀 Teste guiado (2 minutos)</b><p>Crie um aluno de teste com uma ficha pronta (Treino A e B, com bi-set, cardio intervalado e observação do dia). Depois é só mandar o link para o aluno pelo WhatsApp.</p><label class=muted>Nome do aluno</label><input id=gn placeholder="Ex.: Maria Silva"><button class=p id=gs>Criar aluno com ficha de exemplo</button><p id=sm></p><p class=muted><small>Prefere a sua própria ficha? Use a aba <b>Importar ficha</b> e cole o treino do jeito que você escreve.</small></p></div>`;
   h += data.length ? data.map(s => { const l = last[s.id], d = l ? dias(l.started_at) : null;
-    return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small>${s.plan_end ? `<br><small class=muted>Plano até ${dbr(s.plan_end)}</small>` : ''}</div></div>`; }).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
+    return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small>${s.plan_end ? `<br><small class=muted>Plano até ${dbr(s.plan_end)}</small>` : ''}</div></div>`; }).join('') : '';
   if (arch.length) h += `<details class=arch><summary>Alunos arquivados (${arch.length})</summary>${arch.map(s => `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class=muted>Arquivado · toque para ver ou reativar</small></div></div>`).join('')}</details>`;
   $('#ls').innerHTML = h;
+  if ($('#gs')) $('#gs').onclick = async () => { const nome = $('#gn').value.trim(); if (nome.length < 2) return $('#sm').innerHTML = '<span class=err>Digite o nome do aluno.</span>';
+    $('#gs').disabled = true; $('#sm').textContent = 'Montando a ficha…'; const f = parseFicha(SAMPLE); const lb = await getLib(); await recog(f, Object.fromEntries(lb.map(x => [x.id, x])));
+    const sid = await salvar(f, nome, 60); $('#gs') && ($('#gs').disabled = false); if (sid) aluno(sid); };
   $('#ls').onclick = e => { const r = e.target.closest('[data-id]'); if (r) aluno(r.dataset.id); };
 }
 async function aluno(id) {
@@ -407,6 +474,7 @@ async function studentView(token) {
   nav.innerHTML = ''; const planKey = 'dh2_plan_' + token; let P = null, offline = false;
   try { const r = await sb.rpc('student_plan', { p_token: token }); if (r.error) throw r.error; P = r.data;
     if (!P) { try { localStorage.removeItem(planKey); } catch {} return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>'; }
+    if (P.blocked) { try { localStorage.removeItem(planKey); } catch {} return app.innerHTML = '<h2>Acesso pausado</h2><p>O acesso do seu treinador ao DE HOJE está pausado no momento. Fale com ele.</p>'; }
     try { localStorage.setItem(planKey, JSON.stringify(P)); } catch {}
   } catch (e) { // sem internet: usa a última cópia do treino guardada no celular
     try { P = JSON.parse(localStorage.getItem(planKey)); } catch {}

@@ -94,3 +94,5 @@ label.muted{display:block;margin-top:6px}
 .trbar img{width:40px;height:40px;object-fit:contain;flex:none}.trbar div{display:flex;flex-direction:column;line-height:1.15}.trbar small{color:var(--g);font-size:11px}.trbar b{font-size:15px}
 .trini{width:40px;height:40px;border-radius:50%;background:var(--od);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
 .trbar.prev{border:1px solid var(--b);border-radius:12px;margin-bottom:10px}
+.demob{background:#FFF8E6;border-bottom:1px solid #F0D58A;padding:6px 16px;font-size:14px}
+.guide{border:2px solid var(--o);background:#F3FBF6}
