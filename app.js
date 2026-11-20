@@ -3,12 +3,19 @@ const sb = createClient('https://hvqtgnlqcidutvnlxtpd.supabase.co', 'sb_publisha
 const $ = s => document.querySelector(s), app = $('#app'), nav = $('#nav');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let session = null, profile = null, library = [];
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
+const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
+  if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
+// se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
+const oops = (e) => { const m = ptErr(e?.message || e?.reason?.message || e?.reason || e); if (document.getElementById('oops')) return; const d = document.createElement('div'); d.id = 'oops'; d.className = 'oops'; d.innerHTML = `<b>Algo não carregou.</b> <small>${String(m).replace(/[<>&]/g, '').slice(0, 140)}</small><button onclick="location.reload()">Tentar de novo</button><button onclick="this.parentNode.remove()">×</button>`; document.body.appendChild(d); };
+window.addEventListener('unhandledrejection', e => oops(e)); window.addEventListener('error', e => { if (e.message && !/ResizeObserver|Script error/i.test(e.message)) oops(e); });
 
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
   // quando sair uma versão nova do app, recarrega sozinho uma vez (fora do meio de um treino)
-  let reloaded = false; navigator.serviceWorker.addEventListener('controllerchange', () => { if (reloaded || document.querySelector('.segs')) return; reloaded = true; location.reload(); }); }
+  let reloaded = false; const hadCtrl = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (!hadCtrl || reloaded || document.querySelector('.segs')) return; reloaded = true; location.reload(); }); }
 
-async function boot() {
+async function boot() { try { await boot2(); } catch (e) { oops(e); if (/Carregando/.test(app.textContent)) app.innerHTML = '<h2>Não carregou</h2><p>Confira a internet e toque em Tentar de novo.</p><button class=p onclick="location.reload()">Tentar de novo</button>'; } }
+async function boot2() {
   if (location.hash.startsWith('#/a/')) return studentView(location.hash.slice(4));
   const inv = /^#\/convite\/([A-Za-z0-9-]+)/.exec(location.hash); if (inv) { try { localStorage.setItem('dh_invite', inv[1].toUpperCase()); } catch {} history.replaceState(null, '', location.pathname); }
   const { data } = await sb.auth.getSession(); session = data.session;
@@ -43,14 +50,21 @@ function login() {
   <label class=muted>Código de convite (só para criar conta nova)</label><input id=ic placeholder="DEMO-XXXXXX" value="${esc(ic)}" autocapitalize=characters>
   ${ic ? '<button class=p id=up>Criar minha conta</button> <button id=in>Já tenho conta — entrar</button>' : '<button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button>'} <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
   const go = async (fn) => { $('#m').textContent = ''; const r = await fn({ email: $('#e').value.trim(), password: $('#p').value });
-    if (r.error) return $('#m').textContent = r.error.message;
+    if (r.error) return $('#m').textContent = ptErr(r.error.message);
     if (r.data.session) return location.reload();
     $('#m').textContent = r.data.user && r.data.user.identities && r.data.user.identities.length === 0 ? 'Este e-mail já tem conta. Use Entrar ou Esqueci a senha.' : 'Confirme o e-mail que enviamos e depois entre.'; };
   $('#in').onclick = () => { const c = $('#ic').value.trim(); if (c) try { localStorage.setItem('dh_invite', c.toUpperCase()); } catch {} go(c => sb.auth.signInWithPassword(c)); };
-  $('#up').onclick = () => { const c = $('#ic').value.trim().toUpperCase(); if (!c) return $('#m').textContent = 'Para criar conta, digite o código de convite que você recebeu.'; try { localStorage.setItem('dh_invite', c); } catch {}
-    go(x => sb.auth.signUp({ ...x, options: { emailRedirectTo: location.origin + location.pathname } })); };
+  $('#up').onclick = async () => { const c = $('#ic').value.trim().toUpperCase(); if (!c) return $('#m').textContent = 'Para criar conta, digite o código de convite que você recebeu.'; try { localStorage.setItem('dh_invite', c); } catch {}
+    const email = $('#e').value.trim(), password = $('#p').value; if (!email || password.length < 8) return $('#m').textContent = 'Digite seu e-mail e uma senha com pelo menos 8 caracteres.';
+    $('#up').disabled = true; $('#m').innerHTML = '<span class=muted>Criando sua conta…</span>';
+    try { const { data, error } = await sb.functions.invoke('trainer-signup', { body: { email, password, code: c } }); let e = data?.error;
+      if (error) { e = error.message; try { const j = await error.context?.json(); if (j?.error) e = j.error; } catch {} }
+      if (e) { $('#up').disabled = false; return $('#m').textContent = ptErr(e); }
+      try { localStorage.removeItem('dh_invite'); } catch {}
+      const r = await sb.auth.signInWithPassword({ email, password }); if (r.error) { $('#up').disabled = false; return $('#m').textContent = 'Conta criada! Agora toque em “Já tenho conta — entrar”.'; }
+      location.reload(); } catch (er) { $('#up').disabled = false; $('#m').textContent = ptErr(er.message); } };
   $('#fg').onclick = async () => { const e = $('#e').value.trim(); if (!e) return $('#m').textContent = 'Digite seu e-mail acima.';
-    const r = await sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + location.pathname }); $('#m').textContent = r.error ? r.error.message : 'Se o e-mail tiver conta, enviamos um link para criar nova senha. Veja também o spam.'; };
+    const r = await sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + location.pathname }); $('#m').textContent = r.error ? ptErr(r.error.message) + ' Se não conseguir, fale com o responsável pelo DE HOJE.' : 'Se o e-mail tiver conta, enviamos um link para criar nova senha. Veja também o spam. Se não chegar em 10 minutos, fale com o responsável pelo DE HOJE.'; };
 }
 function newPass() {
   nav.innerHTML = ''; app.innerHTML = '<h2>Nova senha</h2><input id=n type=password placeholder="Nova senha (mín. 8 caracteres)" autocomplete=new-password><button class=p id=sv>Salvar</button><p id=m class=err></p>';
@@ -443,12 +457,12 @@ async function aluno(id) {
     if (!f) return m.innerHTML = '<span class=err>Escolha um arquivo.</span>'; if (!sh) return m.innerHTML = '<span class=err>Escolha se o aluno pode ver.</span>';
     if (f.size > 25 * 1024 * 1024) return m.innerHTML = '<span class=err>Arquivo maior que 25 MB.</span>';
     $('#tsv').disabled = true; m.textContent = 'Enviando…';
-    try { const { blob, name, type } = await prepFile(f); const path = `${id}/treinador/${crypto.randomUUID()}-${safeName(name)}`;
+    try { const { blob, name, type } = await prepFile(f); const path = `${id}/treinador/${uuid()}-${safeName(name)}`;
       const u = await sb.storage.from('student-files').upload(path, blob, { contentType: type }); if (u.error) throw u.error;
       const r = await sb.from('student_uploads').insert({ student_id: id, trainer_id: session.user.id, uploaded_by: 'treinador', kind: $('#tk').value, title: f.name.slice(0, 200), note: $('#tn').value.trim() || null, path, mime: type, size_bytes: blob.size, shared: sh.value === '1', status: 'ok' }); if (r.error) throw r.error;
       m.innerHTML = '<span class=ok>Enviado ✓</span>'; $('#tf').value = ''; $('#tn').value = ''; drawFiles(); } catch (er) { m.innerHTML = `<span class=err>${esc(er.message)}</span>`; } finally { $('#tsv').disabled = false; } };
   $('#ms').onclick = async () => { const r = await sb.from('students').update({ message: $('#msg').value.trim() || null }).eq('id', id); $('#ms').textContent = r.error ? 'Erro: ' + r.error.message : 'Recado salvo ✓'; };
-  $('#nl').onclick = async () => { if (!confirm('Gerar um novo link? O link antigo deixa de funcionar e o aluno precisará do novo.')) return; const tk = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, ''); const r = await sb.from('students').update({ token: tk }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); };
+  $('#nl').onclick = async () => { if (!confirm('Gerar um novo link? O link antigo deixa de funcionar e o aluno precisará do novo.')) return; const tk = (uuid() + uuid()).replace(/-/g, ''); const r = await sb.from('students').update({ token: tk }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); };
   $('#bk').onclick = students; if ($('#react')) $('#react').onclick = async () => { const r = await sb.from('students').update({ active: true }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); }; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
   app.querySelectorAll('[data-ed]').forEach(bt => bt.onclick = () => { const { i, b } = itemsById[bt.dataset.ed]; const cardio = i.kind === 'cardio';
@@ -651,7 +665,7 @@ async function studentView(token) {
       const comentario = [String(z.comment || '').trim(), ...notas].filter(Boolean).join('\n');
       wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
       $('#fm').textContent = 'Enviando…'; $('#fin').disabled = true;
-      if (!z.cid) { z.cid = crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ Math.random() * 16 >> c / 4).toString(16)); sv(wk.id, z); }
+      if (!z.cid) { z.cid = uuid(); sv(wk.id, z); }
       const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: comentario, p_logs: logs, p_client: z.cid };
       let r; try { r = await sb.rpc('student_finish', args); } catch (e) { r = { error: { message: 'network' } }; }
       let queued = false;
