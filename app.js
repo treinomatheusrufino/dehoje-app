@@ -4,7 +4,9 @@ const $ = s => document.querySelector(s), app = $('#app'), nav = $('#nav');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let session = null, profile = null, library = [];
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+  // quando sair uma versão nova do app, recarrega sozinho uma vez (fora do meio de um treino)
+  let reloaded = false; navigator.serviceWorker.addEventListener('controllerchange', () => { if (reloaded || document.querySelector('.segs')) return; reloaded = true; location.reload(); }); }
 
 async function boot() {
   if (location.hash.startsWith('#/a/')) return studentView(location.hash.slice(4));
