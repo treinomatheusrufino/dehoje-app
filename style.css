@@ -97,3 +97,5 @@ label.muted{display:block;margin-top:6px}
 .demob{background:#FFF8E6;border-bottom:1px solid #F0D58A;padding:6px 16px;font-size:14px}
 .guide{border:2px solid var(--o);background:#F3FBF6}
 .oops{position:fixed;left:10px;right:10px;top:10px;z-index:50;background:#FFF3F2;border:1px solid #f1b5b0;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 18px #0002}.oops small{flex:1;color:#7a271a}.oops button{padding:6px 10px}
+.pvbar{background:#1B2A49;color:#fff;padding:8px 16px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pvbar button{padding:4px 10px;margin-left:auto}
+a.btn.pv{border-color:var(--od);color:var(--od);font-weight:600}

@@ -20,7 +20,7 @@ async function boot2() {
   // código do aluno: vem no endereço (?a=...) ou depois do # — o iPhone preserva o endereço ao criar o ícone
   const qa = new URLSearchParams(location.search).get('a');
   const ha = location.hash.startsWith('#/a/') ? location.hash.slice(4) : '';
-  if (qa || ha) return studentView((ha || qa).replace(/[^A-Za-z0-9]/g, ''));
+  if (qa || ha) return studentView((ha || qa).replace(/[^A-Za-z0-9]/g, ''), new URLSearchParams(location.search).get('ver') === '1');
   addManifest('manifest.webmanifest');
   const savedStu = (() => { try { return localStorage.getItem('dh_student_token') || ''; } catch { return ''; } })();
   const inv = /^#\/convite\/([A-Za-z0-9-]+)/.exec(location.hash); if (inv) { try { localStorage.setItem('dh_invite', inv[1].toUpperCase()); } catch {} history.replaceState(null, '', location.pathname); }
@@ -422,8 +422,9 @@ async function aluno(id) {
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
   const st = s.data, url = linkOf(st.token);
   let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>${st.code ? `<p class=muted>ID do aluno: <b>${esc(st.code)}</b> <small>(só identificação, não dá acesso)</small></p>` : ''}${st.active === false ? '<p class=warn>Aluno arquivado — o link está desativado. <button class=sm id=react>Reativar</button></p>' : ''}
-   <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class=btn href="https://wa.me/?text=${encodeURIComponent('Oi! Seu treino está aqui: ' + url)}" target=_blank>Enviar no WhatsApp</a>
+   <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class="btn pv" href="${esc(location.origin + location.pathname + '?a=' + st.token + '&ver=1#/a/' + st.token)}" target=_blank rel=noopener>👁 Ver como o aluno vê</a> <a class=btn href="https://wa.me/?text=${encodeURIComponent(`Oi, ${st.name.split(' ')[0]}! Seu treino já está no app DE HOJE 💪\n\n1) Abra este link: ${url}\n2) Para virar um aplicativo no seu celular:\n• iPhone: abra no Safari, toque em Compartilhar e depois em "Adicionar à Tela de Início"\n• Android: no Chrome, toque nos 3 pontinhos e depois em "Adicionar à tela inicial"\n\nDepois é só abrir pelo ícone, até sem internet. Bom treino!`)}" target=_blank>Enviar no WhatsApp</a>
    <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>`;
+  if (!(h.data || []).length) x += `<div class="box2 guide"><b>Próximos passos</b><ol class=steps><li>Toque em <b>👁 Ver como o aluno vê</b> e faça um treino de teste (nada é enviado).</li><li>Toque em <b>Enviar no WhatsApp</b> para mandar o link ao aluno.</li><li>Peça para ele abrir o link e tocar em <b>Adicionar à tela inicial</b>.</li><li>Quando ele treinar, o resultado aparece aqui e em <b>Alunos → Atividade recente</b>.</li></ol></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
   x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div>`;
   const itemsById = {};
@@ -493,18 +494,19 @@ async function aluno(id) {
 }
 
 // ---------- tela do aluno (sem login): treino do dia, exercício por exercício
-async function studentView(token) {
-  nav.innerHTML = ''; const planKey = 'dh2_plan_' + token; let P = null, offline = false;
+async function studentView(token, preview = false) {
+  nav.innerHTML = ''; const planKey = (preview ? 'dhpv_plan_' : 'dh2_plan_') + token; let P = null, offline = false;
+  if (preview) { document.title = 'DE HOJE — visualização'; const pv = document.createElement('div'); pv.className = 'pvbar'; pv.innerHTML = '👁 <b>Visualização do treinador</b> — é assim que o seu aluno vê. Nada aqui é enviado nem conta como treino do aluno. <button onclick="window.close();history.back()">Fechar</button>'; document.body.prepend(pv); }
   // ícone na tela inicial abre direto o treino deste aluno
-  try { localStorage.setItem('dh_student_token', token); } catch {}
-  try { const base = location.origin + location.pathname, url = base + '?a=' + token + '#/a/' + token;
+  if (!preview) try { localStorage.setItem('dh_student_token', token); } catch {}
+  if (!preview) try { const base = location.origin + location.pathname, url = base + '?a=' + token + '#/a/' + token;
     if (location.search !== '?a=' + token || location.hash !== '#/a/' + token) history.replaceState(null, '', url);
     const mf = { name: 'DE HOJE', short_name: 'DE HOJE', id: url, start_url: url, scope: base, display: 'standalone', background_color: '#ffffff', theme_color: '#16A34A', lang: 'pt-BR', icons: [192, 512].map(n => ({ src: base + 'icons/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' })) };
     addManifest('data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(mf))); } catch {}
   try { const r = await sb.rpc('student_plan', { p_token: token }); if (r.error) throw r.error; P = r.data;
     if (!P) { try { localStorage.removeItem(planKey); if (localStorage.getItem('dh_student_token') === token) localStorage.removeItem('dh_student_token'); } catch {} return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>'; }
     if (P.blocked) { try { localStorage.removeItem(planKey); } catch {} return app.innerHTML = '<h2>Acesso pausado</h2><p>O acesso do seu treinador ao DE HOJE está pausado no momento. Fale com ele.</p>'; }
-    try { localStorage.setItem(planKey, JSON.stringify(P)); } catch {}
+    if (!preview) try { localStorage.setItem(planKey, JSON.stringify(P)); } catch {}
   } catch (e) { // sem internet: usa a última cópia do treino guardada no celular
     try { P = JSON.parse(localStorage.getItem(planKey)); } catch {}
     if (!P) return app.innerHTML = '<h2>Sem internet</h2><p>Para usar o app sem internet, abra este link <b>uma vez com internet</b>. Depois disso o seu treino fica guardado no celular.</p><button class=p onclick="location.reload()">Tentar de novo</button>';
@@ -518,7 +520,7 @@ async function studentView(token) {
   const tb = document.createElement('div'); tb.className = 'trbar';
   tb.innerHTML = `${BR.logo && /^https:\/\//.test(BR.logo) ? `<img src="${esc(BR.logo)}" alt="">` : `<span class=trini>${esc((trName || 'T').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase())}</span>`}<div><small>Seu treinador</small><b>${esc(trName || 'Seu treinador')}</b></div>`;
   if (trName || BR.logo) document.querySelector('header').after(tb);
-  const key = w => 'dh2_' + token + '_' + w;
+  const key = w => (preview ? 'dhpv_' : 'dh2_') + token + '_' + w;
   const ld = w => { try { return JSON.parse(localStorage.getItem(key(w))) || {}; } catch { return {}; } };
   const sv = (w, o) => { try { localStorage.setItem(key(w), JSON.stringify(o)); } catch {} };
   const upd = (fn) => { const o = ld(wk.id); fn(o); sv(wk.id, o); return o; };
@@ -540,7 +542,7 @@ async function studentView(token) {
   const flush = async () => { let q = []; try { q = JSON.parse(localStorage.getItem(pk)) || []; } catch {} if (!q.length) return; const rest = [];
     for (const a of q) { try { const r = await sb.rpc('student_finish', a); if (r.error && !/inválido/.test(r.error.message)) rest.push(a); else if (!r.error && a.p_comment) notify(r.data); } catch { rest.push(a); } }
     try { localStorage.setItem(pk, JSON.stringify(rest)); } catch {} };
-  window.addEventListener('online', flush); flush();
+  if (!preview) { window.addEventListener('online', flush); flush(); }
 
   // --- cronômetro de pausa (semicírculo)
   const LEN = Math.PI * 80;
@@ -599,7 +601,7 @@ async function studentView(token) {
       <fieldset class=share><legend><b>Deixar visível para o seu treinador?</b></legend><label><input type=radio name=sh value=1> Sim, meu treinador pode ver</label><label><input type=radio name=sh value=0> Não, só eu vejo</label></fieldset>
       <button class=p id=fs>Enviar</button> <small id=fm></small><p class=muted><small>Você pode mudar essa escolha depois em cada arquivo. Tamanho máximo: 25 MB.</small></p></div><div id=fl>Carregando…</div>`;
     app.querySelector('[data-home]').onclick = home;
-    const list = async () => { const box = $('#fl'); try { const { files: fs } = await callF({ action: 'list' }); const mine = fs.filter(f => f.uploaded_by === 'aluno'), tr = fs.filter(f => f.uploaded_by === 'treinador');
+    const list = async () => { const box = $('#fl'); try { const { files: fs } = await callF({ action: 'list' }); const mine = fs.filter(f => f.uploaded_by === 'aluno' && (!preview || f.shared)), tr = fs.filter(f => f.uploaded_by === 'treinador');
         let h = '<h3>Enviados por você</h3>' + (mine.length ? mine.map(f => fileCard(f, f.url, `<button class=sm data-sh=${f.id} data-v=${f.shared ? 0 : 1}>${f.shared ? 'Deixar só para mim' : 'Mostrar ao treinador'}</button> <button class=sm data-rm=${f.id}>Remover</button>`, f.shared ? '👁 Seu treinador vê' : '🔒 Só você vê')).join('') : '<p class=muted>Nada enviado ainda.</p>');
         if (tr.length) h += '<h3>Do seu treinador</h3>' + tr.map(f => fileCard(f, f.url, '', 'Enviado pelo treinador')).join('');
         box.innerHTML = h;
@@ -607,7 +609,8 @@ async function studentView(token) {
         box.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { if (!confirm('Remover este arquivo da sua lista? Ele fica guardado com segurança e não é apagado.')) return; try { await callF({ action: 'remove', id: b.dataset.rm }); list(); } catch (e) { alert(e.message); } });
       } catch (e) { box.innerHTML = `<p class=err>${esc(e.message)}</p>`; } };
     list();
-    $('#fs').onclick = async () => { const f = $('#ff').files[0], m = $('#fm'), sh = app.querySelector('input[name=sh]:checked');
+    if (preview) { $('#fs').disabled = true; $('#fm').innerHTML = '<span class=muted>Na visualização o envio fica desligado. O aluno envia por aqui e escolhe se você pode ver.</span>'; }
+    $('#fs').onclick = async () => { if (preview) return; const f = $('#ff').files[0], m = $('#fm'), sh = app.querySelector('input[name=sh]:checked');
       if (!f) return m.innerHTML = '<span class=err>Escolha um arquivo ou foto.</span>';
       if (!sh) return m.innerHTML = '<span class=err>Responda se o seu treinador pode ver.</span>';
       if (f.size > 25 * 1024 * 1024) return m.innerHTML = '<span class=err>Arquivo maior que 25 MB.</span>';
@@ -674,6 +677,7 @@ async function studentView(token) {
     app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { upd(z => { z.comment = $('#cm').value; z.rating = +b.dataset.r; }); finish(); });
     $('#cm').oninput = () => upd(z => { z.comment = $('#cm').value; });
     $('#fin').onclick = async () => { const z = ld(wk.id), logs = []; z.comment = $('#cm').value;
+      if (preview) { try { localStorage.removeItem(key(wk.id)); } catch {} unwake(); app.innerHTML = `<h2>Treino concluído! 💪</h2><div class=msg><b>Visualização do treinador</b><p>No celular do aluno, aqui o treino é enviado para você: aparece em <b>Alunos → Atividade recente</b>, no histórico dele e, se tiver comentário, no seu WhatsApp (se estiver ativado).</p></div><button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = home; return; }
       if (!z.rating) return $('#fm').innerHTML = '<span class=err>Toque nas estrelas para dar uma nota ao treino.</span>';
       if (z.rating <= 2 && !String(z.comment || '').trim()) { $('#cm').focus(); return $('#fm').innerHTML = '<span class=err>Para nota 1 ou 2, escreva um comentário contando o que não foi bem.</span>'; }
       const notas = []; wk.items.forEach(i => { const t = String(z['n_' + i.id] || '').trim(); if (t) notas.push(`📝 ${i.exercise ? i.exercise.name : i.text}: ${t}`); });
