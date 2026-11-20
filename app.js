@@ -401,8 +401,17 @@ async function aluno(id) {
 
 // ---------- tela do aluno (sem login): treino do dia, exercício por exercício
 async function studentView(token) {
-  nav.innerHTML = ''; const { data: P, error } = await sb.rpc('student_plan', { p_token: token });
-  if (error || !P) return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>';
+  nav.innerHTML = ''; const planKey = 'dh2_plan_' + token; let P = null, offline = false;
+  try { const r = await sb.rpc('student_plan', { p_token: token }); if (r.error) throw r.error; P = r.data;
+    if (!P) { try { localStorage.removeItem(planKey); } catch {} return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>'; }
+    try { localStorage.setItem(planKey, JSON.stringify(P)); } catch {}
+  } catch (e) { // sem internet: usa a última cópia do treino guardada no celular
+    try { P = JSON.parse(localStorage.getItem(planKey)); } catch {}
+    if (!P) return app.innerHTML = '<h2>Sem internet</h2><p>Para usar o app sem internet, abra este link <b>uma vez com internet</b>. Depois disso o seu treino fica guardado no celular.</p><button class=p onclick="location.reload()">Tentar de novo</button>';
+    offline = true; }
+  // guarda os desenhos dos exercícios no celular para funcionar offline
+  if (!offline) setTimeout(() => { const urls = new Set(); P.workouts.forEach(w => w.items.forEach(i => i.exercise?.image && urls.add(i.exercise.image))); urls.forEach(u => fetch(u).catch(() => {})); }, 1500);
+  window.addEventListener('online', async () => { if (!offline) return; try { const r = await sb.rpc('student_plan', { p_token: token }); if (!r.error && r.data) { localStorage.setItem(planKey, JSON.stringify(r.data)); offline = false; const b = $('#offb'); if (b) b.remove(); } } catch {} });
   document.body.classList.add('aluno');
   const BR = P.brand || { name: 'DE HOJE' }; const hd = document.querySelector('header'); hd.querySelector('b').textContent = BR.name; document.title = BR.name;
   if (BR.logo && /^https:\/\//.test(BR.logo)) hd.querySelector('img').src = BR.logo;
@@ -452,7 +461,7 @@ async function studentView(token) {
 
   // --- início: escolher o treino do dia
   const home = () => { stopRest(); wk = null; document.title = BR.name; unwake();
-    let h = `<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
+    let h = `${offline ? '<div class=msg id=offb><b>📴 Modo offline</b><p>Pode treinar normalmente. Seus resultados ficam guardados no celular e vão para o treinador quando a internet voltar.</p></div>' : ''}<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
     if (!P.workouts.length) { app.innerHTML = h + '<p class=muted>Seu treino ainda não foi cadastrado.</p>'; return; }
     const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);
     const ss = (P.sessions || []).map(x => new Date(x)), wkc = ss.filter(x => x >= mon).length, m30 = ss.filter(x => now - x < 30 * 864e5).length;
@@ -473,7 +482,7 @@ async function studentView(token) {
     h += `<div class=wcard><div class=wc1><div><b>📁 Meus arquivos</b><br><small class=muted>Fotos de progresso, avaliações, laudos e exames</small></div><button data-files>Abrir</button></div></div>`;
     if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
     if (P.student.code) h += `<p class=muted><small>Seu ID: <b>${esc(P.student.code)}</b></small></p>`;
-    h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. As cargas ficam salvas mesmo sem internet.</small></p>';
+    h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. Depois de aberto uma vez com internet, o treino funciona mesmo sem internet.</small></p>';
     app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; };
 
   // --- meus arquivos (o aluno escolhe se o treinador vê)
