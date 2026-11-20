@@ -17,10 +17,13 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { 
 async function boot() { try { await boot2(); } catch (e) { oops(e); if (/Carregando/.test(app.textContent)) app.innerHTML = '<h2>Não carregou</h2><p>Confira a internet e toque em Tentar de novo.</p><button class=p onclick="location.reload()">Tentar de novo</button>'; } }
 async function boot2() {
   if (location.hash.startsWith('#/a/')) return studentView(location.hash.slice(4));
+  const savedStu = (() => { try { return localStorage.getItem('dh_student_token') || ''; } catch { return ''; } })();
   const inv = /^#\/convite\/([A-Za-z0-9-]+)/.exec(location.hash); if (inv) { try { localStorage.setItem('dh_invite', inv[1].toUpperCase()); } catch {} history.replaceState(null, '', location.pathname); }
   const { data } = await sb.auth.getSession(); session = data.session;
   sb.auth.onAuthStateChange((ev, s) => { session = s; if (ev === 'PASSWORD_RECOVERY') newPass(); });
   if (location.hash.includes('type=recovery')) return;
+  // aberto pelo ícone da tela inicial (sem o link): se este celular é de um aluno, abre o treino dele
+  if (!session && savedStu && !location.hash.includes('type=recovery') && !/^#\/convite\//.test(location.hash) && !invCode()) { history.replaceState(null, '', location.pathname + '#/a/' + savedStu); return studentView(savedStu); }
   if (!session) return login();
   await loadProfile(); if (!profile || ['pendente', 'bloqueado'].includes(profile.plan)) return gate(); menu(); show('stu');
 }
@@ -48,6 +51,7 @@ function login() {
   nav.innerHTML = ''; const ic = invCode();
   app.innerHTML = `${ic ? `<div class=msg><b>Você foi convidado para testar o DE HOJE 🎉</b><p>Crie sua conta abaixo com seu e-mail e uma senha. Seu código de convite <b>${esc(ic)}</b> já está aplicado.</p></div>` : ''}<h2>${ic ? 'Criar conta de treinador' : 'Entrar'}</h2><input id=e type=email placeholder="E-mail" autocomplete=email><input id=p type=password placeholder="Senha (mín. 8 caracteres)" autocomplete=${ic ? 'new-password' : 'current-password'}>
   <label class=muted>Código de convite (só para criar conta nova)</label><input id=ic placeholder="DEMO-XXXXXX" value="${esc(ic)}" autocapitalize=characters>
+  ${(() => { try { return localStorage.getItem('dh_student_token'); } catch { return ''; } })() ? '<div class=msg><b>É aluno?</b><p>Você não precisa de conta.</p><a class="btn p" href="#/a/' + esc(localStorage.getItem('dh_student_token')) + '" onclick="setTimeout(()=>location.reload(),50)">Abrir meu treino</a></div>' : ''}
   ${ic ? '<button class=p id=up>Criar minha conta</button> <button id=in>Já tenho conta — entrar</button>' : '<button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button>'} <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
   const go = async (fn) => { $('#m').textContent = ''; const r = await fn({ email: $('#e').value.trim(), password: $('#p').value });
     if (r.error) return $('#m').textContent = ptErr(r.error.message);
@@ -486,8 +490,13 @@ async function aluno(id) {
 // ---------- tela do aluno (sem login): treino do dia, exercício por exercício
 async function studentView(token) {
   nav.innerHTML = ''; const planKey = 'dh2_plan_' + token; let P = null, offline = false;
+  // ícone na tela inicial abre direto o treino deste aluno
+  try { localStorage.setItem('dh_student_token', token); } catch {}
+  try { const base = location.origin + location.pathname, url = base + '#/a/' + token;
+    const mf = { name: 'DE HOJE', short_name: 'DE HOJE', id: url, start_url: url, scope: base, display: 'standalone', background_color: '#ffffff', theme_color: '#16A34A', lang: 'pt-BR', icons: [192, 512].map(n => ({ src: base + 'icons/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' })) };
+    const l = document.querySelector('link[rel=manifest]'); if (l) l.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(mf)); } catch {}
   try { const r = await sb.rpc('student_plan', { p_token: token }); if (r.error) throw r.error; P = r.data;
-    if (!P) { try { localStorage.removeItem(planKey); } catch {} return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>'; }
+    if (!P) { try { localStorage.removeItem(planKey); if (localStorage.getItem('dh_student_token') === token) localStorage.removeItem('dh_student_token'); } catch {} return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>'; }
     if (P.blocked) { try { localStorage.removeItem(planKey); } catch {} return app.innerHTML = '<h2>Acesso pausado</h2><p>O acesso do seu treinador ao DE HOJE está pausado no momento. Fale com ele.</p>'; }
     try { localStorage.setItem(planKey, JSON.stringify(P)); } catch {}
   } catch (e) { // sem internet: usa a última cópia do treino guardada no celular
