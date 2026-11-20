@@ -114,15 +114,22 @@ function fileCard(r, url, actions, who) { const img = /^image\//.test(r.mime || 
   return `<div class=fcard>${img ? `<a href="${esc(url)}" target=_blank rel=noopener><img src="${esc(url)}" alt=""></a>` : `<div class=ficon>${(KINDS[r.kind] || '📎').split(' ')[0]}</div>`}<div class=finfo><b>${esc(KINDS[r.kind] || 'Arquivo')}</b><br><small class=muted>${esc(r.title || '')}${r.size_bytes ? ' · ' + kb(r.size_bytes) : ''} · ${r.taken_on ? dbr(r.taken_on) : new Date(r.created_at).toLocaleDateString('pt-BR')}</small>${r.note ? `<br><small>${esc(r.note)}</small>` : ''}<br><small class="badge${r.shared || r.uploaded_by === 'treinador' ? '' : ' priv'}">${esc(who)}</small><br>${url ? `<a class="btn sm" href="${esc(url)}" target=_blank rel=noopener>Abrir</a> ` : ''}${actions || ''}</div></div>`; }
 
 async function perfil() {
-  const { data: p } = await sb.from('profiles').select('brand_name,brand_logo,phone').eq('id', session.user.id).maybeSingle(); const pr = p || {};
+  const { data: p } = await sb.from('profiles').select('brand_name,brand_logo,phone,wa_apikey').eq('id', session.user.id).maybeSingle(); const pr = p || {};
   app.innerHTML = `<h2>Perfil e marca</h2><p class=muted>Aparece para os seus alunos no app deles.</p>
    <label class=muted>Nome da sua marca</label><input id=bn placeholder="Matheus Rufino Treinamento" value="${esc(pr.brand_name || '')}">
    <label class=muted>Seu WhatsApp (com DDD, só números) — o aluno vê um botão “Falar com meu treinador”</label><input id=ph inputmode=tel placeholder="5511999999999" value="${esc(pr.phone || '')}">
    <label class=muted>Logo (imagem quadrada, de preferência com fundo transparente)</label>${pr.brand_logo ? `<p><img src="${esc(pr.brand_logo)}" alt="" style="width:64px;height:64px;object-fit:contain"></p>` : ''}<input id=lg type=file accept="image/*">
+   <div class=box2><b>💬 WhatsApp automático</b><p class=muted>Quando o aluno finalizar o treino com comentário, a mensagem chega sozinha no seu WhatsApp — ele não precisa fazer nada.</p>
+   <details${pr.wa_apikey ? '' : ' open'}><summary>Como ativar (uma vez só, 2 minutos)</summary><ol class=steps><li>Abra <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target=_blank rel=noopener>esta página do CallMeBot</a> e copie o número do robô que aparece lá.</li><li>Salve esse número nos contatos do seu celular (nome: CallMeBot).</li><li>No WhatsApp, mande para ele exatamente: <b>I allow callmebot to send me messages</b></li><li>Ele responde com <b>APIKEY</b> e um número. Copie só o número.</li><li>Cole abaixo, toque em <b>Salvar</b> e depois em <b>Enviar teste</b>.</li></ol></details>
+   <label class=muted>Sua APIKEY do CallMeBot</label><input id=wk inputmode=numeric placeholder="Ex.: 1234567" value="${esc(pr.wa_apikey || '')}"><button id=wt>Enviar teste</button> <small id=wm></small></div>
    <button class=p id=sv2>Salvar</button><p id=pm></p>`;
+  $('#wt').onclick = async () => { const m = $('#wm'); if (!$('#ph').value.replace(/\D/g, '') || !$('#wk').value.trim()) return m.innerHTML = '<span class=err>Preencha seu WhatsApp e a APIKEY e toque em Salvar antes.</span>';
+    m.textContent = 'Enviando…'; const { data, error } = await sb.functions.invoke('notify-trainer', { body: { test: true } }); let e = data?.error || null;
+    if (error) { e = error.message; try { const c = await error.context?.json(); if (c?.error) e = c.error; } catch {} }
+    m.innerHTML = e ? `<span class=err>Não chegou: ${esc(e)}. Confira se salvou o número com 55 + DDD e a APIKEY.</span>` : '<span class=ok>Enviado! Veja seu WhatsApp ✓</span>'; };
   $('#sv2').onclick = async () => { const m = $('#pm'); m.textContent = 'Salvando…'; try { let logo = pr.brand_logo || null; const f = $('#lg').files[0];
       if (f) { const b = await shrink(f, 256, 'image/png'), path = `${session.user.id}/logo-${Date.now()}.png`; const u = await sb.storage.from('brand').upload(path, b, { contentType: 'image/png' }); if (u.error) throw u.error; logo = sb.storage.from('brand').getPublicUrl(path).data.publicUrl; }
-      const r = await sb.from('profiles').update({ brand_name: $('#bn').value.trim() || null, phone: $('#ph').value.replace(/\D/g, '') || null, brand_logo: logo }).eq('id', session.user.id);
+      const r = await sb.from('profiles').update({ brand_name: $('#bn').value.trim() || null, phone: $('#ph').value.replace(/\D/g, '') || null, brand_logo: logo, wa_apikey: $('#wk').value.trim() || null }).eq('id', session.user.id);
       if (r.error) throw r.error; m.innerHTML = '<span class=ok>Salvo ✓</span>'; perfil(); } catch (e) { m.innerHTML = `<span class=err>${esc(e.message)}</span>`; } };
 }
 // ---------- leitura da ficha colada
@@ -316,7 +323,7 @@ async function aluno(id) {
   const [s, w, h, ev, bm] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
     sb.from('workouts').select('id,name,position,day_note,workout_blocks(id,position,set_type,sets,rest_seconds,block_items(id,position,raw_text,note,reps,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
-    sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
+    sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,notified_at,notify_error,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
     sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000),
     sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on')]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
@@ -341,7 +348,7 @@ async function aluno(id) {
   x += `</div><h2>Arquivos e fotos</h2><div class=box2><b>Enviar para ${esc(st.name.split(' ')[0])}</b><select id=tk>${Object.entries(KINDS).map(([k, v]) => `<option value=${k}>${v}</option>`).join('')}</select><input id=tf type=file accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"><input id=tn placeholder="Observação (opcional)">
    <fieldset class=share><legend><b>Deixar visível para o aluno?</b></legend><label><input type=radio name=tsh value=1> Sim, o aluno também vê</label><label><input type=radio name=tsh value=0> Não, só eu vejo</label></fieldset><button class=p id=tsv>Enviar arquivo</button> <small id=tm></small>
    <div id=tl class=flist>Carregando…</div><small class=muted>Fotos, avaliações e laudos que o aluno marcar como “só eu vejo” não aparecem aqui — é escolha dele.</small></div>`;
-  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
+  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>${z.notified_at ? '<br><small class=ok>✓ enviado ao seu WhatsApp</small>' : z.notify_error ? `<br><small class=warn>Não foi para o WhatsApp: ${esc(z.notify_error)}</small>` : ''}` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Arquivar aluno</button> <small class=muted>O link para de funcionar, mas nada é apagado. Dá para reativar.</small></p>'; app.innerHTML = x;
   app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
   app.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const z = (h.data || []).find(q => q.id === b.dataset.rp);
@@ -417,8 +424,9 @@ async function studentView(token) {
   const unwake = () => { try { lock && lock.release(); } catch {} lock = null; };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wk) wake(); });
   const pk = 'dh2_pending_' + token;
+  const notify = async sid => { if (!sid) return false; try { const { data } = await sb.functions.invoke('notify-trainer', { body: { token, session_id: sid } }); return !!data?.ok; } catch { return false; } };
   const flush = async () => { let q = []; try { q = JSON.parse(localStorage.getItem(pk)) || []; } catch {} if (!q.length) return; const rest = [];
-    for (const a of q) { try { const r = await sb.rpc('student_finish', a); if (r.error && !/inválido/.test(r.error.message)) rest.push(a); } catch { rest.push(a); } }
+    for (const a of q) { try { const r = await sb.rpc('student_finish', a); if (r.error && !/inválido/.test(r.error.message)) rest.push(a); else if (!r.error && a.p_comment) notify(r.data); } catch { rest.push(a); } }
     try { localStorage.setItem(pk, JSON.stringify(rest)); } catch {} };
   window.addEventListener('online', flush); flush();
 
@@ -568,9 +576,8 @@ async function studentView(token) {
         try { const q = JSON.parse(localStorage.getItem(pk)) || []; q.push(args); localStorage.setItem(pk, JSON.stringify(q)); queued = true; } catch { return $('#fm').innerHTML = '<span class=err>Sem conexão. Tente novamente.</span>'; } }
       try { localStorage.removeItem(key(wk.id)); } catch {}
       unwake();
-      const wpp = BR.phone && String(z.comment || '').trim() ? `https://wa.me/${encodeURIComponent(BR.phone)}?text=${encodeURIComponent(`🏋️ ${P.student.name} concluiu o ${wk.name.split(' — ')[0]} (${new Date().toLocaleDateString('pt-BR')})\nNota: ${'★'.repeat(z.rating)}${'☆'.repeat(5 - z.rating)}\nComentário: ${String(z.comment).trim()}`)}` : '';
-      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : '<p>Seu treinador já pode ver o seu resultado.</p>'}${wpp ? `<div class=msg><b>Enviar seu comentário no WhatsApp do treinador</b><p>Vamos abrir o WhatsApp com a mensagem pronta — é só tocar em <b>Enviar</b>.</p><a class="btn p wpp" href="${esc(wpp)}" target=_blank rel=noopener>💬 Abrir WhatsApp</a></div>` : ''}<button class=p id=hm>Voltar ao início</button>`;
-      if (wpp) setTimeout(() => { try { window.open(wpp, '_blank'); } catch {} }, 400); $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
+      if (!queued && comentario) notify(r.data);
+      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : `<p>Seu treinador já pode ver o seu resultado${comentario ? ' e recebeu o seu comentário' : ''} ✓</p>`}<button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
   };
   home();
 }

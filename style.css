@@ -88,3 +88,4 @@ fieldset.share label{display:flex;gap:8px;align-items:center;padding:6px 0}field
 a.btn.p{background:var(--od);color:#fff;border-color:var(--od)}.wpp{margin-top:6px;font-weight:700}
 a.btn.sm{padding:5px 10px;font-size:13px}
 label.muted{display:block;margin-top:6px}
+.steps{padding-left:20px;margin:6px 0}.steps li{margin:4px 0}

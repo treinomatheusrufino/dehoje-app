@@ -1,4 +1,4 @@
-const V='dehoje-v16';
+const V='dehoje-v17';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','index.html','app.js','style.css','icons/icon-192.png'])))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>clients.claim())));
 // rede primeiro (sempre a versão mais nova); cache só se estiver sem internet
