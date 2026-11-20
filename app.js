@@ -286,7 +286,7 @@ async function recog(f, byId) { // liga cada linha da ficha a um exercício da b
   }
 }
 async function imp() {
-  app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p>
+  app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p>${profile?.plan === 'demo' ? '<p class=dnote>🧪 Dica para o teste: use o nome de alguém próximo (namorada, marido, esposa…) como aluno e mande o link para o celular dessa pessoa.</p>' : ''}
   <textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
   $('#go').onclick = async () => {
     const f = parseFicha($('#t').value); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
@@ -401,11 +401,15 @@ async function students() {
   const fb = (ses || []).slice(0, 6);
   if ((ups || []).length) h += '<div class=box2><b>Arquivos novos dos alunos</b>' + ups.map(u => `<div class=fb data-id=${u.student_id}><b>${esc(u.students?.name || '')}</b> <small class=muted>${esc(KINDS[u.kind] || 'Arquivo')} · ${new Date(u.created_at).toLocaleDateString('pt-BR')}</small></div>`).join('') + '</div>';
   if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small class=pre>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
-  if (!data.length) h += `<div class="box2 guide"><b>🚀 Teste guiado (2 minutos)</b><p>Crie um aluno de teste com uma ficha pronta (Treino A e B, com bi-set, cardio intervalado e observação do dia). Depois é só mandar o link para o aluno pelo WhatsApp.</p><label class=muted>Nome do aluno</label><input id=gn placeholder="Ex.: Maria Silva"><button class=p id=gs>Criar aluno com ficha de exemplo</button><p id=sm></p><p class=muted><small>Prefere a sua própria ficha? Use a aba <b>Importar ficha</b> e cole o treino do jeito que você escreve.</small></p></div>`;
+  if (!data.length) h += `<div class="box2 guide"><b>🚀 Comece seu teste</b><p>Monte um treino de verdade e veja como ele fica no celular de outra pessoa (namorada, marido, esposa, amigo…).</p>
+    <ol class=steps><li>Toque em <b>Colar meu treino</b> e cole a ficha do jeito que você escreve.</li><li>Coloque o nome da pessoa e toque em <b>Salvar para o aluno</b>.</li><li>Envie o link no WhatsApp para ela abrir no celular.</li></ol>
+    <button class=p id=gimp>📋 Colar meu treino</button>
+    <details style="margin-top:10px"><summary>Ou usar uma ficha de exemplo pronta</summary><p class=muted>Treino A e B com bi-set, cardio intervalado e observação do dia.</p><label class=muted>Nome da pessoa que vai testar</label><input id=gn placeholder="Ex.: Maria Silva"><button id=gs>Criar com ficha de exemplo</button><p id=sm></p></details></div>`;
   h += data.length ? data.map(s => { const l = last[s.id], d = l ? dias(l.started_at) : null;
     return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small>${s.plan_end ? `<br><small class=muted>Plano até ${dbr(s.plan_end)}</small>` : ''}</div></div>`; }).join('') : '';
   if (arch.length) h += `<details class=arch><summary>Alunos arquivados (${arch.length})</summary>${arch.map(s => `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class=muted>Arquivado · toque para ver ou reativar</small></div></div>`).join('')}</details>`;
   $('#ls').innerHTML = h;
+  if ($('#gimp')) $('#gimp').onclick = () => show('imp');
   if ($('#gs')) $('#gs').onclick = async () => { const nome = $('#gn').value.trim(); if (nome.length < 2) return $('#sm').innerHTML = '<span class=err>Digite o nome do aluno.</span>';
     $('#gs').disabled = true; $('#sm').textContent = 'Montando a ficha…'; const f = parseFicha(SAMPLE); const lb = await getLib(); await recog(f, Object.fromEntries(lb.map(x => [x.id, x])));
     const sid = await salvar(f, nome, 60); $('#gs') && ($('#gs').disabled = false); if (sid) aluno(sid); };
