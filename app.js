@@ -115,34 +115,94 @@ async function perfil() {
       const r = await sb.from('profiles').update({ brand_name: $('#bn').value.trim() || null, phone: $('#ph').value.replace(/\D/g, '') || null, brand_logo: logo }).eq('id', session.user.id);
       if (r.error) throw r.error; m.innerHTML = '<span class=ok>Salvo ✓</span>'; perfil(); } catch (e) { m.innerHTML = `<span class=err>${esc(e.message)}</span>`; } };
 }
-function restOf(t) { const m = /(?:pausa|descanso|intervalo)\s*(?:de\s*)?(\d+)\s*(min(?:utos?)?|s(?:eg(?:undos?)?)?)\b/i.exec(t || ''); return m ? (/^m/i.test(m[2]) ? +m[1] * 60 : +m[1]) : 0; }
+// ---------- leitura da ficha colada
+// séries x repetições: "4x10", "4 x 8 a 12", "3x 40s", "4x1 min", "2x 20-30 segundos"
+const SETS_RE = /(\d{1,2})\s*[xX×]\s*(\d+(?:[.,]\d+)?(?:\s*(?:a|-|–|\/|ou)\s*\d+)?|falha|m[áa]x(?:imo)?)\s*(segundos?\b|seg\b|s\b|"|minutos?\b|min\b|'|repeti\w*|reps?\b)?/i;
+const PAUSA_RE = /(?:pausa|descanso|intervalo)\s*(?:de|:|-|–)?\s*(\d+)\s*(minutos?|min|m\b|'|segundos?|seg|s\b|")?\s*(?:e\s*)?(\d{1,2})?\s*(?:s\b|seg\w*|")?/i;
+export function restOf(t) { const m = PAUSA_RE.exec(t || ''); if (!m) return 0; let v = +m[1];
+  if (m[2] && /^(m|')/i.test(m[2])) v = v * 60 + (m[3] ? +m[3] : 0); else if (!m[2] && v <= 5) v *= 60; return Math.min(v, 900); }
+export function nsets(t) { const m = SETS_RE.exec(t || ''); return m ? Math.max(1, Math.min(+m[1], 10)) : 3; }
+export function repsOf(t) { const m = SETS_RE.exec(t || ''); if (!m) return null;
+  let r = m[2].replace(/(\d)\s*(?:a|–|-|ou|\/)\s*(\d)/i, '$1-$2').replace(/\s+/g, '').replace(/^m[áa]x\w*$/i, 'máx'); const u = (m[3] || '').toLowerCase();
+  if (/^(s|seg|"|segundo)/.test(u)) r += 's'; else if (/^(min|')/.test(u)) r += 'min'; return r; }
+// cardio intervalado: "4x 20 segundos / 10 segundos de pausa", "4x 1 min | Pausa: 15s"
+export function intervalOf(t) { const m = SETS_RE.exec(t || ''); if (!m || !m[3] || /^rep/i.test(m[3])) return null;
+  const n = +m[1], v = parseFloat(m[2].replace(',', '.')); if (!n || !v || isNaN(v)) return null; const work = /^(min|')/i.test(m[3]) ? v * 60 : v;
+  let rest = restOf(t); if (!rest) { const q = /\/\s*(\d+)\s*(minutos?|min|segundos?|seg|s)\b/i.exec(t); if (q) rest = /^m/i.test(q[2]) ? +q[1] * 60 : +q[1]; }
+  return { n: Math.min(n, 30), work: Math.min(work, 3600), rest: rest || 0 }; }
+const HDR = /^(?:TREINO|DIA|FICHA|SESS[ÃA]O)\s+([A-Z]|\d{1,2})(?![A-Za-zÀ-ú])\s*[:\-–—.)]?\s*(.*)$/i;
+const HDR2 = /^([A-F])\s*[:\-–—)]\s*(.*)$/;
+const NUM = /^(\d{1,2})\s*([a-cA-C])?\s*[.)\-:º°]\s*(.+)$/;
+const SPECIAL = /^(bi[\s-]?set|tri[\s-]?set|super[\s-]?(?:set|s[ée]rie)|conjugad[oa]|circuito)\b\s*[:\-–—]?\s*(.*)$/i;
+const TAGS = [[/pir[âa]mide/i, 'pirâmide'], [/drop[\s-]?set/i, 'drop-set'], [/rest[\s-]?pause/i, 'rest-pause'], [/cluster/i, 'cluster'], [/isometria/i, 'isometria']];
+const DAYNOTE = /(todos os exerc|membros (superiores|inferiores)|treino todo|todo o treino|em todos|neste treino)/i;
+const clean = s => s.replace(/^[\s|·,;:\-–—]+|[\s|·,;:\-–—]+$/g, '').replace(/\s{2,}/g, ' ');
 export function parseFicha(text) {
-  const out = { aluno: '', meta: [], geral: [], sessoes: [] };
-  let cur = null, mode = 'head', gid = 0;
-  for (const raw of text.split(/\r?\n/)) {
-    const l = raw.trim().replace(/^[•*\-]\s+/, m => m);
-    if (!l || /^[⸺—–_\-=]{2,}$/.test(l) || /^⸻$/.test(l)) continue;
-    const t = l.replace(/^[*•]\s*/, '');
-    let m = /^TREINO\s+([A-Z0-9]+)\b\s*[:\-–]?\s*(.*)$/i.exec(l);
-    if (m) { cur = { nome: 'Treino ' + m[1].toUpperCase(), foco: m[2] || '', itens: [] }; out.sessoes.push(cur); mode = 'sess'; continue; }
-    if (/^ORIENTA/i.test(l)) { mode = 'geral'; continue; }
-    if (mode === 'head') { if (!out.aluno && !/:/.test(l)) out.aluno = l; else if (/:/.test(l)) out.meta.push(l); continue; }
-    if (mode === 'geral') { if (/^(BOM TREINO|MR )/i.test(l)) { mode = 'fim'; continue; } out.geral.push(t); continue; }
-    if (/^(BOM TREINO|MR TREINAMENTO)/i.test(l)) { mode = 'fim'; continue; }
-    if (!cur || mode === 'fim') continue;
-    m = /^(\d+)\s*[.)\-]\s*(.+)$/.exec(l);
-    if (!m) { if (!cur.itens.length && !cur.foco) cur.foco = l; else if (cur.itens.length) cur.itens[cur.itens.length - 1].obs = (cur.itens[cur.itens.length - 1].obs ? cur.itens[cur.itens.length - 1].obs + ' ' : '') + l; continue; }
-    const body = m[2].trim();
-    if (/^CARDIO/i.test(body)) { const livre = /^CARDIO\s+LIVRE/i.test(body); const resto = body.replace(/^CARDIO\s*(LIVRE)?\s*:?\s*/i, '').trim(); cur.itens.push({ tipo: 'cardio', texto: livre ? (resto ? 'Livre: ' + resto : 'Livre') : (resto || 'Livre') }); continue; }
-    const [first, ...rest] = body.split(/\s+[–—-]\s+/);
-    const detalhe = rest.join(' – ');
-    const parts = [first]; let det = detalhe; gid++;
-    if (detalhe.includes(' + ')) { const q = detalhe.split(/\s+\+\s+/); det = q.shift(); parts.push(...q); }
-    parts.forEach((p, i) => {
-      const alt = /\(([^)]*)\)/.exec(p); const nome = p.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-      cur.itens.push({ tipo: 'ex', texto: p.trim(), busca: nome, rest: restOf(body), bi: parts.length > 1 ? gid : 0, obs: [i === 0 ? det : '', alt ? alt[1] : ''].filter(Boolean).join(' · ') });
+  const out = { aluno: '', meta: [], geral: [], sessoes: [], auto: false };
+  const lines = String(text || '').split(/\r?\n/);
+  const strip = r => r.trim().replace(/^[*•►▪✓✔➤→]+\s*/, '').replace(/^-\s+/, '').replace(/\*\*/g, '').trim();
+  const hasHdr = lines.some(r => { const l = strip(r); return HDR.test(l) || (HDR2.test(l) && !SETS_RE.test(l)); });
+  let cur = null, mode = 'head', gid = 0, pend = 0, pendGid = 0, numGrp = {}, blank = false;
+  const newSess = (nome, foco = '') => { cur = { nome, foco, obs: '', itens: [] }; out.sessoes.push(cur); mode = 'sess'; pend = 0; numGrp = {}; };
+  const autoName = () => 'Treino ' + 'ABCDEFGHIJKL'[out.sessoes.length];
+  const isEx = (l, nm, sp) => !!(nm || sp || /^CARDIO/i.test(l) || (SETS_RE.test(l) && /^[A-Za-zÀ-ú]/.test(l) && !/^(obs|observa|nota|pausa|descanso|intervalo|importante|aten)/i.test(l)));
+  const addEx = (body, group) => {
+    if (/^CARDIO/i.test(body)) { const livre = /^CARDIO\s+LIVRE/i.test(body); const resto = clean(body.replace(/^CARDIO\s*(LIVRE)?\s*:?\s*/i, ''));
+      cur.itens.push({ tipo: 'cardio', texto: livre ? (resto ? 'Livre: ' + resto : 'Livre') : (resto || 'Livre') }); return; }
+    let [name, ...rest] = body.split(/\s+[–—-]\s+|\s*\|\s*/); let detail = rest.join(' | ');
+    const sm = SETS_RE.exec(name); if (sm && sm.index > 2) { detail = name.slice(sm.index) + (detail ? ' | ' + detail : ''); name = name.slice(0, sm.index); }
+    name = clean(name);
+    const names = name.split(/\s+\+\s+/).map(clean).filter(Boolean); let dets = detail ? detail.split(/\s+\+\s+/) : [''];
+    if (names.length === 1 && dets.length > 1) { const extra = dets.slice(1); dets = [dets[0]];
+      extra.forEach(x => { if (/^(\d|até|ate|com|sem|e\s)/i.test(x.trim()) || !/[A-Za-zÀ-ú]{3}/.test(x)) dets[0] += ' + ' + x; else { const mm = SETS_RE.exec(x); names.push(clean(mm ? x.slice(0, mm.index) : x)); dets.push(mm ? x.slice(mm.index) : ''); } }); }
+    const g = group || (names.length > 1 ? ++gid : 0); const tags = TAGS.filter(([re]) => re.test(body)).map(t => t[1]);
+    names.forEach((p, k) => {
+      const d = dets.length === 1 ? dets[0] : (dets[k] || ''); const base = d || dets[0] || body;
+      const alt = /\(([^)]*)\)/.exec(p); const nome = clean(p.replace(/\([^)]*\)/g, ''));
+      let note = clean(d.replace(SETS_RE, '').replace(PAUSA_RE, '').replace(/^\s*\+\s*/, ''));
+      if (!/[A-Za-zÀ-ú]{2}/.test(note)) note = '';
+      cur.itens.push({ tipo: 'ex', texto: clean(p), busca: nome, sets: nsets(base), reps: repsOf(base), rest: restOf(body), bi: g, obs: [...tags.filter(t => !note.toLowerCase().includes(t)), note, alt ? alt[1] : ''].filter(Boolean).join(' · ') });
     });
+  };
+  for (const raw of lines) {
+    const l0 = raw.trim();
+    if (!l0) { blank = true; continue; }
+    if (/^[⸺—–_\-=~*•.]{2,}$/.test(l0) || /^⸻$/.test(l0)) continue;
+    const l = strip(l0), wasBlank = blank; blank = false; if (!l) continue;
+    const hm = HDR.exec(l) || (!SETS_RE.test(l) && !NUM.test(l) ? HDR2.exec(l) : null);
+    if (hm) { newSess('Treino ' + hm[1].toUpperCase(), clean(hm[2] || '')); continue; }
+    if (/^ORIENTA/i.test(l)) { mode = 'geral'; continue; }
+    if (/^(BOM TREINO|MR TREINAMENTO)/i.test(l)) { mode = 'fim'; continue; }
+    if (mode === 'geral') { out.geral.push(l); continue; }
+    if (mode === 'fim') continue;
+    const nm = NUM.exec(l), sp = !nm && SPECIAL.exec(l), ex = isEx(l, nm, sp);
+    if (mode === 'head') {
+      if (!hasHdr && ex) { newSess(autoName()); out.auto = true; }
+      else { if (!out.aluno && !/:/.test(l) && l.length < 60) out.aluno = l; else out.meta.push(l); continue; }
+    }
+    if (!hasHdr && wasBlank && ex && cur && cur.itens.filter(i => i.tipo === 'ex').length >= 3 && !(nm && nm[2] && numGrp[nm[1]])) newSess(autoName());
+    if (!cur) continue;
+    if (sp) { pend = /tri/i.test(sp[1]) ? 3 : /circuito/i.test(sp[1]) ? 20 : 2; pendGid = ++gid; const r = (sp[2] || '').trim(); if (r && /[A-Za-zÀ-ú]{3}/.test(r)) { addEx(r, pendGid); const added = cur.itens.filter(i => i.bi === pendGid).length; pend = Math.max(0, pend - added); } continue; }
+    if (ex) {
+      let body = nm ? nm[3].trim() : l, group = 0;
+      if (nm && nm[2]) group = numGrp[nm[1]] || (numGrp[nm[1]] = ++gid);
+      else if (pend > 0 && !/^CARDIO/i.test(body)) { group = pendGid; pend--; }
+      else pend = 0;
+      addEx(body, group);
+      if (nm && nm[2]) { const prev = cur.itens.filter(i => i.bi === group); if (prev.length > 1) prev.forEach(i => i.bi = group); }
+      continue;
+    }
+    // linha sem padrão de exercício: nunca vira exercício
+    const last = cur.itens[cur.itens.length - 1];
+    if (last && last.tipo === 'cardio' && !SETS_RE.test(last.texto)) { last.texto = clean(last.texto === 'Livre' ? l : last.texto + ' — ' + l); continue; }
+    if (!cur.itens.length) { if (!cur.foco && l.length < 60 && !/^(obs|observa)/i.test(l)) cur.foco = l; else cur.obs = clean((cur.obs ? cur.obs + ' ' : '') + l.replace(/^(obs(erva[çc][ãa]o)?|nota)\s*[:.\-]?\s*/i, '')); continue; }
+    if (/^(obs(erva[çc][ãa]o)?\s+(geral|do treino)|importante)/i.test(l) || DAYNOTE.test(l)) { cur.obs = clean((cur.obs ? cur.obs + ' ' : '') + l.replace(/^(obs(erva[çc][ãa]o)?(\s+(geral|do treino))?|importante)\s*[:.\-]?\s*/i, '')); continue; }
+    if (SETS_RE.test(l) && last.tipo === 'ex' && /^\d/.test(l)) { last.sets = nsets(l); last.reps = repsOf(l); last.rest = restOf(l) || last.rest; const rem = clean(l.replace(SETS_RE, '').replace(PAUSA_RE, '')); if (/[A-Za-zÀ-ú]{2}/.test(rem)) last.obs = clean((last.obs ? last.obs + ' · ' : '') + rem); continue; }
+    last.obs = clean((last.obs ? last.obs + ' · ' : '') + l.replace(/^(obs(erva[çc][ãa]o)?|nota)\s*[:.\-]?\s*/i, ''));
   }
+  // bi-set com um item só não é bi-set
+  out.sessoes.forEach(s => { const c = {}; s.itens.forEach(i => { if (i.bi) c[i.bi] = (c[i.bi] || 0) + 1; }); s.itens.forEach(i => { if (i.bi && c[i.bi] < 2) i.bi = 0; }); });
+  out.sessoes = out.sessoes.filter(s => s.itens.length);
   return out;
 }
 
@@ -157,7 +217,6 @@ async function pick(cb) {
   d.querySelector('#pn').onclick = () => { const n = d.querySelector('#ps').value; d.remove(); createEx(cb, n); };
   d.querySelector('#pl').onclick = e => { const r = e.target.closest('.row'); if (!r) return; d.remove(); cb(lb.find(x => x.id == r.dataset.id)); };
 }
-const nsets = t => { const m = /(\d+)\s*[xX×]/.exec(t || ''); return m ? Math.min(+m[1], 10) : 3; };
 const linkOf = tk => location.origin + location.pathname + '#/a/' + tk;
 
 // ---------- importar ficha
@@ -166,7 +225,7 @@ async function imp() {
   <textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
   $('#go').onclick = async () => {
     const f = parseFicha($('#t').value); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
-    if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei nenhum "TREINO A/B/C". Confira o texto.</p>';
+    if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei exercícios. Escreva um por linha, com séries e repetições (ex.: "Supino reto 4x10").</p>';
     $('#r').innerHTML = 'Lendo…';
     for (const s of f.sessoes) for (const it of s.itens) {
       let q = it.tipo === 'cardio' ? it.texto.replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim() : it.busca; it.ex = null;
@@ -178,8 +237,9 @@ async function imp() {
       let h = `<label class=muted>Nome do aluno</label><input id=an value="${esc(f.aluno)}"><label class=muted>Pausa padrão entre as séries (segundos)</label><input id=rd type=number inputmode=numeric value="${f.rd || 60}">`, rev = 0, tot = 0;
       if (f.meta.length) h += `<p class=muted>${f.meta.map(esc).join('<br>')}</p>`;
       if (f.geral.length) h += `<details><summary>Orientações gerais (${f.geral.length})</summary><ul>${f.geral.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>`;
-      f.sessoes.forEach((s, si) => { h += `<h2>${esc(s.nome)}${s.foco ? ' — ' + esc(s.foco) : ''}</h2>`;
-        s.itens.forEach((it, ii) => { const ob = it.obs ? `<br><small class=muted>${esc(it.obs)}</small>` : ''; const bi = it.bi ? '<span class=tag>bi-set</span> ' : '';
+      if (f.auto) h += `<p class=warn>Não encontrei “TREINO A / B…” no texto, então separei os treinos pelas linhas em branco (${f.sessoes.length} treino${f.sessoes.length > 1 ? 's' : ''}). Se ficou errado, escreva “TREINO A”, “TREINO B”… antes de cada um e toque em Reconhecer de novo.</p>`;
+      f.sessoes.forEach((s, si) => { h += `<h2>${esc(s.nome)}${s.foco ? ' — ' + esc(s.foco) : ''}</h2>${s.obs ? `<p class=dnote>📌 ${esc(s.obs)}</p>` : ''}`;
+        s.itens.forEach((it, ii) => { const ob = `<br><small class=alvo>${it.sets} × ${esc(it.reps || '—')} · pausa ${it.rest || f.rd || 60}s</small>` + (it.obs ? `<br><small class=muted>${esc(it.obs)}</small>` : ''); const bi = it.bi ? '<span class="tag bi">bi-set</span> ' : '';
           if (it.tipo === 'cardio') { h += `<div class=row>${it.ex ? `<img src="${esc(it.ex.image_path)}" alt="">` : ''}<div>⏱ <b>Cardio</b>${it.ex ? ' — ' + esc(it.ex.name.replace(/^Cardio:\s*/, '')) : ''}<br><small class=muted>${esc(it.texto)}</small></div></div>`; return; }
           tot++;
           if (it.ex) h += `<div class=row>${im(it.ex.image_path)}<div>${bi}<b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(it.ex.name)}</small>${ob}<br><button class=sm data-pk="${si},${ii}">Trocar</button> <button class=sm data-vx=${it.ex.id}>🎬 Vídeo</button></div></div>`;
@@ -204,12 +264,12 @@ async function salvar(f, nome, rd) {
     else { const r = await sb.from('students').insert({ trainer_id: uid, name: nome, notes }).select('id,token').single(); if (r.error) throw r.error; st = r.data; }
     for (let si = 0; si < f.sessoes.length; si++) {
       const s = f.sessoes[si];
-      const w = await sb.from('workouts').insert({ trainer_id: uid, student_id: st.id, name: s.nome + (s.foco ? ' — ' + s.foco : ''), position: si, raw_text: s.itens.map(i => i.texto).join('\n') }).select('id').single(); if (w.error) throw w.error;
+      const w = await sb.from('workouts').insert({ trainer_id: uid, student_id: st.id, name: s.nome + (s.foco ? ' — ' + s.foco : ''), position: si, day_note: s.obs || null, raw_text: s.itens.map(i => i.texto).join('\n') }).select('id').single(); if (w.error) throw w.error;
       const blocks = []; s.itens.forEach(it => { const last = blocks[blocks.length - 1];
         if (it.bi && last && last.bi === it.bi) last.items.push(it); else blocks.push({ bi: it.bi, tipo: it.tipo, items: [it] }); });
-      const br = await sb.from('workout_blocks').insert(blocks.map((b, i) => ({ workout_id: w.data.id, position: i, set_type: b.tipo === 'cardio' ? 'cardio' : b.bi ? 'biset' : 'normal', sets: b.tipo === 'cardio' ? null : Math.max(...b.items.map(i => nsets(i.obs))), rest_seconds: b.tipo === 'cardio' ? null : (b.items.map(i => i.rest).find(Boolean) || rd) }))).select('id,position'); if (br.error) throw br.error;
+      const br = await sb.from('workout_blocks').insert(blocks.map((b, i) => ({ workout_id: w.data.id, position: i, set_type: b.tipo === 'cardio' ? 'cardio' : b.bi ? 'biset' : 'normal', sets: b.tipo === 'cardio' ? null : Math.max(...b.items.map(i => i.sets || 3)), rest_seconds: b.tipo === 'cardio' ? null : (b.items.map(i => i.rest).find(Boolean) || rd) }))).select('id,position'); if (br.error) throw br.error;
       const rows = []; blocks.forEach((b, i) => { const id = br.data.find(x => x.position === i).id;
-        b.items.forEach((it, k) => rows.push({ block_id: id, position: k, exercise_id: it.ex ? it.ex.id : null, raw_text: it.texto, note: it.obs || null, kind: it.tipo, needs_review: !it.ex })); });
+        b.items.forEach((it, k) => rows.push({ block_id: id, position: k, exercise_id: it.ex ? it.ex.id : null, raw_text: it.texto, note: it.obs || null, reps: it.reps || null, kind: it.tipo, needs_review: !it.ex })); });
       const ir = await sb.from('block_items').insert(rows); if (ir.error) throw ir.error;
     }
     msg.innerHTML = `<span class=ok>Treino salvo!</span> <button class=p id=op>Abrir aluno e enviar link</button>`; $('#op').onclick = () => { show('stu'); aluno(st.id); };
@@ -231,7 +291,7 @@ async function students() {
     if (l && d > 7) att.push(`<div class=fb data-id=${s.id}><b>${esc(s.name)}</b> <small class=warn>sem treinar há ${d} dias</small></div>`); });
   if (att.length) h += '<div class=box2><b>⚠ Precisam de atenção</b>' + att.join('') + '</div>';
   const fb = (ses || []).slice(0, 6);
-  if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
+  if (fb.length) h += '<div class=box2><b>Atividade recente</b>' + fb.map(z => `<div class=fb data-id=${z.student_id}><b>${esc(z.students?.name || '')}</b> <small class=muted>${esc((z.workouts?.name || '').split(' — ')[0])} · ${new Date(z.started_at).toLocaleDateString('pt-BR')}</small>${z.rating ? ' <span class=star>' + '★'.repeat(z.rating) + '</span>' : ''}${z.comment ? `<br><small class=pre>“${esc(z.comment)}”</small>` : ''}</div>`).join('') + '</div>';
   h += data.length ? data.map(s => { const l = last[s.id], d = l ? dias(l.started_at) : null;
     return `<div class="row click" data-id=${s.id}><div><b>${esc(s.name)}</b><br><small class="${d === null || d > 7 ? 'warn' : 'muted'}">${l ? (d === 0 ? 'Treinou hoje' : `Último treino há ${d} dia${d === 1 ? '' : 's'}`) : 'Ainda não treinou'}</small>${s.plan_end ? `<br><small class=muted>Plano até ${dbr(s.plan_end)}</small>` : ''}</div></div>`; }).join('') : '<p class=muted>Nenhum aluno ainda. Vá em “Importar ficha”, cole o treino e salve.</p>';
   $('#ls').innerHTML = h;
@@ -241,7 +301,7 @@ async function aluno(id) {
   app.innerHTML = 'Carregando…'; const lbq = await getLib();
   const [s, w, h, ev, bm, ph] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
-    sb.from('workouts').select('id,name,position,workout_blocks(id,position,set_type,block_items(id,position,raw_text,note,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
+    sb.from('workouts').select('id,name,position,day_note,workout_blocks(id,position,set_type,sets,rest_seconds,block_items(id,position,raw_text,note,reps,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
     sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
     sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000),
     sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on'),
@@ -253,17 +313,20 @@ async function aluno(id) {
    <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
   x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div>`;
-  (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2>`;
-    wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => {
-      x += `<div class=row>${im(i.exercises?.image_path)}<div>${b.set_type === 'biset' ? '<span class=tag>bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
-      ${i.kind === 'ex' ? `<button class=sm data-tr=${i.id}>Trocar</button> ` : ''}${i.exercise_id ? `<button class=sm data-vx=${i.exercise_id}>🎬 Vídeo</button> ` : ''}<button class=sm data-rm=${i.id}>Remover</button></div></div>`; })); });
+  const itemsById = {};
+  (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2><p class="${wo.day_note ? 'dnote' : ''}">${wo.day_note ? '📌 ' + esc(wo.day_note) + ' ' : ''}<button class=sm data-dn=${wo.id}>${wo.day_note ? 'Editar observação do dia' : '＋ Observação do dia'}</button></p>`;
+    wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => { itemsById[i.id] = { i, b, wo };
+      const alvo = i.kind === 'cardio' ? '' : `<br><small class=alvo>${b.sets || 3} × ${esc(i.reps || '—')} · pausa ${b.rest_seconds || 60}s</small>`;
+      x += `<div class="row${b.set_type === 'biset' ? ' birow' : ''}">${im(i.exercises?.image_path)}<div>${b.set_type === 'biset' ? '<span class="tag bi">bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${alvo}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
+      <button class=sm data-ed=${i.id}>✏️ Editar</button> ${i.kind === 'ex' ? `<button class=sm data-tr=${i.id}>Trocar</button> ` : ''}${i.exercise_id ? `<button class=sm data-vx=${i.exercise_id}>🎬 Vídeo</button> ` : ''}<button class=sm data-rm=${i.id}>Remover</button></div></div>`; }));
+    x += `<button class=sm data-add=${wo.id} data-pos=${wo.workout_blocks.length}>＋ Adicionar exercício ao ${esc(wo.name.split(' — ')[0])}</button>`; });
   const evo = {}; (ev.data || []).forEach(l => { const n = l.block_items?.exercises?.name || l.block_items?.raw_text || '?'; const e = evo[n] || (evo[n] = { first: Number(l.load_kg), last: 0, best: 0, n: 0 }); e.last = Number(l.load_kg); e.best = Math.max(e.best, Number(l.load_kg)); e.n++; });
   const el = Object.entries(evo); if (el.length) x += '<h2>Evolução de cargas</h2><div class=box2><table class=evo><tr><th>Exercício</th><th>1ª</th><th>Última</th><th>Melhor</th></tr>' + el.map(([n, e]) => `<tr><td>${esc(n)}</td><td>${e.first}</td><td>${e.last} ${e.last > e.first ? '<span class=ok>▲</span>' : e.last < e.first ? '<span class=err>▼</span>' : ''}</td><td>${e.best}</td></tr>`).join('') + '</table><small class=muted>Cargas em kg.</small></div>';
   const ms = bm.data || [], f0 = ms[0];
   x += `<h2>Avaliações</h2><div class=box2><div class=mgrid><label>Data<input id=m_d type=date value="${new Date().toISOString().slice(0, 10)}"></label><label>Peso (kg)<input id=m_w inputmode=decimal></label><label>% gordura<input id=m_f inputmode=decimal></label><label>Cintura (cm)<input id=m_wa inputmode=decimal></label><label>Quadril (cm)<input id=m_h inputmode=decimal></label><label>Peito (cm)<input id=m_c inputmode=decimal></label><label>Braço (cm)<input id=m_a inputmode=decimal></label><label>Coxa (cm)<input id=m_t inputmode=decimal></label></div><button class=p id=mb>Salvar avaliação</button> <small id=mm class=muted></small>`;
   if (ms.length) x += '<div style="overflow:auto"><table class=evo><tr><th>Data</th><th>Peso</th><th>%G</th><th>Cint.</th><th>Quad.</th><th>Peit.</th><th>Braç.</th><th>Coxa</th><th></th></tr>' + [...ms].reverse().map(m => `<tr><td>${dbr(m.measured_on)}</td><td>${fmt(m.weight_kg)}${f0 && m.id !== f0.id && m.weight_kg != null && f0.weight_kg != null ? `<br><small class="${m.weight_kg < f0.weight_kg ? 'ok' : 'muted'}">${m.weight_kg - f0.weight_kg > 0 ? '+' : ''}${fmt(Math.round((m.weight_kg - f0.weight_kg) * 10) / 10)}</small>` : ''}</td><td>${fmt(m.body_fat_pct)}</td><td>${fmt(m.waist_cm)}</td><td>${fmt(m.hip_cm)}</td><td>${fmt(m.chest_cm)}</td><td>${fmt(m.arm_cm)}</td><td>${fmt(m.thigh_cm)}</td><td><button class=sm data-dm=${m.id}>×</button></td></tr>`).join('') + '</table></div>';
   x += `</div><h2>Fotos de progresso</h2><div class=box2><input id=pf type=file accept="image/*" multiple><small class=muted>Só você vê as fotos. Elas são reduzidas automaticamente.</small><div id=pg class=pgrid></div></div>`;
-  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small>${esc(z.comment)}</small>` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
+  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Excluir aluno</button></p>'; app.innerHTML = x;
   app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
   app.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const z = (h.data || []).find(q => q.id === b.dataset.rp);
@@ -286,6 +349,20 @@ async function aluno(id) {
   $('#nl').onclick = async () => { if (!confirm('Gerar um novo link? O link antigo deixa de funcionar e o aluno precisará do novo.')) return; const tk = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, ''); const r = await sb.from('students').update({ token: tk }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); };
   $('#bk').onclick = students; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
+  app.querySelectorAll('[data-ed]').forEach(bt => bt.onclick = () => { const { i, b } = itemsById[bt.dataset.ed]; const cardio = i.kind === 'cardio';
+    const d = mdl(`<h3>${esc(i.raw_text)}</h3>${cardio ? '' : `<div class=mgrid><label>Séries<input id=e_s type=number inputmode=numeric min=1 max=10 value="${b.sets || 3}"></label><label>Repetições<input id=e_r placeholder="ex.: 8-12, 40s, falha" value="${esc(i.reps || '')}"></label><label>Pausa (segundos)<input id=e_p type=number inputmode=numeric min=0 max=900 value="${b.rest_seconds ?? 60}"></label></div>${b.set_type === 'biset' ? '<p class=muted>Bi-set: séries e pausa valem para os dois exercícios.</p>' : ''}`}<label class=muted>${cardio ? 'Descrição do cardio (ex.: 4x 20s / 10s de pausa)' : 'Nome como o aluno vê'}</label><input id=e_t value="${esc(i.raw_text)}"><label class=muted>Observação do exercício (o aluno vê)</label><textarea id=e_n style="min-height:80px">${esc(i.note || '')}</textarea><p id=e_m class=err></p><button class=p id=e_ok>Salvar</button> <button id=e_c>Cancelar</button>`);
+    d.querySelector('#e_c').onclick = d.close;
+    d.querySelector('#e_ok').onclick = async () => { const q = z => d.querySelector(z); const t = q('#e_t').value.trim(); if (!t) return q('#e_m').textContent = 'O nome não pode ficar vazio.';
+      const r1 = await sb.from('block_items').update({ raw_text: t, note: q('#e_n').value.trim() || null, ...(cardio ? {} : { reps: q('#e_r').value.trim() || null }) }).eq('id', i.id); if (r1.error) return q('#e_m').textContent = r1.error.message;
+      if (!cardio) { const sets = Math.max(1, Math.min(10, parseInt(q('#e_s').value) || 3)), rs = Math.max(0, Math.min(900, parseInt(q('#e_p').value) || 0)); const r2 = await sb.from('workout_blocks').update({ sets, rest_seconds: rs }).eq('id', b.id); if (r2.error) return q('#e_m').textContent = r2.error.message; }
+      d.close(); aluno(id); }; });
+  app.querySelectorAll('[data-dn]').forEach(bt => bt.onclick = () => { const wo = (w.data || []).find(z => z.id === bt.dataset.dn);
+    const d = mdl(`<h3>Observação do dia — ${esc(wo.name.split(' — ')[0])}</h3><p class=muted>Vale para o treino inteiro. O aluno vê abaixo do nome do treino, antes de começar.</p><textarea id=dn_t placeholder="Ex.: fase excêntrica lenta de 3s em membros superiores e 5s em inferiores">${esc(wo.day_note || '')}</textarea><p id=dn_m class=err></p><button class=p id=dn_ok>Salvar</button> <button id=dn_c>Cancelar</button>`);
+    d.querySelector('#dn_c').onclick = d.close;
+    d.querySelector('#dn_ok').onclick = async () => { const r = await sb.from('workouts').update({ day_note: d.querySelector('#dn_t').value.trim() || null }).eq('id', wo.id); if (r.error) return d.querySelector('#dn_m').textContent = r.error.message; d.close(); aluno(id); }; });
+  app.querySelectorAll('[data-add]').forEach(bt => bt.onclick = () => pick(async e => { const wid = bt.dataset.add, wo = (w.data || []).find(z => z.id === wid); const pos = Math.max(-1, ...wo.workout_blocks.map(z => z.position)) + 1;
+    const nb = await sb.from('workout_blocks').insert({ workout_id: wid, position: pos, set_type: 'normal', sets: 3, rest_seconds: 60 }).select('id').single(); if (nb.error) return alert(nb.error.message);
+    const ni = await sb.from('block_items').insert({ block_id: nb.data.id, position: 0, exercise_id: e.id, raw_text: e.name, reps: '10', kind: 'ex', needs_review: false }); if (ni.error) return alert(ni.error.message); aluno(id); }));
   app.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { if (confirm('Remover este exercício do treino?')) { await sb.from('block_items').delete().eq('id', b.dataset.rm); aluno(id); } });
   $('#dl').onclick = async () => { if (confirm(`Excluir ${st.name} e todos os treinos e históricos dele? Isso não pode ser desfeito.`)) { await sb.from('students').delete().eq('id', id); students(); } };
 }
@@ -323,14 +400,22 @@ async function studentView(token) {
   // --- cronômetro de pausa (semicírculo)
   const LEN = Math.PI * 80;
   const stopRest = () => { rest = null; clearInterval(tick); tick = null; const r = $('#rest'); if (r) r.innerHTML = ''; };
-  const paintRest = () => { const r = $('#rest'); if (!r) return; if (!rest) return r.innerHTML = '';
-    r.innerHTML = `<div class=restbox><svg viewBox="0 0 200 112" class=gauge><path d="M20 100 A80 80 0 0 1 180 100" class=gt /><path id=arc d="M20 100 A80 80 0 0 1 180 100" class=ga stroke-dasharray="${LEN} ${LEN}" /><text id=sec x=100 y=88 text-anchor=middle class=gs></text><text x=100 y=108 text-anchor=middle class=gl>segundos de pausa</text></svg>
-      <div class=rbtn><button data-r="-15">−15s</button><button data-r="skip">Pular pausa</button><button data-r="15">+15s</button></div></div>`;
-    r.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { if (b.dataset.r === 'skip') return stopRest(); const d = +b.dataset.r * 1000; rest.end += d; rest.total = Math.max(5, rest.total + d / 1000); frame(); });
+  const paintRest = () => { const r = $('#rest'); if (!r) return; if (!rest) return r.innerHTML = ''; const iv = rest.kind !== 'rest';
+    r.innerHTML = `<div class="restbox${rest.kind === 'work' ? ' work' : ''}">${rest.title ? `<b class=rtit>${esc(rest.title)}</b>` : ''}<svg viewBox="0 0 200 112" class=gauge><path d="M20 100 A80 80 0 0 1 180 100" class=gt /><path id=arc d="M20 100 A80 80 0 0 1 180 100" class=ga stroke-dasharray="${LEN} ${LEN}" /><text id=sec x=100 y=88 text-anchor=middle class=gs></text><text x=100 y=108 text-anchor=middle class=gl>${esc(rest.label)}</text></svg>
+      <div class=rbtn><button data-r="-15">−15s</button><button data-r="skip">${iv ? 'Avançar' : 'Pular pausa'}</button><button data-r="15">+15s</button>${iv ? '<button data-r="stop">Parar</button>' : ''}</div></div>`;
+    r.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const a = b.dataset.r; if (a === 'stop') return stopRest(); if (a === 'skip') { if (rest.onEnd) { const f = rest.onEnd; rest = null; return f(); } return stopRest(); }
+      const d = +a * 1000; rest.end = Math.max(Date.now() + 1000, rest.end + d); rest.total = Math.max(5, rest.total + d / 1000); frame(); });
     frame(); };
   const frame = () => { if (!rest) return; const left = Math.max(0, rest.end - Date.now()), sec = Math.ceil(left / 1000); const t = $('#sec'), a = $('#arc'); if (t) t.textContent = sec; if (a) a.setAttribute('stroke-dasharray', `${LEN * Math.min(1, left / (rest.total * 1000))} ${LEN}`);
-    if (left <= 0) { clearInterval(tick); tick = null; beep(); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {} const r = $('#rest'); if (r) r.innerHTML = '<div class=restbox><b class=ok>Pausa concluída! Bora para a próxima série 💪</b></div>'; rest = null; setTimeout(() => { if (!rest && $('#rest')) $('#rest').innerHTML = ''; }, 3500); } };
-  const startRest = sec => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec }; paintRest(); tick = setInterval(frame, 250); };
+    if (left <= 0) { clearInterval(tick); tick = null; beep(); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {}
+      if (rest.onEnd) { const f = rest.onEnd; rest = null; return f(); }
+      const r = $('#rest'); if (r) r.innerHTML = '<div class=restbox><b class=ok>Pausa concluída! Bora para a próxima série 💪</b></div>'; rest = null; setTimeout(() => { if (!rest && $('#rest')) $('#rest').innerHTML = ''; }, 3500); } };
+  const startRest = (sec, o = {}) => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec, label: o.label || 'segundos de pausa', title: o.title || '', kind: o.kind || 'rest', onEnd: o.onEnd || null }; paintRest(); tick = setInterval(frame, 250); };
+  const runIntervals = (item, cfg) => { let r = 1;
+    const work = () => startRest(cfg.work, { kind: 'work', title: `Rodada ${r} de ${cfg.n}`, label: 'segundos — execução', onEnd: () => {
+      if (r >= cfg.n) { upd(o => { o['c' + item.id] = true; }); stopRest(); play(); const z = $('#rest'); if (z) z.innerHTML = '<div class=restbox><b class=ok>Intervalos concluídos! 🔥</b></div>'; return; }
+      if (cfg.rest) startRest(cfg.rest, { kind: 'ivrest', title: `Rodada ${r} de ${cfg.n} feita`, label: 'segundos de pausa', onEnd: () => { r++; work(); } }); else { r++; work(); } } });
+    work(); };
 
   // --- início: escolher o treino do dia
   const home = () => { stopRest(); wk = null; document.title = BR.name; unwake();
@@ -349,7 +434,8 @@ async function studentView(token) {
       if (parts.length) h += `<div class=week><b>Seu progresso</b><br><small>${parts.join('<br>')}</small></div>`; }
     h += '<p class=muted>Qual treino você vai fazer hoje?</p>';
     P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
-      h += `<div class=wcard><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${w.items.length} exercícios</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>`; });
+      const nEx = stepsOf(w).length;
+      h += `<div class=wcard><div class=wc1><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${nEx} exercício${nEx === 1 ? '' : 's'}</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
     if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. As cargas ficam salvas mesmo sem internet.</small></p>';
@@ -357,30 +443,46 @@ async function studentView(token) {
   const start = id => { wk = P.workouts.find(w => w.id === id); steps = stepsOf(wk); const o = ld(id); idx = Math.min(o.idx || 0, steps.length); upd(o => { o.started = true; o.t0 = o.t0 || Date.now(); }); wake(); play(); };
   const go = n => { idx = Math.max(0, Math.min(steps.length, n)); upd(o => { o.idx = idx; }); play(); window.scrollTo(0, 0); };
 
-  // --- um exercício por vez
+  // --- um exercício por vez (bi-set: os dois juntos)
+  const stepDone = (n, st) => { const x = steps[n]; if (!x) return false; if (x.cardio) return !!st['c' + x.items[0].id]; for (let k = 1; k <= x.sets; k++) if (!st[`d_${n}_${k}`]) return false; return true; };
+  const stepPart = (n, st) => { const x = steps[n]; if (!x || x.cardio) return false; for (let k = 1; k <= x.sets; k++) if (st[`d_${n}_${k}`]) return true; return false; };
+  const alvo = (s, i) => `${s.sets} série${s.sets > 1 ? 's' : ''} × ${esc(i.reps || '—')}${/^\d+(-\d+)?$/.test(i.reps || '') ? ' reps' : ''} · pausa ${s.rest}s`;
   const play = () => {
     if (idx >= steps.length) return finish();
     const s = steps[idx], st = ld(wk.id), p = wk.name.split(' — ');
-    let h = `<div class=ptop><button data-home aria-label=Início>←</button><b>${esc(p[0])}</b><span class=muted>${idx + 1} / ${steps.length}</span></div><div class=bar><i style="width:${idx / steps.length * 100}%"></i></div><div id=rest></div>`;
-    if (s.cardio) { const i = s.items[0]; h += `<div class=exv><h3>⏱ Cardio</h3><p>${esc(i.exercise ? i.exercise.name.replace(/^Cardio:\s*/, '') : '')}</p>${i.exercise ? `<img src="${esc(i.exercise.image)}" alt="">` : ''}<p>${esc(i.text)}</p><label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> Cardio concluído</label></div>`; }
+    let h = `<div class=ptop><button data-home aria-label=Início>←</button><b>${esc(p[0])}</b><span class=muted>${idx + 1} / ${steps.length}</span></div>
+      <div class=segs>${steps.map((x, n) => `<button class="seg${stepDone(n, st) ? ' on' : stepPart(n, st) ? ' part' : ''}${n === idx ? ' cur' : ''}${x.biset ? ' bi' : ''}" data-g=${n} aria-label="Exercício ${n + 1}"></button>`).join('')}</div>
+      <div class=acts><button class="sm danger" data-cancel>Cancelar treino</button><button class="sm p" data-fin>Finalizar treino</button></div><div id=rest></div>`;
+    if (s.cardio) { const i = s.items[0], iv = intervalOf(i.text) || intervalOf(i.note);
+      h += `<div class=exv><h3>⏱ Cardio</h3>${i.exercise ? `<p><b>${esc(i.exercise.name.replace(/^Cardio:\s*/, ''))}</b></p><img src="${esc(i.exercise.image)}" alt="">` : ''}<p>${esc(i.text)}</p>${i.note ? `<p class=muted>${esc(i.note)}</p>` : ''}
+        ${iv ? `<p class=alvo>${iv.n} rodadas · ${iv.work}s de execução${iv.rest ? ` · ${iv.rest}s de pausa` : ''}</p><button class=p data-iv>▶ Iniciar intervalos</button>` : ''}
+        <label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> Cardio concluído</label></div>`; }
     else {
       s.items.forEach((i, ix) => { const ex = i.exercise;
-        h += `<div class=exv>${s.biset ? `<span class=tag>Bi-set · exercício ${'AB'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `${im(ex.image, ex.name)}<small class=muted>${esc(ex.name)}</small>` : ''}${i.video?.url && /^https?:\/\//i.test(i.video.url) ? `<a class="btn vid" href="${esc(i.video.url)}" target=_blank rel=noopener>▶ Ver vídeo</a>` : ''}${i.video?.note ? `<p class=tnote>💬 ${esc(i.video.note)}</p>` : ''}${i.note ? `<p>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
+        h += `<div class="exv${s.biset ? ' bi' : ''}">${s.biset ? `<span class="tag bi">Bi-set · exercício ${'ABC'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `${im(ex.image, ex.name)}<small class=muted>${esc(ex.name)}</small>` : ''}<p class=alvo>${alvo(s, i)}</p>${i.video?.url && /^https?:\/\//i.test(i.video.url) ? `<a class="btn vid" href="${esc(i.video.url)}" target=_blank rel=noopener>▶ Ver vídeo</a>` : ''}${i.video?.note ? `<p class=tnote>💬 ${esc(i.video.note)}</p>` : ''}${i.note ? `<p class=inote>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
       const hasLast = s.items.some(i => i.last);
-      h += `<div class=sets><b>Séries</b>${hasLast ? ' <button class=sm data-rep>Repetir última vez</button>' : ''}${s.biset ? ' <small class=muted>(faça A e B em sequência e marque ✓)</small>' : ''}`;
+      h += `<div class="sets${s.biset ? ' bi' : ''}"><b>Séries</b>${hasLast ? ' <button class=sm data-rep>Repetir última vez</button>' : ''}${s.biset ? ' <small class=muted>(faça A e B em sequência, depois marque ✓ e descanse)</small>' : ''}`;
       for (let k = 1; k <= s.sets; k++) { const dn = st[`d_${idx}_${k}`];
-        h += `<div class="setrow${dn ? ' done' : ''}"><span class=sn>${k}</span><div class=ins>${s.items.map((i, ix) => `<div class=pair>${s.biset ? `<small>${'AB'[ix] || ix + 1}</small>` : ''}<input inputmode=decimal placeholder="${i.last?.load ?? 'kg'}" aria-label=kg data-i=${i.id} data-s=${k} data-f=load value="${esc(st[`${i.id}_${k}_load`] || '')}"><input inputmode=numeric placeholder="reps" aria-label=reps data-i=${i.id} data-s=${k} data-f=reps value="${esc(st[`${i.id}_${k}_reps`] || '')}"></div>`).join('')}</div><button class="okb${dn ? ' on' : ''}" data-d=${k} aria-label="Série ${k} feita">✓</button></div>`; }
-      h += '</div>'; }
-    h += `<div class=pbar><button data-prev ${idx ? '' : 'disabled'}>Anterior</button><button data-skip>Pular</button><button class=p data-next>${idx === steps.length - 1 ? 'Finalizar' : 'Próximo'}</button></div>`;
+        h += `<div class="setrow${dn ? ' done' : ''}"><span class=sn>${k}</span><div class=ins>${s.items.map((i, ix) => `<div class=pair>${s.biset ? `<small>${'ABC'[ix] || ix + 1}</small>` : ''}<label class=fl><input inputmode=decimal placeholder="${esc(i.last?.load ?? '')}" data-i=${i.id} data-s=${k} data-f=load value="${esc(st[`${i.id}_${k}_load`] || '')}"><span>kg</span></label><label class=fl><input inputmode=numeric placeholder="${esc(i.reps || '')}" data-i=${i.id} data-s=${k} data-f=reps value="${esc(st[`${i.id}_${k}_reps`] || '')}"><span>reps</span></label></div>`).join('')}</div><button class="okb${dn ? ' on' : ''}" data-d=${k} aria-label="Série ${k} feita">✓</button></div>`; }
+      h += '</div>';
+      h += `<details class=anot${s.items.some(i => st['n_' + i.id]) ? ' open' : ''}><summary>📝 Minhas anotações ${s.items.some(i => st['n_' + i.id]) ? '✓' : ''}</summary><small class=muted>Seu treinador vai ver.</small>${s.items.map((i, ix) => `<textarea data-n=${i.id} placeholder="${s.biset ? 'Exercício ' + ('ABC'[ix] || ix + 1) + ': ' : ''}Ex.: senti o ombro, aumentei a carga…">${esc(st['n_' + i.id] || '')}</textarea>`).join('')}</details>`; }
+    h += `<div class=pbar><button data-prev ${idx ? '' : 'disabled'}>‹ Anterior</button><button data-skip>Pular</button><button class=p data-next>${idx === steps.length - 1 ? 'Concluir ›' : 'Próximo ›'}</button></div>`;
     app.innerHTML = h; paintRest();
     app.querySelector('[data-home]').onclick = home; app.querySelector('[data-prev]').onclick = () => go(idx - 1);
     app.querySelector('[data-next]').onclick = () => go(idx + 1); app.querySelector('[data-skip]').onclick = () => go(idx + 1);
+    app.querySelectorAll('[data-g]').forEach(b => b.onclick = () => go(+b.dataset.g));
+    app.querySelector('[data-fin]').onclick = () => { stopRest(); upd(o => { o.idx = idx; }); finish(); };
+    app.querySelector('[data-cancel]').onclick = () => { if (!confirm('Cancelar este treino? O que você marcou hoje será apagado e nada será enviado ao treinador.')) return; stopRest(); try { localStorage.removeItem(key(wk.id)); } catch {} home(); };
     app.querySelectorAll('input[data-i]').forEach(e => e.oninput = () => upd(o => { o[`${e.dataset.i}_${e.dataset.s}_${e.dataset.f}`] = e.value; }));
+    app.querySelectorAll('textarea[data-n]').forEach(e => e.oninput = () => upd(o => { o['n_' + e.dataset.n] = e.value; }));
     const rp = app.querySelector('[data-rep]'); if (rp) rp.onclick = () => { upd(o => { s.items.forEach(i => { if (!i.last) return; for (let k = 1; k <= s.sets; k++) { if (!o[`${i.id}_${k}_load`] && i.last.load != null) o[`${i.id}_${k}_load`] = String(i.last.load); if (!o[`${i.id}_${k}_reps`] && i.last.reps != null) o[`${i.id}_${k}_reps`] = String(i.last.reps); } }); }); play(); };
-    app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => upd(o => { o['c' + e.dataset.c] = e.checked; }));
+    const ivb = app.querySelector('[data-iv]'); if (ivb) ivb.onclick = () => runIntervals(s.items[0], intervalOf(s.items[0].text) || intervalOf(s.items[0].note));
+    app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { upd(o => { o['c' + e.dataset.c] = e.checked; }); paintSegs(); });
     app.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; let now; upd(o => { now = !o[`d_${idx}_${k}`]; o[`d_${idx}_${k}`] = now; });
-      b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); if (now) startRest(s.rest); });
+      b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); paintSegs();
+      if (now) { if (stepDone(idx, ld(wk.id)) && idx < steps.length - 1) startRest(s.rest, { title: 'Exercício concluído ✓ — descanse e vá para o próximo' }); else startRest(s.rest); } });
   };
+  const paintSegs = () => { const st = ld(wk.id); app.querySelectorAll('.seg').forEach((b, n) => { b.classList.toggle('on', stepDone(n, st)); b.classList.toggle('part', !stepDone(n, st) && stepPart(n, st)); }); };
 
   // --- final
   const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? 0 : n; };
@@ -389,17 +491,21 @@ async function studentView(token) {
     const min = o.t0 ? Math.max(1, Math.round((Date.now() - o.t0) / 60000)) : null;
     app.innerHTML = `<div class=ptop><button data-back>←</button><b>Treino concluído?</b><span></span></div><div class=bar><i style="width:100%"></i></div>
       <div class=box2><div class=stats><div><b>${feitas}</b><small>séries</small></div><div><b>${Math.round(vol)}</b><small>kg levantados</small></div>${min ? `<div><b>${min}</b><small>min</small></div>` : ''}</div>${prs.length ? `<div class=pr>🏆 <b>Novo recorde!</b><br>${prs.map(esc).join('<br>')}</div>` : ''}<p><b>Como foi o treino de hoje?</b></p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
-      <textarea id=cm placeholder="Comentário (opcional)">${esc(o.comment || '')}</textarea><button class=p id=fin>Concluir treino</button><p id=fm></p></div>`;
-    app.querySelector('[data-back]').onclick = () => go(steps.length - 1);
+      <textarea id=cm placeholder="${(o.rating || 0) && o.rating <= 2 ? 'Conte o que não foi bem (obrigatório para 1 ou 2 estrelas)' : 'Comentário (opcional)'}">${esc(o.comment || '')}</textarea><button class=p id=fin>Enviar e concluir</button><p id=fm></p></div>`;
+    app.querySelector('[data-back]').onclick = () => go(Math.min(o.idx ?? steps.length - 1, steps.length - 1));
     app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { upd(z => { z.comment = $('#cm').value; z.rating = +b.dataset.r; }); finish(); });
     $('#cm').oninput = () => upd(z => { z.comment = $('#cm').value; });
-    $('#fin').onclick = async () => { const z = ld(wk.id), logs = [];
+    $('#fin').onclick = async () => { const z = ld(wk.id), logs = []; z.comment = $('#cm').value;
+      if (!z.rating) return $('#fm').innerHTML = '<span class=err>Toque nas estrelas para dar uma nota ao treino.</span>';
+      if (z.rating <= 2 && !String(z.comment || '').trim()) { $('#cm').focus(); return $('#fm').innerHTML = '<span class=err>Para nota 1 ou 2, escreva um comentário contando o que não foi bem.</span>'; }
+      const notas = []; wk.items.forEach(i => { const t = String(z['n_' + i.id] || '').trim(); if (t) notas.push(`📝 ${i.exercise ? i.exercise.name : i.text}: ${t}`); });
+      const comentario = [String(z.comment || '').trim(), ...notas].filter(Boolean).join('\n');
       wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
-      $('#fm').textContent = 'Enviando…';
-      const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: z.comment || '', p_logs: logs };
+      $('#fm').textContent = 'Enviando…'; $('#fin').disabled = true;
+      const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: comentario, p_logs: logs };
       let r; try { r = await sb.rpc('student_finish', args); } catch (e) { r = { error: { message: 'network' } }; }
       let queued = false;
-      if (r.error) { if (/inválido/.test(r.error.message)) return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`;
+      if (r.error) { if (/inválido/.test(r.error.message)) { $('#fin').disabled = false; return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`; }
         try { const q = JSON.parse(localStorage.getItem(pk)) || []; q.push(args); localStorage.setItem(pk, JSON.stringify(q)); queued = true; } catch { return $('#fm').innerHTML = '<span class=err>Sem conexão. Tente novamente.</span>'; } }
       try { localStorage.removeItem(key(wk.id)); } catch {}
       unwake();

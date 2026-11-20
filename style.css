@@ -28,7 +28,7 @@ h2{border-bottom:3px solid var(--o);padding-bottom:4px}
 @media(max-width:480px){.ex{flex-direction:column}.ex>img{width:100%;max-width:240px}}
 
 .aluno main{padding-bottom:90px}
-.wcard{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--b);border-radius:14px;padding:14px;margin-bottom:10px}
+.wcard{border:1px solid var(--b);border-radius:14px;padding:14px;margin-bottom:10px}.wc1{display:flex;justify-content:space-between;align-items:center;gap:10px}.wcard .dnote{margin:10px 0 0}
 .ptop{display:flex;align-items:center;gap:10px;margin-bottom:8px}.ptop b{flex:1;font-size:18px}
 .bar{height:6px;background:var(--b);border-radius:6px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;background:var(--o)}
 .exv{border:1px solid var(--b);border-radius:14px;padding:12px;margin-bottom:10px;text-align:center}.exv h3{margin:6px 0}.exv img{width:100%;max-width:300px;height:auto}
@@ -56,3 +56,24 @@ h2{border-bottom:3px solid var(--o);padding-bottom:4px}
 
 .mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 10px;margin-bottom:8px}.mgrid label{font-size:13px;color:var(--g)}.mgrid input{margin:2px 0 0}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}.ph img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px}.ph{text-align:center}
+
+/* progresso: um retângulo por exercício do dia */
+.segs{display:flex;gap:4px;margin:4px 0 10px}.seg{flex:1;min-width:0;height:12px;padding:0;border-radius:4px;border:0;background:var(--b)}
+.seg.part{background:#A7E3BC}.seg.on{background:var(--o)}.seg.cur{outline:2px solid var(--n);outline-offset:1px}.seg.bi:not(.on):not(.part){background:#F1D6CA}
+.acts{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px}.acts .sm{margin:0}
+.alvo{display:inline-block;background:#F3FBF6;color:var(--od);border-radius:8px;padding:3px 8px;font-weight:600;margin:6px 0}
+small.alvo{padding:1px 6px;font-size:13px}
+.inote{background:#FFF8E6;border-radius:10px;padding:8px;text-align:left}
+.dnote{background:#FFF8E6;border-left:4px solid #E0A800;border-radius:8px;padding:8px 10px;margin:6px 0 10px;text-align:left}.dnote .sm{margin:0 0 0 4px}
+/* bi-set / séries especiais: terracota bem clarinho */
+.exv.bi,.sets.bi,.birow{background:#FBEEE8;border-color:#E9C3B2}.sets.bi{border:1px solid #E9C3B2;border-radius:14px;padding:8px}
+.tag.bi{background:#F6DDD2;color:#9A4A2C;border-color:#C9806A}
+.fl{position:relative;flex:1}.fl input{width:100%;padding-right:34px}.fl span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--g);pointer-events:none}
+.anot{border:1px solid var(--b);border-radius:12px;padding:8px 10px;margin:10px 0}.anot summary{font-weight:600;cursor:pointer}.anot textarea{min-height:70px;margin-top:6px}
+.restbox.work{border-color:var(--n);background:#EEF1F7}.restbox.work .ga{stroke:var(--n)}.rtit{display:block;margin-top:4px}
+.rbtn{flex-wrap:wrap}
+/* pausa sempre visível: cartão fixo acima dos botões de navegação */
+#rest:not(:empty){position:fixed;left:0;right:0;bottom:72px;z-index:7;padding:0 12px;pointer-events:none}
+#rest .restbox{pointer-events:auto;max-width:440px;margin:0 auto;background:#F3FBF6;box-shadow:0 -4px 18px #0002;padding:6px 10px 10px}
+#rest .restbox.work{background:#EEF1F7}#rest .gauge{max-width:230px}#rest .rtit{font-size:14px}
+.aluno main{padding-bottom:300px}
