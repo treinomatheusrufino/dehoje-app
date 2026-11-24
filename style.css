@@ -109,3 +109,25 @@ footer.lgpd a{color:var(--g)}
 .wkbars div{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
 .wkbars i{display:block;width:100%;background:var(--o);border-radius:4px 4px 0 0;min-height:3px}
 .wkbars small{font-size:10px;color:var(--g);margin-top:2px}
+/* atlas de músculos */
+.atlas-tabs{display:flex;gap:8px;margin:10px 0 12px;flex-wrap:wrap}
+.atlas-tabs button{border:1px solid var(--b);background:#fff;border-radius:999px;padding:8px 16px;font-weight:600}
+.atlas-tabs button.on{background:var(--o);border-color:var(--o);color:#fff}
+.atlas-tabs .atlas-q{margin-left:auto}
+.atlas-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+.atlas-corpo svg{width:100%;max-height:70vh;display:block;margin:0 auto}
+.atlas-corpo .m{cursor:pointer;transition:fill .15s}
+.atlas-corpo .m:hover{filter:brightness(.94)}
+.atlas-corpo .m:focus{outline:none;stroke:var(--o);stroke-width:2}
+.atlas-info{background:#F7F9F8;border:1px solid var(--b);border-radius:14px;padding:14px;position:sticky;top:8px}
+.atlas-nome{display:block;font-size:20px;line-height:1.2;margin-bottom:4px}
+.atlas-grupo{display:inline-block;background:#DCFCE7;color:#15803D;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin-bottom:6px}
+.atlas-info p{margin:8px 0}
+.atlas-chips{display:flex;flex-wrap:wrap;gap:6px}
+.atlas-chips button,.atlas-chips span{border:1px solid var(--b);background:#fff;border-radius:999px;padding:6px 12px;font-size:14px}
+.atlas-chips.ex button{border-color:#86EFAC}
+.atlas-todos{margin-top:14px}.atlas-todos summary{cursor:pointer;font-weight:600;padding:8px 0}
+.atlas-dica{font-size:15px}
+.atlas-exfig img{max-width:260px;width:100%;display:block;margin:0 auto}
+.modal.full .box{max-height:94vh}
+@media (max-width:640px){.atlas-grid{grid-template-columns:1fr}.atlas-corpo svg{max-height:56vh}.atlas-info{position:static}}

@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v30';
+const APP_V = 'v31';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -111,7 +111,7 @@ function newPass() {
   $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
-  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['mus', 'Músculos'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
     d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''} <button class="sm p" onclick="wantSub('assinar')">Quero assinar</button>`; nav.before(d); }
   if (profile.plan === 'pro' && profile.paid_until && !document.querySelector('.demob')) { const left = Math.ceil((new Date(profile.paid_until + 'T23:59:59') - Date.now()) / 864e5);
@@ -120,8 +120,18 @@ function menu() {
       d.insertAdjacentHTML('beforeend', ' <button class="sm p" onclick="wantSub(\'renovar\')">Renovar</button>'); nav.before(d); } }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
-function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin })[k](); }
+function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin, mus: musculos })[k](); }
 
+// ---------- atlas de músculos (aba didática)
+async function musculos() {
+  app.innerHTML = 'Carregando…';
+  const { montarAtlas } = await import('./atlas.js');
+  montarAtlas(app, { onEx: async nome => { const L = await getLib(); const n = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const ex = L.find(e => n(e.name) === n(nome)) || L.find(e => n(e.name).includes(n(nome)));
+    if (!ex) return alert('Exercício não encontrado na biblioteca.');
+    const d = mdl(`<h3>${esc(ex.name)}</h3><div class=atlas-exfig>${im(ex.image_path, ex.name)}</div><p class=muted>${esc(ex.muscle_group || '')}</p>${ex.how_to ? `<p>${esc(ex.how_to)}</p>` : ''}<button class=p id=xc>Fechar</button>`);
+    d.querySelector('#xc').onclick = d.close; } });
+}
 async function getLib() {
   if (library.length) return library;
   let from = 0, all = [];
@@ -624,8 +634,10 @@ async function studentView(token, preview = false) {
         if (d.querySelector('#sc2').checked) await sb.rpc('student_accept_terms', { p_token: token, p_doc: 'dados_saude', p_version: 'v1.0', p_ua: ua });
         try { localStorage.setItem(tk, 'v1.0'); } catch {} d.close(); }; }
     const ft = document.createElement('footer'); ft.className = 'lgpd';
-    ft.innerHTML = `<a href="legal.html#privacidade" target=_blank rel=noopener>Privacidade</a> · <a href="#" id=ldx>Baixar meus dados</a> · <a href="#" id=ldd>Pedir exclusão</a>`;
+    ft.innerHTML = `<a href="#" id=lmu>📚 Aprender os músculos</a><br><a href="legal.html#privacidade" target=_blank rel=noopener>Privacidade</a> · <a href="#" id=ldx>Baixar meus dados</a> · <a href="#" id=ldd>Pedir exclusão</a>`;
     document.body.appendChild(ft);
+    ft.querySelector('#lmu').onclick = async e => { e.preventDefault(); const { montarAtlas } = await import('./atlas.js');
+      const d = mdl('<div id=atlasBox></div><button class=p id=atx style="margin-top:12px">Fechar</button>'); d.classList.add('full'); montarAtlas(d.querySelector('#atlasBox')); d.querySelector('#atx').onclick = d.close; };
     ft.querySelector('#ldx').onclick = async e => { e.preventDefault(); const r = await sb.rpc('student_export', { p_token: token }); if (r.error) return alert(ptErr(r.error.message));
       const b = new Blob([JSON.stringify(r.data, null, 2)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'meus-dados-dehoje.json'; document.body.appendChild(a); a.click(); a.remove(); };
     ft.querySelector('#ldd').onclick = async e => { e.preventDefault(); if (!confirm('Pedir a exclusão de todos os seus dados no DE HOJE? Seu treinador e o responsável pelo app vão confirmar com você antes de apagar.')) return;
