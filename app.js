@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v36';
+const APP_V = 'v37';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -111,7 +111,7 @@ function newPass() {
   $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
-  nav.innerHTML = [['stu', 'Alunos'], ['agd', 'Agenda'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['mus', 'Didática'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  nav.innerHTML = [['stu', 'Alunos'], ['agd', 'Agenda'], ['imp', 'Importar ficha'], ['ia', '✨ DE HOJE.IA'], ['lib', 'Exercícios'], ['mus', 'Didática'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
     d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''} <button class="sm p" onclick="wantSub('assinar')">Quero assinar</button>`; nav.before(d); }
   if (profile.plan === 'pro' && profile.paid_until && !document.querySelector('.demob')) { const left = Math.ceil((new Date(profile.paid_until + 'T23:59:59') - Date.now()) / 864e5);
@@ -120,7 +120,7 @@ function menu() {
       d.insertAdjacentHTML('beforeend', ' <button class="sm p" onclick="wantSub(\'renovar\')">Renovar</button>'); nav.before(d); } }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
-function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin, mus: musculos, agd: agenda })[k](); }
+function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp: () => imp(), ia: iaView, stu: students, perfil, adm: admin, mus: musculos, agd: agenda })[k](); }
 
 // ---------- agenda do treinador
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -352,7 +352,7 @@ export function parseFicha(text) {
       const alt = /\(([^)]*)\)/.exec(p); const nome = clean(p.replace(/\([^)]*\)/g, ''));
       let note = clean(d.replace(SETS_RE, '').replace(PAUSA_RE, '').replace(/^\s*\+\s*/, ''));
       if (!/[A-Za-zÀ-ú]{2}/.test(note)) note = '';
-      cur.itens.push({ tipo: 'ex', texto: clean(p), busca: nome, sets: nsets(base), reps: repsOf(base), rest: restOf(body), bi: g, obs: [...tags.filter(t => !note.toLowerCase().includes(t)), note, alt ? alt[1] : ''].filter(Boolean).join(' · ') });
+      cur.itens.push({ tipo: 'ex', texto: clean(p), busca: nome, alt: alt ? alt[1] : '', sets: nsets(base), reps: repsOf(base), rest: restOf(body), bi: g, obs: [...tags.filter(t => !note.toLowerCase().includes(t)), note, alt ? alt[1] : ''].filter(Boolean).join(' · ') });
     });
   };
   for (const raw of lines) {
@@ -410,16 +410,25 @@ async function pick(cb) {
 }
 const linkOf = tk => location.origin + location.pathname + '?a=' + tk + '#/a/' + tk;
 
+// ---------- DE HOJE.IA: monta o treino pelo objetivo
+async function iaView() {
+  app.innerHTML = 'Carregando…';
+  const [{ montarIA }, { data: al }] = await Promise.all([import('./ia_ui.js'), sb.from('students').select('name').eq('trainer_id', session.user.id).order('name')]);
+  montarIA(app, { alunos: (al || []).map(a => a.name), usar: texto => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'imp')); imp(texto); scrollTo(0, 0); } });
+}
 // ---------- importar ficha
 async function recog(f, byId) { // liga cada linha da ficha a um exercício da biblioteca (com desenho)
+  const byName = {}; Object.values(byId).forEach(e => { byName[e.name.toLowerCase()] = e; });
   for (const s of f.sessoes) for (const it of s.itens) {
+    const ex0 = it.tipo === 'ex' && byName[it.texto.toLowerCase()]; // nome igual ao da biblioteca (ex.: treino do DE HOJE.IA)
+    if (ex0) { it.ex = ex0; if (it.alt) it.obs = (it.obs || '').split(' · ').filter(x => x !== it.alt).join(' · '); continue; }
     let q = it.tipo === 'cardio' ? it.texto.replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim() : it.busca; it.ex = null;
     if (/copenhagen/i.test(q) && /joelho/i.test(it.obs || '')) q += ' com joelho apoiado'; else if (/copenhagen/i.test(q) && /p[eé]/i.test(it.obs || '') && /apoiad/i.test(it.obs || '')) q += ' com pé apoiado';
     if (q.length > 3) { const { data } = await sb.rpc('match_exercise', { p_text: q }); const m = data?.[0]; const e = m && byId[m.exercise_id];
       if (e && m.score >= 0.6 && (it.tipo !== 'cardio' || e.muscle_group === 'Cardio')) it.ex = e; else if (e && it.tipo === 'ex') it.sug = e; }
   }
 }
-async function imp() {
+async function imp(pre) {
   app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p>${profile?.plan === 'demo' ? '<p class=dnote>🧪 Dica para o teste: use o nome de alguém próximo (namorada, marido, esposa…) como aluno e mande o link para o celular dessa pessoa.</p>' : ''}
   <textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
   $('#go').onclick = async () => {
@@ -446,6 +455,7 @@ async function imp() {
     };
     view();
   };
+  if (pre) { $('#t').value = pre; $('#go').click(); }
 }
 async function salvar(f, nome, rd) {
   const msg = $('#sm'); if (!nome) return msg.innerHTML = '<span class=err>Digite o nome do aluno.</span>';

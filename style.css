@@ -173,3 +173,18 @@ footer.lgpd a{color:var(--g)}
 .ag-mt{width:100%;display:flex;flex-wrap:wrap;gap:6px}.ag-mt input{flex:1;min-width:160px}
 .ag-push{margin-top:10px;padding-top:10px;border-top:1px dashed var(--b)}
 .ag-pw{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.ag-pw span{font-size:14px}
+/* DE HOJE.IA */
+.ia-top h2{margin-bottom:4px}.ia-top p{margin-top:0}
+.ia-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}.ia-chips button{padding:8px 12px;font-size:14px}
+.ia-chips button.on{background:var(--od);border-color:var(--od);color:#fff}
+.ia-obj{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.ia-obj button{display:flex;align-items:center;gap:8px;text-align:left;min-height:46px}.ia-obj span{font-size:20px;line-height:1}
+.ia-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.ia-2{grid-template-columns:1fr}}
+.ia-ped{min-height:110px}.ia-dicas{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 6px}.ia-dicas .sm{margin:0;border-style:dashed;color:var(--od)}
+.ia-leu{font-size:14px;color:var(--od);min-height:1em;margin:6px 0}
+.ia-go{width:100%;padding:14px;font-size:17px;font-weight:700;margin:6px 0 4px}
+.ia-out{border:2px solid var(--o);border-radius:16px;padding:14px;margin:16px 0;background:#F6FCF8}.ia-out h3{margin:0 0 6px}
+.ia-why{margin:0 0 10px;padding-left:20px;line-height:1.45}.ia-why li{margin:3px 0}
+.ia-vol{margin:6px 0 12px}.ia-vol summary{cursor:pointer;font-weight:600;margin-bottom:6px}
+.ia-vb{display:grid;grid-template-columns:110px 1fr 30px;gap:8px;align-items:center;font-size:13.5px;margin:4px 0}.ia-vb i{height:9px;background:var(--b);border-radius:6px;overflow:hidden}.ia-vb b{display:block;height:100%;background:var(--o)}.ia-vb em{font-style:normal;font-weight:700;text-align:right}
+.ia-txt{min-height:340px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.45;background:#fff}
+.ia-acts{display:flex;flex-wrap:wrap;gap:8px}.ia-acts .p{flex:1 1 100%;padding:13px;font-weight:700}
