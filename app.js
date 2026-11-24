@@ -7,7 +7,12 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const oops = (e) => { const m = ptErr(e?.message || e?.reason?.message || e?.reason || e); if (document.getElementById('oops')) return; const d = document.createElement('div'); d.id = 'oops'; d.className = 'oops'; d.innerHTML = `<b>Algo não carregou.</b> <small>${String(m).replace(/[<>&]/g, '').slice(0, 140)}</small><button onclick="location.reload()">Tentar de novo</button><button onclick="this.parentNode.remove()">×</button>`; document.body.appendChild(d); };
+const APP_V = 'v28';
+let lastErr = '', errCount = 0;
+const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
+  const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
+  sb.rpc('log_error', { p_message: msg, p_where: (where || location.hash || location.pathname).slice(0, 200), p_token: tk, p_version: APP_V, p_ua: navigator.userAgent.slice(0, 300) }).then(() => {}, () => {}); } catch {} };
+const oops = (e) => { const m = ptErr(e?.message || e?.reason?.message || e?.reason || e); if (!/internet/i.test(m)) logErr(e?.message || e?.reason?.message || e?.reason || e, e?.filename ? e.filename.split('/').pop() + ':' + e.lineno : ''); if (document.getElementById('oops')) return; const d = document.createElement('div'); d.id = 'oops'; d.className = 'oops'; d.innerHTML = `<b>Algo não carregou.</b> <small>${String(m).replace(/[<>&]/g, '').slice(0, 140)}</small><button onclick="location.reload()">Tentar de novo</button><button onclick="this.parentNode.remove()">×</button>`; document.body.appendChild(d); };
 window.addEventListener('unhandledrejection', e => oops(e)); window.addEventListener('error', e => { if (e.message && !/ResizeObserver|Script error/i.test(e.message)) oops(e); });
 
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
@@ -34,6 +39,11 @@ async function boot2() {
   if (!(await termsOk())) return termsGate();
   menu(); show('stu');
 }
+// ---------- assinar / renovar: abre o WhatsApp do responsável com a mensagem pronta
+async function wantSub(kind) { const { data } = await sb.rpc('support_contact'); const ph = (data?.phone || '').replace(/\D/g, '');
+  const who = profile?.brand_name || session?.user?.email || ''; const txt = kind === 'renovar' ? `Olá! Quero renovar minha assinatura do DE HOJE. Minha conta: ${who}` : `Olá! Testei o DE HOJE e quero assinar. Minha conta: ${who}`;
+  const url = ph ? `https://wa.me/${ph}?text=${encodeURIComponent(txt)}` : `https://wa.me/?text=${encodeURIComponent(txt)}`; window.open(url, '_blank', 'noopener'); }
+window.wantSub = wantSub;
 // ---------- LGPD: aceite dos Termos e da Política de Privacidade (treinador)
 const TERMS_V = 'v1.0';
 async function termsOk() { try { if (localStorage.getItem('dh_terms_' + session.user.id) === TERMS_V) return true; } catch {}
@@ -103,11 +113,11 @@ function newPass() {
 function menu() {
   nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
-    d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''}`; nav.before(d); }
+    d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''} <button class="sm p" onclick="wantSub('assinar')">Quero assinar</button>`; nav.before(d); }
   if (profile.plan === 'pro' && profile.paid_until && !document.querySelector('.demob')) { const left = Math.ceil((new Date(profile.paid_until + 'T23:59:59') - Date.now()) / 864e5);
     if (left <= 7) { const d = document.createElement('div'); d.className = 'demob';
       d.innerHTML = left >= 0 ? `💳 <b>Sua assinatura vence em ${left} dia${left === 1 ? '' : 's'}</b> · renove para não interromper seus alunos` : left >= -5 ? `⚠️ <b>Assinatura vencida</b> · seus alunos perdem o acesso em ${5 + left} dia${5 + left === 1 ? '' : 's'}. Renove com o responsável pelo DE HOJE.` : '⛔ <b>Assinatura vencida</b> · seus alunos estão sem acesso. Renove com o responsável pelo DE HOJE — nenhum dado foi apagado.';
-      nav.before(d); } }
+      d.insertAdjacentHTML('beforeend', ' <button class="sm p" onclick="wantSub(\'renovar\')">Renovar</button>'); nav.before(d); } }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
 function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin })[k](); }
@@ -195,7 +205,8 @@ async function perfil() {
   sb.rpc('my_subscription').then(({ data: s }) => { const box = $('#subx'); if (!box || !s) return; const brl = c => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); const dt = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
     let t = s.plan === 'owner' ? 'Conta do responsável pelo DE HOJE.' : s.plan === 'demo' ? `Versão de teste${s.demo_until ? ' até ' + dt(s.demo_until) : ''} · até ${s.max_students || 1} aluno${(s.max_students || 1) > 1 ? 's' : ''}. Para continuar depois do teste, fale com o responsável pelo DE HOJE.`
       : s.plan === 'pro' ? (s.paid_until ? `Plano Pro${s.price_cents ? ' · ' + brl(s.price_cents) + '/mês' : ''} · ${s.access_ok ? 'pago até ' + dt(s.paid_until) : '<span class=err>vencido em ' + dt(s.paid_until) + '</span>'}${s.max_students ? ' · até ' + s.max_students + ' alunos' : ' · alunos ilimitados'}` : 'Plano Pro · sem vencimento.') : 'Conta sem plano ativo.';
-    box.innerHTML = `<b>💳 Minha assinatura</b><p>${t}</p>`; });
+    const cta = s.plan === 'demo' ? `<button class=p onclick="wantSub('assinar')">Quero assinar</button>` : s.plan === 'pro' && s.paid_until ? `<button class=sm onclick="wantSub('renovar')">Renovar / mudar de plano</button>` : '';
+    box.innerHTML = `<b>💳 Minha assinatura</b><p>${t}</p>${cta}`; });
   const dreq = async (kind) => { const m = $('#drm'); if (kind === 'excluir' && !confirm('Pedir a exclusão da sua conta e de todos os dados dos seus alunos? O responsável pelo DE HOJE vai confirmar com você antes de apagar.')) return;
     const r = await sb.rpc('trainer_data_request', { p_kind: kind }); m.innerHTML = r.error ? `<span class=err>${esc(ptErr(r.error.message))}</span>` : `<span class=ok>Pedido registrado ✓ Vamos responder em até 15 dias.</span>`; };
   $('#dre').onclick = () => dreq('exportar'); $('#drx').onclick = () => dreq('excluir');
@@ -391,7 +402,7 @@ TREINO B – Pernas + Glúteos
 // ---------- painel do dono (versão de teste)
 async function admin() {
   app.innerHTML = '<h2>Admin</h2><div id=ad>Carregando…</div>';
-  const [{ data: o, error }, { data: M }, { data: DR }] = await Promise.all([sb.rpc('admin_overview'), sb.rpc('admin_metrics'), sb.rpc('admin_data_requests')]); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  const [{ data: o, error }, { data: M }, { data: DR }, { data: ER }] = await Promise.all([sb.rpc('admin_overview'), sb.rpc('admin_metrics'), sb.rpc('admin_data_requests'), sb.rpc('admin_errors')]); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
   const brl = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const base = location.origin + location.pathname, link = c => base + '#/convite/' + c;
   const wtxt = (c, d = 2) => `Olá! Você foi convidado para testar o DE HOJE, o app de treinos para personal trainers. 💪\n\n1) Abra este link e crie sua conta: ${link(c)}\n2) Seu código de convite: ${c}\n\nVocê terá ${d} dia${d > 1 ? 's' : ''} de teste completo: cole um treino seu, salve para alguém próximo (namorada, marido, esposa…) e mande o link para o celular dessa pessoa ver como fica.`;
@@ -405,7 +416,8 @@ async function admin() {
       ${wk.length ? `<p class=muted style="margin:10px 0 4px">Treinos concluídos por semana</p><div class=wkbars>${wk.map(w => `<div title="${w.treinos} treinos"><i style="height:${Math.round(100 * w.treinos / mx)}%"></i><small>${new Date(w.semana + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</small></div>`).join('')}</div>` : ''}
       ${(M.vencendo_7d || []).length ? `<p class=warn>Vencem em 7 dias: ${M.vencendo_7d.map(v => esc(v.marca || 'sem marca') + ' (' + new Date(v.vence + 'T12:00:00').toLocaleDateString('pt-BR') + ')').join(', ')}</p>` : ''}</div>`; }
   const openDR = (DR || []).filter(r => r.status === 'aberto');
-  if (openDR.length) h += `<div class=box2><b>🔒 Pedidos LGPD (${openDR.length})</b><p class=muted>Responda em até 15 dias. Para exclusão, confirme com a pessoa antes de apagar.</p>${openDR.map(r => `<div class=row><div><b>${r.tipo === 'excluir' ? 'Exclusão' : 'Cópia dos dados'}</b> · ${esc(r.aluno ? 'aluno ' + r.aluno : r.treinador_email || '')}<br><small class=muted>${new Date(r.criado).toLocaleString('pt-BR')}${r.nota ? ' · ' + esc(r.nota) : ''}</small><br><button class=sm data-drok=${r.id}>Marcar como concluído</button></div></div>`).join('')}</div>`;
+  if (openDR.length) h += `<div class=box2><b>🔒 Pedidos LGPD (${openDR.length})</b><p class=muted>Responda em até 15 dias. Para exclusão, confirme com a pessoa antes de apagar.</p>${openDR.map(r => `<div class=row><div><b>${r.tipo === 'excluir' ? 'Exclusão' : 'Cópia dos dados'}</b> · ${esc(r.aluno ? 'aluno ' + r.aluno : r.treinador_email || '')}<br><small class=muted>${new Date(r.criado).toLocaleString('pt-BR')}${r.nota ? ' · ' + esc(r.nota) : ''}</small><br><button class=sm data-drdl="${r.id}">⬇️ Baixar dados</button> ${r.tipo === 'excluir' ? `<button class="sm danger" data-drdel="${r.id}">🗑 Excluir definitivamente</button> ` : ''}<button class=sm data-drok=${r.id}>Marcar como concluído</button></div></div>`).join('')}</div>`;
+  if (ER && ER.total_7d) h += `<div class=box2><b>🐞 Erros no app (7 dias): ${ER.total_7d}</b><p class=muted>Problemas que treinadores e alunos viram. Mande um print desta lista para o Claude corrigir.</p>${(ER.top || []).map(e => `<div class=row><div><small><b>${e.n}×</b> · ${esc(e.who)} · ${new Date(e.ultimo).toLocaleString('pt-BR')}${e.versao ? ' · ' + esc(e.versao) : ''}</small><br><code style="font-size:12px;word-break:break-word">${esc(e.message)}</code></div></div>`).join('')}</div>`;
   h += `<div class=box2><b>Novo convite</b><p class=muted>Cada convite libera 1 treinador. Você controla quantos alunos ele pode ter e por quantos dias.</p><div class=mgrid><label>Nome (para você lembrar)<input id=il placeholder="Ex.: João Personal"></label><label>Alunos permitidos<input id=im type=number inputmode=numeric value=1 min=1 max=50></label><label>Dias de teste<input id=idd type=number inputmode=numeric value=2 min=1 max=365></label></div><button class=p id=ib>Gerar convite</button><div id=ir></div></div>`;
   const tr = o.trainers || []; h += `<h2>Treinadores (${tr.length})</h2>`;
   h += tr.length ? tr.map(t => { const left = t.demo_until ? Math.ceil((new Date(t.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
@@ -427,6 +439,19 @@ async function admin() {
   app.querySelectorAll('[data-blk]').forEach(b => b.onclick = () => confirm('Bloquear este treinador? Ele e os alunos dele perdem o acesso (nada é apagado).') && act('admin_set_trainer', { p_id: b.dataset.blk, p_plan: 'bloqueado' }));
   app.querySelectorAll('[data-unb]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.unb, p_plan: 'demo', p_extra_days: 0 }));
   app.querySelectorAll('[data-pro]').forEach(b => b.onclick = () => confirm('Liberar este treinador sem limite de alunos e sem prazo?') && act('admin_set_trainer', { p_id: b.dataset.pro, p_plan: 'pro' }));
+  const drById = Object.fromEntries((DR || []).map(r => [r.id, r]));
+  const dl = (obj, name) => { const b = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+  app.querySelectorAll('[data-drdl]').forEach(b => b.onclick = async () => { const r = drById[b.dataset.drdl]; let res;
+    if (r.student_id && r.aluno_token) res = await sb.rpc('student_export', { p_token: r.aluno_token }); else if (r.user_id) res = await sb.rpc('admin_export_trainer', { p_id: r.user_id }); else return alert('Os dados desta pessoa já não existem mais.');
+    if (res.error) return alert(res.error.message); dl(res.data, `dados-${(r.aluno || r.treinador_email || 'dehoje').replace(/[^A-Za-z0-9@.]+/g, '-')}.json`); });
+  app.querySelectorAll('[data-drdel]').forEach(b => b.onclick = async () => { const r = drById[b.dataset.drdel]; const quem = r.aluno ? 'o aluno ' + r.aluno : 'o treinador ' + (r.treinador_email || '') + ' e TODOS os alunos dele';
+    if (!r.student_id && !r.user_id) return alert('Os dados desta pessoa já foram excluídos.');
+    const ok = prompt(`Isto apaga para sempre ${quem}: treinos, histórico, medidas, fotos e arquivos. Não tem como desfazer.\n\nDica: baixe os dados antes.\n\nPara confirmar, digite EXCLUIR`); if (ok === null) return; if (ok.trim().toUpperCase() !== 'EXCLUIR') return alert('Nada foi apagado.');
+    b.disabled = true; b.textContent = 'Apagando…';
+    const { data, error } = await sb.functions.invoke('admin-erase', { body: { kind: r.student_id ? 'student' : 'trainer', id: r.student_id || r.user_id, request_id: r.id } }); let e = data?.error;
+    if (error) { e = error.message; try { const j = await error.context?.json(); if (j?.error) e = j.error; } catch {} }
+    if (e) { b.disabled = false; b.textContent = '🗑 Excluir definitivamente'; return alert('Não foi possível excluir: ' + e); }
+    alert(`Excluído ✓ (${data.files || 0} arquivo${data.files === 1 ? '' : 's'} apagado${data.files === 1 ? '' : 's'}). Avise a pessoa que o pedido foi atendido.`); admin(); });
   app.querySelectorAll('[data-drok]').forEach(b => b.onclick = () => confirm('Marcar este pedido como concluído?') && act('admin_close_data_request', { p_id: b.dataset.drok, p_status: 'concluido' }));
   app.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => { const sug = b.dataset.pc ? (b.dataset.pc / 100).toFixed(2).replace('.', ',') : '49,90';
     const v = prompt('Valor recebido (R$). Ex.: 49,90 para 1 mês ou 479,00 para 12 meses:', sug); if (v === null) return; const cents = Math.round(parseFloat(String(v).replace(/\./g, '').replace(',', '.')) * 100); if (!(cents > 0)) return alert('Valor inválido.');
@@ -480,9 +505,12 @@ async function aluno(id) {
     sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on')]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
   const st = s.data, url = linkOf(st.token);
+  const { data: cs } = await sb.from('consents').select('doc,accepted_at').eq('student_id', id);
+  const hasC = d => (cs || []).find(c => c.doc === d); const ct = hasC('termos'), ch = hasC('dados_saude');
+  const consentBox = `<div class=box2><b>🔒 Consentimento (LGPD)</b><p>${ct ? `✅ Aceitou os termos em ${new Date(ct.accepted_at).toLocaleDateString('pt-BR')}` : '⏳ Ainda não abriu o app para aceitar os termos'}<br>${ch ? '✅ Autorizou o uso de dados de saúde (medidas, fotos, avaliações)' : ct ? '⚠️ <b>Não autorizou</b> dados de saúde — evite guardar medidas, fotos e laudos deste aluno no app' : ''}</p></div>`;
   let x = `<button id=bk>← Alunos</button><h2>${esc(st.name)}</h2>${st.code ? `<p class=muted>ID do aluno: <b>${esc(st.code)}</b> <small>(só identificação, não dá acesso)</small></p>` : ''}${st.active === false ? '<p class=warn>Aluno arquivado — o link está desativado. <button class=sm id=react>Reativar</button></p>' : ''}
    <div class=box2><b>Link do aluno</b><input readonly id=lk value="${esc(url)}"><button class=p id=cp>Copiar link</button> <a class=btn href="https://wa.me/?text=${encodeURIComponent(`Oi, ${st.name.split(' ')[0]}! Seu treino já está no app DE HOJE 💪\n\n1) Abra este link: ${url}\n2) Para virar um aplicativo no seu celular:\n• iPhone: abra no Safari, toque em Compartilhar e depois em "Adicionar à Tela de Início"\n• Android: no Chrome, toque nos 3 pontinhos e depois em "Adicionar à tela inicial"\n\nDepois é só abrir pelo ícone, até sem internet. Bom treino!`)}" target=_blank>Enviar no WhatsApp</a>
-   <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>`;
+   <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>${consentBox}`;
   if (!(h.data || []).length) x += `<div class="box2 guide"><b>Próximos passos</b><ol class=steps><li>Toque em <b>Enviar no WhatsApp</b> e mande o link para a pessoa.</li><li>No <b>celular dela</b>, abra o link e toque em <b>Adicionar à tela inicial</b>.</li><li>Ela abre pelo ícone DE HOJE e faz o treino.</li><li>O resultado aparece aqui e em <b>Alunos → Atividade recente</b>.</li></ol><p class=muted><small>Dica: não abra o link do aluno no seu celular. Veja sempre no celular da pessoa, para não misturar os acessos.</small></p></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
   x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div>`;
