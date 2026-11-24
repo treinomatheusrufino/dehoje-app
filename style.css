@@ -147,3 +147,4 @@ footer.lgpd a{color:var(--g)}
 .did-reg{display:inline-block;color:var(--g);font-size:12.5px}
 .did-ficha img{width:100%;max-width:320px;display:block;margin:0 auto 6px;background:#F5F7F6;border-radius:14px}
 .did-ficha ol{padding-left:20px;margin:6px 0}.did-ficha li{margin:6px 0}
+.stats b{font-size:clamp(15px,4.4vw,20px);white-space:nowrap}

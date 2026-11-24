@@ -76,7 +76,8 @@ const d = (pts, t = 1) => { // curva suave fechada passando pelos pontos
   const n = pts.length; let o = `M${pts[0][0]} ${pts[0][1]}`;
   for (let i = 0; i < n; i++) {
     const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6 * t, p1[1] + (p2[1] - p0[1]) / 6 * t], c2 = [p2[0] - (p3[0] - p1[0]) / 6 * t, p2[1] - (p3[1] - p1[1]) / 6 * t];
+    const t1 = p1[0] >= 98.5 && p1[0] <= 101.5 ? t * .3 : t, t2 = p2[0] >= 98.5 && p2[0] <= 101.5 ? t * .3 : t; // pontos na linha do meio: curva suave sem "bico"
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6 * t1, p1[1] + (p2[1] - p0[1]) / 6 * t1], c2 = [p2[0] - (p3[0] - p1[0]) / 6 * t2, p2[1] - (p3[1] - p1[1]) / 6 * t2];
     o += `C${r1(c1[0])} ${r1(c1[1])} ${r1(c2[0])} ${r1(c2[1])} ${p2[0]} ${p2[1]}`;
   }
   return o + 'Z'; };

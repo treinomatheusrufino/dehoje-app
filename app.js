@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v32';
+const APP_V = 'v33';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
