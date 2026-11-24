@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v35';
+const APP_V = 'v36';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -124,7 +124,7 @@ function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggl
 
 // ---------- agenda do treinador
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-const ST_AG = { marcada: ['Aguardando o aluno', 'ag-wait'], confirmada: ['Confirmada ✓', 'ag-ok'], desmarcada: ['Desmarcou', 'ag-no'], cancelada: ['Cancelada por você', 'ag-cx'], realizada: ['Realizada', 'ag-done'] };
+const ST_AG = { marcada: ['Aguardando o aluno', 'ag-wait'], confirmada: ['Confirmada ✓', 'ag-ok'], desmarcada: ['Não vai treinar', 'ag-no'], cancelada: ['Cancelada por você', 'ag-cx'], realizada: ['Realizada', 'ag-done'] };
 const hhmm = d => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const segunda = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
 let agSemana = null;
@@ -144,9 +144,9 @@ async function agenda() {
   let h = `<h2>Agenda</h2><div class=ag-nav><button class=sm data-nv=-1 aria-label="Semana anterior">◀</button><b>${f(ini)} a ${f(ult)}</b><button class=sm data-nv=1 aria-label="Próxima semana">▶</button><button class=sm data-hj>Hoje</button></div>
     <button class=p id=agNovo>+ Novo horário</button><div id=agForm></div>`;
   const pl = (n, um, v) => `<b>${n}</b> ${n === 1 ? um : v}`, tot = lista.filter(a => a.status !== 'cancelada').length;
-  if (lista.length) h += `<div class=ag-res><span>${pl(tot, 'aula', 'aulas')}</span><span class=ag-ok>${pl(cnt('confirmada'), 'confirmada', 'confirmadas')}</span><span class=ag-wait>${pl(cnt('marcada'), 'aguardando', 'aguardando')}</span><span class=ag-no>${pl(cnt('desmarcada'), 'desmarcada', 'desmarcadas')}</span></div>`;
-  if (!count) h += `<div class="box2 ag-exemplo"><b>Exemplo de como fica</b><p class=muted>Marque os horários dos seus alunos. Eles recebem a aula no app e tocam em Confirmar ou Desmarcar. Você recebe o aviso no WhatsApp.</p>
-    <div class=ag-dia><div class=ag-dh>Segunda</div>${[['07:00', 'Ana Paula', 'confirmada', 'Academia'], ['08:00', 'Carlos', 'marcada', 'Condomínio'], ['18:30', 'Juliana', 'desmarcada', 'Online']].map(([t, n, st, l]) => `<div class=ag-it><div class=ag-h>${t}</div><div class=ag-c><b>${n}</b><span class="ag-st ${ST_AG[st][1]}">${ST_AG[st][0]}</span><small class=muted>${l}${st === 'desmarcada' ? ' · Motivo: consulta médica' : ''}</small></div></div>`).join('')}</div></div>`;
+  if (lista.length) h += `<div class=ag-res><span>${pl(tot, 'aula', 'aulas')}</span><span class=ag-ok>${pl(cnt('confirmada'), 'confirmada', 'confirmadas')}</span><span class=ag-no>${pl(cnt('desmarcada'), 'não vai', 'não vão')}</span></div>`;
+  if (!count) h += `<div class="box2 ag-exemplo"><b>Exemplo de como fica</b><p class=muted>Marque os horários dos seus alunos: a aula já entra confirmada. Toda manhã o aluno recebe um lembrete no celular e, se não for treinar, avisa com um toque. Você recebe o aviso no WhatsApp.</p>
+    <div class=ag-dia><div class=ag-dh>Segunda</div>${[['07:00', 'Ana Paula', 'confirmada', 'Academia'], ['07:50', 'Carlos', 'confirmada', 'Condomínio'], ['18:30', 'Juliana', 'desmarcada', 'Online']].map(([t, n, st, l]) => `<div class=ag-it><div class=ag-h>${t}</div><div class=ag-c><b>${n}</b><span class="ag-st ${ST_AG[st][1]}">${ST_AG[st][0]}</span><small class=muted>${l}${st === 'desmarcada' ? ' · Motivo: consulta médica' : ''}</small></div></div>`).join('')}</div></div>`;
   for (let i = 0; i < 7; i++) {
     const dia = new Date(ini); dia.setDate(ini.getDate() + i); const d2 = new Date(dia); d2.setDate(dia.getDate() + 1);
     const it = lista.filter(a => { const t = new Date(a.starts_at); return t >= dia && t < d2; });
@@ -180,14 +180,15 @@ async function agenda() {
     box.innerHTML = `<div class=box2><b>Novo horário</b><div class=mgrid>
       <label>Aluno<select id=agA>${alunos.map(a => `<option value=${a.id}>${esc(a.name)}</option>`).join('')}</select></label>
       <label>Dia<input id=agD type=date value=${ds}></label><label>Horário<input id=agH type=time value="07:00" step=300></label>
-      <label>Duração<select id=agT><option value=30>30 min</option><option value=45>45 min</option><option value=60 selected>1 hora</option><option value=90>1h30</option></select></label>
+      <label>Duração da aula<select id=agT>${[15, 30, 45, 50, 60, 90].map(m => `<option value=${m}${m === (+localStorage.getItem('dh_ag_dur') || 60) ? ' selected' : ''}>${m < 60 ? m + ' min' : m === 60 ? '1 hora' : '1h30'}</option>`).join('')}</select></label>
       <label>Local (opcional)<input id=agL placeholder="Academia, online, casa do aluno…"></label></div>
       <label class=chk><input type=checkbox id=agR checked> Repetir toda semana neste dia e horário</label>
       <label id=agRw>Por quantas semanas?<select id=agW><option>4</option><option>8</option><option selected>12</option><option>26</option><option>52</option></select></label>
-      <button class=p id=agS>Salvar na agenda</button> <p id=agM class=err></p></div>`;
+      <p class=muted><small>A aula já entra confirmada. Se o aluno não for treinar, ele avisa pelo app.</small></p><button class=p id=agS>Salvar na agenda</button> <p id=agM class=err></p></div>`;
     box.querySelector('#agR').onchange = e => box.querySelector('#agRw').hidden = !e.target.checked;
     box.querySelector('#agS').onclick = async () => { const d = box.querySelector('#agD').value, t = box.querySelector('#agH').value; if (!d || !t) return box.querySelector('#agM').textContent = 'Escolha o dia e o horário.';
       const dt = new Date(`${d}T${t}:00`), semanas = box.querySelector('#agR').checked ? +box.querySelector('#agW').value : 1;
+      try { localStorage.setItem('dh_ag_dur', box.querySelector('#agT').value); } catch {}
       box.querySelector('#agS').disabled = true;
       const r = await sb.rpc('agenda_create', { p_student: box.querySelector('#agA').value, p_starts: dt.toISOString(), p_duration: +box.querySelector('#agT').value, p_weeks: semanas, p_place: box.querySelector('#agL').value.trim() || null, p_note: null });
       if (r.error) { box.querySelector('#agS').disabled = false; return box.querySelector('#agM').textContent = ptErr(r.error.message); }
@@ -795,6 +796,28 @@ async function studentView(token, preview = false) {
     if (P.student.code) h += `<p class=muted><small>Seu ID: <b>${esc(P.student.code)}</b></small></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. Depois de aberto uma vez com internet, o treino funciona mesmo sem internet.</small></p>';
     app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; minhasAulas(); };
+  // --- lembrete diário no celular (notificação)
+  const VAPID = 'BFm8CvaeBGiulH7lhBGC5RRVFkLJ2jweVdYC08Nh-FjObAbFEikDVx678BS3KK7YnK-J01IhpnbTDllqPG7SHBg';
+  const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+  const lembretes = async () => { const box = document.getElementById('agPush'); if (!box) return;
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), instalado = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+    const ok = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    if (!ok) { box.innerHTML = ios && !instalado ? '<small class=muted>🔔 Para receber o lembrete da aula toda manhã no iPhone: toque em Compartilhar e em “Adicionar à Tela de Início”. Depois abra o DE HOJE pelo ícone e ative aqui.</small>' : '<small class=muted>🔔 Este navegador não recebe notificações. Abra o link no Chrome (Android) ou adicione à Tela de Início (iPhone).</small>'; return; }
+    let reg, sub = null; try { reg = await navigator.serviceWorker.ready; sub = await reg.pushManager.getSubscription(); } catch {}
+    let ativo = false; if (sub && Notification.permission === 'granted') { try { const r = await sb.rpc('student_push_status', { p_token: token, p_endpoint: sub.endpoint }); ativo = !!r.data; } catch {} }
+    if (Notification.permission === 'denied') { box.innerHTML = '<small class=muted>🔔 As notificações estão bloqueadas para este site. Libere nas configurações do navegador para receber o lembrete da aula.</small>'; return; }
+    box.innerHTML = ativo ? '<div class=ag-pw><span>🔔 Lembrete toda manhã: <b>ativado</b></span><button class=sm data-pt>Testar</button></div>'
+      : '<div class=ag-pw><span>🔔 Receba toda manhã um lembrete da aula do dia.</span><button class="sm p" data-pa>Ativar lembrete</button></div>';
+    const m = t => { box.insertAdjacentHTML('beforeend', `<small class=muted>${t}</small>`); };
+    box.querySelector('[data-pt]')?.addEventListener('click', async e => { e.target.disabled = true; const { data, error } = await sb.functions.invoke('lembrete-diario', { body: { token, test: true } }); e.target.disabled = false; m(error || !data?.ok ? ' Não foi possível enviar agora. Tente de novo.' : ' Enviado! Confira a notificação.'); });
+    box.querySelector('[data-pa]')?.addEventListener('click', async e => { e.target.disabled = true;
+      try { const perm = await Notification.requestPermission(); if (perm !== 'granted') { e.target.disabled = false; return m(' Para ativar, toque em Permitir quando o celular perguntar.'); }
+        const s2 = sub || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) }); const k = s2.toJSON();
+        const url = location.origin + location.pathname + '?a=' + token + '#/a/' + token;
+        const r = await sb.rpc('student_push_subscribe', { p_token: token, p_endpoint: s2.endpoint, p_p256dh: k.keys.p256dh, p_auth: k.keys.auth, p_url: url }); if (r.error) throw r.error;
+        sb.functions.invoke('lembrete-diario', { body: { token, test: true } }).catch(() => {}); lembretes();
+      } catch (er) { e.target.disabled = false; m(' Não foi possível ativar: ' + esc(ptErr(er.message || er))); } });
+  };
   // --- minhas aulas (agenda): o aluno confirma ou desmarca
   const minhasAulas = async () => { const box = document.getElementById('agBox'); if (!box || preview) return;
     let lista; try { const r = await sb.rpc('student_agenda', { p_token: token }); if (r.error) throw r.error; lista = r.data || []; } catch { return; }
@@ -802,15 +825,16 @@ async function studentView(token, preview = false) {
     if (!prox.length) return box.innerHTML = '';
     const DS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
     box.innerHTML = `<div class="wcard ag-aluno"><b>📅 Minhas aulas</b>${prox.map(a => { const t = new Date(a.inicio), fut = t.getTime() > agora;
-      const tag = a.status === 'confirmada' ? '<span class="ag-st ag-ok">Confirmada ✓</span>' : a.status === 'desmarcada' ? '<span class="ag-st ag-no">Desmarcada</span>' : a.status === 'realizada' ? '<span class="ag-st ag-done">Realizada</span>' : '<span class="ag-st ag-wait">Confirme sua presença</span>';
+      const tag = a.status === 'confirmada' ? '<span class="ag-st ag-ok">Confirmada ✓</span>' : a.status === 'desmarcada' ? '<span class="ag-st ag-no">Você avisou que não vai</span>' : a.status === 'realizada' ? '<span class="ag-st ag-done">Realizada</span>' : '<span class="ag-st ag-wait">Confirme sua presença</span>';
       return `<div class=ag-al data-id=${a.id}><div><b>${DS[t.getDay()]}, ${t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</b>${a.local ? `<small class=muted> · ${esc(a.local)}</small>` : ''}<br>${tag}</div>
-        ${fut && a.status !== 'realizada' ? `<div class=ag-ac>${a.status !== 'confirmada' ? `<button class="sm p" data-cf=${a.id}>Confirmar</button>` : ''}${a.status !== 'desmarcada' ? `<button class=sm data-ds=${a.id}>Desmarcar</button>` : ''}</div>` : ''}</div>`; }).join('')}</div>`;
+        ${fut && a.status !== 'realizada' ? `<div class=ag-ac>${a.status !== 'confirmada' ? `<button class="sm p" data-cf=${a.id}>${a.status === 'desmarcada' ? 'Vou treinar sim' : 'Confirmar'}</button>` : ''}${a.status !== 'desmarcada' ? `<button class=sm data-ds=${a.id}>Não vou treinar</button>` : ''}</div>` : ''}</div>`; }).join('')}<div class=ag-push id=agPush></div></div>`;
+    lembretes();
     const acao = async (id, act, nota, btn) => { if (btn) btn.disabled = true; const r = await sb.rpc('student_agenda_set', { p_token: token, p_id: id, p_action: act, p_note: nota || null });
       if (r.error) { if (btn) btn.disabled = false; return alert(ptErr(r.error.message)); }
       sb.functions.invoke('agenda-aviso', { body: { token, id } }).catch(() => {}); minhasAulas(); };
     box.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => acao(b.dataset.cf, 'confirmar', null, b));
     box.querySelectorAll('[data-ds]').forEach(b => b.onclick = () => { const row = b.closest('.ag-al'); if (row.querySelector('.ag-mt')) return;
-      row.insertAdjacentHTML('beforeend', '<div class=ag-mt><input placeholder="Motivo (opcional)" maxlength=300><button class="sm danger">Confirmar desmarcação</button> <button class=sm data-vt>Voltar</button></div>');
+      row.insertAdjacentHTML('beforeend', '<div class=ag-mt><input placeholder="Motivo (opcional)" maxlength=300><button class="sm danger">Avisar que não vou</button> <button class=sm data-vt>Voltar</button></div>');
       const mt = row.querySelector('.ag-mt'); mt.querySelector('[data-vt]').onclick = () => mt.remove();
       mt.querySelector('.danger').onclick = e => acao(b.dataset.ds, 'desmarcar', mt.querySelector('input').value.trim(), e.target); });
   };

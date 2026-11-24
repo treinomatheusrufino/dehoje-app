@@ -171,3 +171,5 @@ footer.lgpd a{color:var(--g)}
 .ag-exemplo{opacity:.92;border-style:dashed}
 .ag-aluno .ag-al{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--b)}.ag-aluno .ag-al:last-child{border-bottom:0}
 .ag-mt{width:100%;display:flex;flex-wrap:wrap;gap:6px}.ag-mt input{flex:1;min-width:160px}
+.ag-push{margin-top:10px;padding-top:10px;border-top:1px dashed var(--b)}
+.ag-pw{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.ag-pw span{font-size:14px}
