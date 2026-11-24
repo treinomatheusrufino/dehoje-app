@@ -1,0 +1,3228 @@
+[
+ {
+  "slug": "air-squat",
+  "name": "Air squat",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/air-squat.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento crossfit",
+   "Air squat",
+   "air squat"
+  ]
+ },
+ {
+  "slug": "thruster-com-barra",
+  "name": "Thruster com barra",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/thruster-com-barra.svg",
+  "how_to": null,
+  "aliases": [
+   "thruster",
+   "thruster barra",
+   "Thruster com barra"
+  ]
+ },
+ {
+  "slug": "thruster-com-halteres",
+  "name": "Thruster com halteres",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "halteres",
+  "image_path": "exercicios/13-crossfit/thruster-com-halteres.svg",
+  "how_to": null,
+  "aliases": [
+   "db thruster",
+   "Thruster com halteres",
+   "thruster halteres"
+  ]
+ },
+ {
+  "slug": "wall-ball",
+  "name": "Wall ball",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "wall-ball",
+  "image_path": "exercicios/13-crossfit/wall-ball.svg",
+  "how_to": null,
+  "aliases": [
+   "arremesso de bola na parede",
+   "wall ball",
+   "Wall ball",
+   "wallball"
+  ]
+ },
+ {
+  "slug": "overhead-squat",
+  "name": "Overhead squat",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/overhead-squat.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento com barra acima da cabeca",
+   "agachamento overhead",
+   "ohs",
+   "overhead squat",
+   "Overhead squat"
+  ]
+ },
+ {
+  "slug": "pistol-squat",
+  "name": "Pistol squat",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/pistol-squat.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento unilateral pistol",
+   "pistol",
+   "Pistol squat",
+   "pistol squat"
+  ]
+ },
+ {
+  "slug": "box-jump",
+  "name": "Box jump",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "caixa",
+  "image_path": "exercicios/13-crossfit/box-jump.svg",
+  "how_to": null,
+  "aliases": [
+   "Box jump",
+   "box jump",
+   "salto na caixa",
+   "salto no caixote"
+  ]
+ },
+ {
+  "slug": "box-step-over",
+  "name": "Box step-over",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "caixa",
+  "image_path": "exercicios/13-crossfit/box-step-over.svg",
+  "how_to": null,
+  "aliases": [
+   "box step over",
+   "Box step-over",
+   "passada sobre a caixa",
+   "step over"
+  ]
+ },
+ {
+  "slug": "salto-horizontal-broad-jump",
+  "name": "Salto horizontal (broad jump)",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/salto-horizontal-broad-jump.svg",
+  "how_to": null,
+  "aliases": [
+   "broad jump",
+   "salto em distancia",
+   "salto horizontal",
+   "Salto horizontal (broad jump)"
+  ]
+ },
+ {
+  "slug": "tuck-jump",
+  "name": "Tuck jump",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/tuck-jump.svg",
+  "how_to": null,
+  "aliases": [
+   "salto com joelhos no peito",
+   "salto grupado",
+   "tuck jump",
+   "Tuck jump"
+  ]
+ },
+ {
+  "slug": "shuttle-run",
+  "name": "Shuttle run",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/shuttle-run.svg",
+  "how_to": null,
+  "aliases": [
+   "corrida de vai e volta",
+   "Shuttle run",
+   "shuttle run",
+   "vai e vem"
+  ]
+ },
+ {
+  "slug": "front-rack-lunge",
+  "name": "Front rack lunge",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/front-rack-lunge.svg",
+  "how_to": null,
+  "aliases": [
+   "avanco com barra na frente",
+   "front rack lunge",
+   "Front rack lunge"
+  ]
+ },
+ {
+  "slug": "avanco-overhead-com-anilha",
+  "name": "Avanço overhead com anilha",
+  "muscle_group": "CrossFit — Pernas e corpo inteiro",
+  "equip": "anilha",
+  "image_path": "exercicios/13-crossfit/avanco-overhead-com-anilha.svg",
+  "how_to": null,
+  "aliases": [
+   "avanco overhead",
+   "Avanço overhead com anilha",
+   "overhead lunge",
+   "overhead walking lunge"
+  ]
+ },
+ {
+  "slug": "burpee",
+  "name": "Burpee",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/burpee.svg",
+  "how_to": null,
+  "aliases": [
+   "Burpee",
+   "burpee",
+   "burpees"
+  ]
+ },
+ {
+  "slug": "burpee-sobre-a-barra-bar-facing-burpee",
+  "name": "Burpee sobre a barra (bar facing burpee)",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/burpee-sobre-a-barra-bar-facing-burpee.svg",
+  "how_to": null,
+  "aliases": [
+   "bar facing burpee",
+   "burpee over the bar",
+   "burpee sobre a barra",
+   "Burpee sobre a barra (bar facing burpee)"
+  ]
+ },
+ {
+  "slug": "double-under",
+  "name": "Double under",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "corda-de-pular",
+  "image_path": "exercicios/13-crossfit/double-under.svg",
+  "how_to": null,
+  "aliases": [
+   "corda dupla",
+   "Double under",
+   "double under",
+   "du",
+   "pular corda dupla"
+  ]
+ },
+ {
+  "slug": "bear-crawl",
+  "name": "Bear crawl",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/bear-crawl.svg",
+  "how_to": null,
+  "aliases": [
+   "Bear crawl",
+   "bear crawl",
+   "caminhada do urso",
+   "urso"
+  ]
+ },
+ {
+  "slug": "crab-walk",
+  "name": "Crab walk",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/crab-walk.svg",
+  "how_to": null,
+  "aliases": [
+   "caminhada do caranguejo",
+   "caranguejo",
+   "crab walk",
+   "Crab walk"
+  ]
+ },
+ {
+  "slug": "inchworm-lagarta",
+  "name": "Inchworm (lagarta)",
+  "muscle_group": "Mobilidade — Posteriores e ombros",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/inchworm-lagarta.svg",
+  "how_to": null,
+  "aliases": [
+   "inchworm",
+   "Inchworm (lagarta)",
+   "lagarta",
+   "minhoca"
+  ]
+ },
+ {
+  "slug": "power-clean",
+  "name": "Power clean",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/power-clean.svg",
+  "how_to": null,
+  "aliases": [
+   "arremesso",
+   "clean",
+   "levantamento olimpico clean",
+   "Power clean",
+   "power clean"
+  ]
+ },
+ {
+  "slug": "hang-power-clean",
+  "name": "Hang power clean",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/hang-power-clean.svg",
+  "how_to": null,
+  "aliases": [
+   "hang clean",
+   "hang power clean",
+   "Hang power clean"
+  ]
+ },
+ {
+  "slug": "squat-clean",
+  "name": "Squat clean",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/squat-clean.svg",
+  "how_to": null,
+  "aliases": [
+   "clean completo",
+   "full clean",
+   "Squat clean",
+   "squat clean"
+  ]
+ },
+ {
+  "slug": "power-snatch",
+  "name": "Power snatch",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/power-snatch.svg",
+  "how_to": null,
+  "aliases": [
+   "arranco",
+   "Power snatch",
+   "power snatch",
+   "snatch"
+  ]
+ },
+ {
+  "slug": "hang-power-snatch",
+  "name": "Hang power snatch",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/hang-power-snatch.svg",
+  "how_to": null,
+  "aliases": [
+   "Hang power snatch",
+   "hang power snatch",
+   "hang snatch"
+  ]
+ },
+ {
+  "slug": "squat-snatch",
+  "name": "Squat snatch",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/squat-snatch.svg",
+  "how_to": null,
+  "aliases": [
+   "full snatch",
+   "snatch completo",
+   "squat snatch",
+   "Squat snatch"
+  ]
+ },
+ {
+  "slug": "push-jerk",
+  "name": "Push jerk",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/push-jerk.svg",
+  "how_to": null,
+  "aliases": [
+   "jerk",
+   "Push jerk",
+   "push jerk"
+  ]
+ },
+ {
+  "slug": "split-jerk",
+  "name": "Split jerk",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/split-jerk.svg",
+  "how_to": null,
+  "aliases": [
+   "jerk dividido",
+   "Split jerk",
+   "split jerk"
+  ]
+ },
+ {
+  "slug": "clean-and-jerk",
+  "name": "Clean and jerk",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/clean-and-jerk.svg",
+  "how_to": null,
+  "aliases": [
+   "arremesso completo",
+   "c&j",
+   "Clean and jerk",
+   "clean and jerk"
+  ]
+ },
+ {
+  "slug": "sumo-deadlift-high-pull",
+  "name": "Sumo deadlift high pull",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/sumo-deadlift-high-pull.svg",
+  "how_to": null,
+  "aliases": [
+   "levantamento terra sumo com remada alta",
+   "sdhp",
+   "sumo deadlift high pull",
+   "Sumo deadlift high pull"
+  ]
+ },
+ {
+  "slug": "cluster-squat-clean-thruster",
+  "name": "Cluster (squat clean thruster)",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/cluster-squat-clean-thruster.svg",
+  "how_to": null,
+  "aliases": [
+   "cluster",
+   "Cluster (squat clean thruster)",
+   "squat clean thruster"
+  ]
+ },
+ {
+  "slug": "clean-pull",
+  "name": "Clean pull",
+  "muscle_group": "CrossFit — Levantamento olímpico",
+  "equip": "barra-olimpica",
+  "image_path": "exercicios/13-crossfit/clean-pull.svg",
+  "how_to": null,
+  "aliases": [
+   "Clean pull",
+   "clean pull",
+   "puxada de clean"
+  ]
+ },
+ {
+  "slug": "kettlebell-swing-americano",
+  "name": "Kettlebell swing americano",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "kettlebell",
+  "image_path": "exercicios/13-crossfit/kettlebell-swing-americano.svg",
+  "how_to": null,
+  "aliases": [
+   "american swing",
+   "Kettlebell swing americano",
+   "kettlebell swing americano",
+   "swing americano"
+  ]
+ },
+ {
+  "slug": "kettlebell-snatch",
+  "name": "Kettlebell snatch",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "kettlebell",
+  "image_path": "exercicios/13-crossfit/kettlebell-snatch.svg",
+  "how_to": null,
+  "aliases": [
+   "arranco com kettlebell",
+   "Kettlebell snatch",
+   "kettlebell snatch"
+  ]
+ },
+ {
+  "slug": "kettlebell-clean",
+  "name": "Kettlebell clean",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "kettlebell",
+  "image_path": "exercicios/13-crossfit/kettlebell-clean.svg",
+  "how_to": null,
+  "aliases": [
+   "clean com kettlebell",
+   "Kettlebell clean",
+   "kettlebell clean"
+  ]
+ },
+ {
+  "slug": "agachamento-goblet-com-kettlebell",
+  "name": "Agachamento goblet com kettlebell",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "kettlebell",
+  "image_path": "exercicios/13-crossfit/agachamento-goblet-com-kettlebell.svg",
+  "how_to": null,
+  "aliases": [
+   "Agachamento goblet com kettlebell",
+   "agachamento goblet kettlebell",
+   "goblet squat kettlebell"
+  ]
+ },
+ {
+  "slug": "devil-press",
+  "name": "Devil press",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "halteres",
+  "image_path": "exercicios/13-crossfit/devil-press.svg",
+  "how_to": null,
+  "aliases": [
+   "Devil press",
+   "devil press"
+  ]
+ },
+ {
+  "slug": "man-maker",
+  "name": "Man maker",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "halteres",
+  "image_path": "exercicios/13-crossfit/man-maker.svg",
+  "how_to": null,
+  "aliases": [
+   "Man maker",
+   "man maker",
+   "manmaker"
+  ]
+ },
+ {
+  "slug": "snatch-com-halter",
+  "name": "Snatch com halter",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "halteres",
+  "image_path": "exercicios/13-crossfit/snatch-com-halter.svg",
+  "how_to": null,
+  "aliases": [
+   "arranco com halter",
+   "db snatch",
+   "dumbbell snatch",
+   "Snatch com halter",
+   "snatch com halter"
+  ]
+ },
+ {
+  "slug": "clean-and-jerk-com-halter",
+  "name": "Clean and jerk com halter",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "halteres",
+  "image_path": "exercicios/13-crossfit/clean-and-jerk-com-halter.svg",
+  "how_to": null,
+  "aliases": [
+   "Clean and jerk com halter",
+   "db clean and jerk",
+   "dumbbell clean and jerk"
+  ]
+ },
+ {
+  "slug": "levantamento-turco-turkish-get-up",
+  "name": "Levantamento turco (turkish get-up)",
+  "muscle_group": "CrossFit — Kettlebell e halteres",
+  "equip": "kettlebell",
+  "image_path": "exercicios/13-crossfit/levantamento-turco-turkish-get-up.svg",
+  "how_to": null,
+  "aliases": [
+   "levantamento turco",
+   "Levantamento turco (turkish get-up)",
+   "tgu",
+   "turkish get up"
+  ]
+ },
+ {
+  "slug": "farmer-carry-com-kettlebells",
+  "name": "Farmer carry com kettlebells",
+  "muscle_group": "Hyrox — Força e carregamento",
+  "equip": "kettlebell",
+  "image_path": "exercicios/14-hyrox/farmer-carry-com-kettlebells.svg",
+  "how_to": null,
+  "aliases": [
+   "carregamento de fazendeiro",
+   "farmer carry",
+   "Farmer carry com kettlebells",
+   "farmers carry",
+   "farmers carry kettlebell"
+  ]
+ },
+ {
+  "slug": "pull-up-kipping",
+  "name": "Pull-up kipping",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/13-crossfit/pull-up-kipping.svg",
+  "how_to": null,
+  "aliases": [
+   "barra kipping",
+   "kipping",
+   "pull up kipping",
+   "Pull-up kipping"
+  ]
+ },
+ {
+  "slug": "chest-to-bar-pull-up",
+  "name": "Chest to bar pull-up",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/13-crossfit/chest-to-bar-pull-up.svg",
+  "how_to": null,
+  "aliases": [
+   "c2b",
+   "chest to bar",
+   "Chest to bar pull-up",
+   "peito na barra"
+  ]
+ },
+ {
+  "slug": "butterfly-pull-up",
+  "name": "Butterfly pull-up",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/13-crossfit/butterfly-pull-up.svg",
+  "how_to": null,
+  "aliases": [
+   "butterfly",
+   "butterfly pull up",
+   "Butterfly pull-up"
+  ]
+ },
+ {
+  "slug": "toes-to-bar",
+  "name": "Toes to bar",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/13-crossfit/toes-to-bar.svg",
+  "how_to": null,
+  "aliases": [
+   "pes na barra",
+   "t2b",
+   "toes to bar",
+   "Toes to bar"
+  ]
+ },
+ {
+  "slug": "knees-to-elbows",
+  "name": "Knees to elbows",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/13-crossfit/knees-to-elbows.svg",
+  "how_to": null,
+  "aliases": [
+   "joelhos nos cotovelos",
+   "k2e",
+   "Knees to elbows",
+   "knees to elbows"
+  ]
+ },
+ {
+  "slug": "bar-muscle-up",
+  "name": "Bar muscle-up",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/13-crossfit/bar-muscle-up.svg",
+  "how_to": null,
+  "aliases": [
+   "bar muscle up",
+   "Bar muscle-up",
+   "bmu",
+   "muscle up na barra"
+  ]
+ },
+ {
+  "slug": "ring-muscle-up",
+  "name": "Ring muscle-up",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "argolas",
+  "image_path": "exercicios/13-crossfit/ring-muscle-up.svg",
+  "how_to": null,
+  "aliases": [
+   "muscle up na argola",
+   "ring muscle up",
+   "Ring muscle-up",
+   "rmu"
+  ]
+ },
+ {
+  "slug": "ring-dip",
+  "name": "Ring dip",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "argolas",
+  "image_path": "exercicios/13-crossfit/ring-dip.svg",
+  "how_to": null,
+  "aliases": [
+   "dip na argola",
+   "mergulho na argola",
+   "ring dip",
+   "Ring dip"
+  ]
+ },
+ {
+  "slug": "ring-row",
+  "name": "Ring row",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "argolas",
+  "image_path": "exercicios/13-crossfit/ring-row.svg",
+  "how_to": null,
+  "aliases": [
+   "remada australiana na argola",
+   "remada na argola",
+   "ring row",
+   "Ring row"
+  ]
+ },
+ {
+  "slug": "handstand-push-up",
+  "name": "Handstand push-up",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "parede",
+  "image_path": "exercicios/13-crossfit/handstand-push-up.svg",
+  "how_to": null,
+  "aliases": [
+   "flexao de parada de mao",
+   "handstand push up",
+   "Handstand push-up",
+   "hspu"
+  ]
+ },
+ {
+  "slug": "parada-de-mao-na-parede-handstand-hold",
+  "name": "Parada de mão na parede (handstand hold)",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "parede",
+  "image_path": "exercicios/13-crossfit/parada-de-mao-na-parede-handstand-hold.svg",
+  "how_to": null,
+  "aliases": [
+   "handstand hold",
+   "parada de mao",
+   "parada de mao na parede",
+   "Parada de mão na parede (handstand hold)"
+  ]
+ },
+ {
+  "slug": "handstand-walk",
+  "name": "Handstand walk",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/handstand-walk.svg",
+  "how_to": null,
+  "aliases": [
+   "caminhada em parada de mao",
+   "Handstand walk",
+   "handstand walk"
+  ]
+ },
+ {
+  "slug": "wall-walk",
+  "name": "Wall walk",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "parede",
+  "image_path": "exercicios/13-crossfit/wall-walk.svg",
+  "how_to": null,
+  "aliases": [
+   "caminhada na parede",
+   "subida na parede",
+   "wall walk",
+   "Wall walk"
+  ]
+ },
+ {
+  "slug": "subida-na-corda-rope-climb",
+  "name": "Subida na corda (rope climb)",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "corda",
+  "image_path": "exercicios/13-crossfit/subida-na-corda-rope-climb.svg",
+  "how_to": null,
+  "aliases": [
+   "escalada na corda",
+   "rope climb",
+   "subida na corda",
+   "Subida na corda (rope climb)"
+  ]
+ },
+ {
+  "slug": "l-sit-nas-paralelas",
+  "name": "L-sit nas paralelas",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "paralelas",
+  "image_path": "exercicios/13-crossfit/l-sit-nas-paralelas.svg",
+  "how_to": null,
+  "aliases": [
+   "l sit",
+   "l sit nas paralelas",
+   "l-sit",
+   "L-sit nas paralelas"
+  ]
+ },
+ {
+  "slug": "ghd-sit-up",
+  "name": "GHD sit-up",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "ghd",
+  "image_path": "exercicios/13-crossfit/ghd-sit-up.svg",
+  "how_to": null,
+  "aliases": [
+   "abdominal no ghd",
+   "ghd",
+   "ghd sit up",
+   "GHD sit-up"
+  ]
+ },
+ {
+  "slug": "hiperextensao-no-ghd",
+  "name": "Hiperextensão no GHD",
+  "muscle_group": "CrossFit — Ginástica",
+  "equip": "ghd",
+  "image_path": "exercicios/13-crossfit/hiperextensao-no-ghd.svg",
+  "how_to": null,
+  "aliases": [
+   "extensao lombar no ghd",
+   "ghd back extension",
+   "hiperextensao no ghd",
+   "Hiperextensão no GHD"
+  ]
+ },
+ {
+  "slug": "hollow-hold",
+  "name": "Hollow hold",
+  "muscle_group": "CrossFit — Core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/hollow-hold.svg",
+  "how_to": null,
+  "aliases": [
+   "canoa",
+   "hollow body",
+   "hollow hold",
+   "Hollow hold"
+  ]
+ },
+ {
+  "slug": "hollow-rock",
+  "name": "Hollow rock",
+  "muscle_group": "CrossFit — Core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/hollow-rock.svg",
+  "how_to": null,
+  "aliases": [
+   "canoa balancando",
+   "hollow rock",
+   "Hollow rock"
+  ]
+ },
+ {
+  "slug": "arch-hold-superman-isometrico",
+  "name": "Arch hold (superman isométrico)",
+  "muscle_group": "CrossFit — Core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/arch-hold-superman-isometrico.svg",
+  "how_to": null,
+  "aliases": [
+   "arch",
+   "arch hold",
+   "Arch hold (superman isométrico)",
+   "superman isometrico"
+  ]
+ },
+ {
+  "slug": "v-up",
+  "name": "V-up",
+  "muscle_group": "CrossFit — Core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/v-up.svg",
+  "how_to": null,
+  "aliases": [
+   "canivete",
+   "v up",
+   "v-up",
+   "V-up"
+  ]
+ },
+ {
+  "slug": "sit-up-com-abmat",
+  "name": "Sit-up com abmat",
+  "muscle_group": "CrossFit — Core",
+  "equip": "abmat",
+  "image_path": "exercicios/13-crossfit/sit-up-com-abmat.svg",
+  "how_to": null,
+  "aliases": [
+   "abdominal completo",
+   "sit up",
+   "sit up abmat",
+   "Sit-up com abmat",
+   "situp"
+  ]
+ },
+ {
+  "slug": "abdominal-canivete-unilateral-v-up-alternado",
+  "name": "Abdominal canivete unilateral (V-up alternado)",
+  "muscle_group": "CrossFit — Core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/13-crossfit/abdominal-canivete-unilateral-v-up-alternado.svg",
+  "how_to": null,
+  "aliases": [
+   "Abdominal canivete unilateral (V-up alternado)",
+   "canivete alternado",
+   "single leg v up",
+   "v up alternado"
+  ]
+ },
+ {
+  "slug": "skierg",
+  "name": "SkiErg",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "skierg",
+  "image_path": "exercicios/14-hyrox/skierg.svg",
+  "how_to": null,
+  "aliases": [
+   "ski",
+   "ski erg",
+   "SkiErg",
+   "skierg"
+  ]
+ },
+ {
+  "slug": "sled-push-empurrar-treno",
+  "name": "Sled push (empurrar trenó)",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "treno",
+  "image_path": "exercicios/14-hyrox/sled-push-empurrar-treno.svg",
+  "how_to": null,
+  "aliases": [
+   "empurrar treno",
+   "sled push",
+   "Sled push (empurrar trenó)",
+   "treno"
+  ]
+ },
+ {
+  "slug": "sled-pull-puxar-treno-com-corda",
+  "name": "Sled pull (puxar trenó com corda)",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "treno",
+  "image_path": "exercicios/14-hyrox/sled-pull-puxar-treno-com-corda.svg",
+  "how_to": null,
+  "aliases": [
+   "puxada de treno",
+   "puxar treno",
+   "sled pull",
+   "Sled pull (puxar trenó com corda)"
+  ]
+ },
+ {
+  "slug": "burpee-broad-jump",
+  "name": "Burpee broad jump",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/14-hyrox/burpee-broad-jump.svg",
+  "how_to": null,
+  "aliases": [
+   "Burpee broad jump",
+   "burpee broad jump",
+   "burpee com salto horizontal",
+   "burpee salto a frente"
+  ]
+ },
+ {
+  "slug": "remo-ergometro",
+  "name": "Remo ergômetro",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "remo",
+  "image_path": "exercicios/14-hyrox/remo-ergometro.svg",
+  "how_to": null,
+  "aliases": [
+   "concept2",
+   "remada no ergometro",
+   "remo",
+   "remo ergometro",
+   "Remo ergômetro",
+   "row",
+   "rowing"
+  ]
+ },
+ {
+  "slug": "sandbag-lunges-avanco-com-saco-de-areia",
+  "name": "Sandbag lunges (avanço com saco de areia)",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "saco-de-areia",
+  "image_path": "exercicios/14-hyrox/sandbag-lunges-avanco-com-saco-de-areia.svg",
+  "how_to": null,
+  "aliases": [
+   "avanco com saco de areia",
+   "sandbag lunge",
+   "sandbag lunges",
+   "Sandbag lunges (avanço com saco de areia)"
+  ]
+ },
+ {
+  "slug": "wall-ball-hyrox",
+  "name": "Wall ball (Hyrox)",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "wall-ball",
+  "image_path": "exercicios/14-hyrox/wall-ball-hyrox.svg",
+  "how_to": null,
+  "aliases": [
+   "Wall ball (Hyrox)",
+   "wall ball hyrox",
+   "wall balls hyrox"
+  ]
+ },
+ {
+  "slug": "corrida-pista-ou-rua",
+  "name": "Corrida (pista ou rua)",
+  "muscle_group": "Cardio",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/14-hyrox/corrida-pista-ou-rua.svg",
+  "how_to": null,
+  "aliases": [
+   "corrida",
+   "Corrida (pista ou rua)",
+   "corrida na pista",
+   "corrida na rua",
+   "run",
+   "running"
+  ]
+ },
+ {
+  "slug": "bikeerg",
+  "name": "BikeErg",
+  "muscle_group": "Cardio",
+  "equip": "bike",
+  "image_path": "exercicios/14-hyrox/bikeerg.svg",
+  "how_to": null,
+  "aliases": [
+   "bike",
+   "bike erg",
+   "BikeErg",
+   "bikeerg"
+  ]
+ },
+ {
+  "slug": "sandbag-clean",
+  "name": "Sandbag clean",
+  "muscle_group": "Hyrox — Força e carregamento",
+  "equip": "saco-de-areia",
+  "image_path": "exercicios/14-hyrox/sandbag-clean.svg",
+  "how_to": null,
+  "aliases": [
+   "clean com saco de areia",
+   "sandbag clean",
+   "Sandbag clean"
+  ]
+ },
+ {
+  "slug": "sandbag-carry-saco-no-peito",
+  "name": "Sandbag carry (saco no peito)",
+  "muscle_group": "Hyrox — Força e carregamento",
+  "equip": "saco-de-areia",
+  "image_path": "exercicios/14-hyrox/sandbag-carry-saco-no-peito.svg",
+  "how_to": null,
+  "aliases": [
+   "bear hug carry",
+   "carregamento de saco de areia",
+   "sandbag carry",
+   "Sandbag carry (saco no peito)"
+  ]
+ },
+ {
+  "slug": "agachamento-com-saco-de-areia",
+  "name": "Agachamento com saco de areia",
+  "muscle_group": "Hyrox — Força e carregamento",
+  "equip": "saco-de-areia",
+  "image_path": "exercicios/14-hyrox/agachamento-com-saco-de-areia.svg",
+  "how_to": null,
+  "aliases": [
+   "Agachamento com saco de areia",
+   "agachamento com sandbag",
+   "sandbag squat"
+  ]
+ },
+ {
+  "slug": "front-rack-carry-com-kettlebell",
+  "name": "Front rack carry com kettlebell",
+  "muscle_group": "Hyrox — Força e carregamento",
+  "equip": "kettlebell",
+  "image_path": "exercicios/14-hyrox/front-rack-carry-com-kettlebell.svg",
+  "how_to": null,
+  "aliases": [
+   "carregamento em front rack",
+   "front rack carry",
+   "Front rack carry com kettlebell",
+   "rack carry"
+  ]
+ },
+ {
+  "slug": "arrasto-de-treno-de-costas",
+  "name": "Arrasto de trenó de costas",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "treno",
+  "image_path": "exercicios/14-hyrox/arrasto-de-treno-de-costas.svg",
+  "how_to": null,
+  "aliases": [
+   "arrasto de treno",
+   "Arrasto de trenó de costas",
+   "puxar treno de costas",
+   "sled drag"
+  ]
+ },
+ {
+  "slug": "sled-push-com-bracos-estendidos",
+  "name": "Sled push com braços estendidos",
+  "muscle_group": "Hyrox — Estações",
+  "equip": "treno",
+  "image_path": "exercicios/14-hyrox/sled-push-com-bracos-estendidos.svg",
+  "how_to": null,
+  "aliases": [
+   "empurrar treno baixo",
+   "sled push bracos estendidos",
+   "Sled push com braços estendidos"
+  ]
+ },
+ {
+  "slug": "hundred-cem",
+  "name": "Hundred (Cem)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/hundred-cem.svg",
+  "how_to": null,
+  "aliases": [
+   "cem",
+   "cem pilates",
+   "hundred",
+   "Hundred (Cem)",
+   "the hundred"
+  ]
+ },
+ {
+  "slug": "roll-up",
+  "name": "Roll up",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/roll-up.svg",
+  "how_to": null,
+  "aliases": [
+   "enrolamento",
+   "Roll up",
+   "roll up",
+   "roll up pilates"
+  ]
+ },
+ {
+  "slug": "roll-over",
+  "name": "Roll over",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/roll-over.svg",
+  "how_to": null,
+  "aliases": [
+   "rolamento para tras",
+   "roll over",
+   "Roll over"
+  ]
+ },
+ {
+  "slug": "circulo-com-uma-perna-single-leg-circle",
+  "name": "Círculo com uma perna (single leg circle)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/circulo-com-uma-perna-single-leg-circle.svg",
+  "how_to": null,
+  "aliases": [
+   "circulo com a perna",
+   "Círculo com uma perna (single leg circle)",
+   "leg circle",
+   "single leg circle"
+  ]
+ },
+ {
+  "slug": "rolando-como-bola-rolling-like-a-ball",
+  "name": "Rolando como bola (rolling like a ball)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/rolando-como-bola-rolling-like-a-ball.svg",
+  "how_to": null,
+  "aliases": [
+   "rolando como bola",
+   "Rolando como bola (rolling like a ball)",
+   "rolinho",
+   "rolling like a ball"
+  ]
+ },
+ {
+  "slug": "alongamento-de-uma-perna-single-leg-stretch",
+  "name": "Alongamento de uma perna (single leg stretch)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/alongamento-de-uma-perna-single-leg-stretch.svg",
+  "how_to": null,
+  "aliases": [
+   "alongamento de uma perna",
+   "Alongamento de uma perna (single leg stretch)",
+   "single leg stretch"
+  ]
+ },
+ {
+  "slug": "alongamento-das-duas-pernas-double-leg-stretch",
+  "name": "Alongamento das duas pernas (double leg stretch)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/alongamento-das-duas-pernas-double-leg-stretch.svg",
+  "how_to": null,
+  "aliases": [
+   "alongamento das duas pernas",
+   "Alongamento das duas pernas (double leg stretch)",
+   "double leg stretch"
+  ]
+ },
+ {
+  "slug": "tesoura-single-straight-leg-stretch",
+  "name": "Tesoura (single straight leg stretch)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/tesoura-single-straight-leg-stretch.svg",
+  "how_to": null,
+  "aliases": [
+   "scissors",
+   "single straight leg stretch",
+   "tesoura",
+   "Tesoura (single straight leg stretch)"
+  ]
+ },
+ {
+  "slug": "lower-lift-double-straight-leg",
+  "name": "Lower lift (double straight leg)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/lower-lift-double-straight-leg.svg",
+  "how_to": null,
+  "aliases": [
+   "descida das pernas",
+   "double straight leg",
+   "lower lift",
+   "Lower lift (double straight leg)"
+  ]
+ },
+ {
+  "slug": "criss-cross",
+  "name": "Criss-cross",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/criss-cross.svg",
+  "how_to": null,
+  "aliases": [
+   "abdominal cruzado pilates",
+   "criss cross",
+   "Criss-cross"
+  ]
+ },
+ {
+  "slug": "spine-stretch-forward",
+  "name": "Spine stretch forward",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/spine-stretch-forward.svg",
+  "how_to": null,
+  "aliases": [
+   "alongamento da coluna sentado",
+   "spine stretch",
+   "Spine stretch forward",
+   "spine stretch forward"
+  ]
+ },
+ {
+  "slug": "open-leg-rocker",
+  "name": "Open leg rocker",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/open-leg-rocker.svg",
+  "how_to": null,
+  "aliases": [
+   "balanco com pernas abertas",
+   "Open leg rocker",
+   "open leg rocker"
+  ]
+ },
+ {
+  "slug": "corkscrew-saca-rolhas",
+  "name": "Corkscrew (saca-rolhas)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/corkscrew-saca-rolhas.svg",
+  "how_to": null,
+  "aliases": [
+   "corkscrew",
+   "Corkscrew (saca-rolhas)",
+   "saca rolhas"
+  ]
+ },
+ {
+  "slug": "serrote-saw",
+  "name": "Serrote (saw)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/serrote-saw.svg",
+  "how_to": null,
+  "aliases": [
+   "saw",
+   "Serrote (saw)",
+   "serrote pilates"
+  ]
+ },
+ {
+  "slug": "cisne-swan",
+  "name": "Cisne (swan)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/cisne-swan.svg",
+  "how_to": null,
+  "aliases": [
+   "cisne",
+   "Cisne (swan)",
+   "swan",
+   "swan dive"
+  ]
+ },
+ {
+  "slug": "chute-com-uma-perna-single-leg-kick",
+  "name": "Chute com uma perna (single leg kick)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/chute-com-uma-perna-single-leg-kick.svg",
+  "how_to": null,
+  "aliases": [
+   "Chute com uma perna (single leg kick)",
+   "chute de uma perna",
+   "single leg kick"
+  ]
+ },
+ {
+  "slug": "chute-com-as-duas-pernas-double-leg-kick",
+  "name": "Chute com as duas pernas (double leg kick)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/chute-com-as-duas-pernas-double-leg-kick.svg",
+  "how_to": null,
+  "aliases": [
+   "Chute com as duas pernas (double leg kick)",
+   "chute das duas pernas",
+   "double leg kick"
+  ]
+ },
+ {
+  "slug": "neck-pull",
+  "name": "Neck pull",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/neck-pull.svg",
+  "how_to": null,
+  "aliases": [
+   "neck pull",
+   "Neck pull",
+   "puxada de pescoco pilates"
+  ]
+ },
+ {
+  "slug": "ponte-de-ombros-shoulder-bridge",
+  "name": "Ponte de ombros (shoulder bridge)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/ponte-de-ombros-shoulder-bridge.svg",
+  "how_to": null,
+  "aliases": [
+   "Ponte de ombros (shoulder bridge)",
+   "ponte de ombros pilates",
+   "shoulder bridge"
+  ]
+ },
+ {
+  "slug": "spine-twist-rotacao-de-coluna",
+  "name": "Spine twist (rotação de coluna)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/spine-twist-rotacao-de-coluna.svg",
+  "how_to": null,
+  "aliases": [
+   "rotacao de coluna sentado",
+   "spine twist",
+   "Spine twist (rotação de coluna)"
+  ]
+ },
+ {
+  "slug": "jackknife",
+  "name": "Jackknife",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/jackknife.svg",
+  "how_to": null,
+  "aliases": [
+   "canivete pilates",
+   "jackknife",
+   "Jackknife"
+  ]
+ },
+ {
+  "slug": "chute-lateral-frente-e-tras-side-kick",
+  "name": "Chute lateral frente e trás (side kick)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/chute-lateral-frente-e-tras-side-kick.svg",
+  "how_to": null,
+  "aliases": [
+   "Chute lateral frente e trás (side kick)",
+   "chute lateral pilates",
+   "side kick",
+   "side kick frente e tras"
+  ]
+ },
+ {
+  "slug": "chute-lateral-para-cima-side-kick-up-down",
+  "name": "Chute lateral para cima (side kick up/down)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/chute-lateral-para-cima-side-kick-up-down.svg",
+  "how_to": null,
+  "aliases": [
+   "Chute lateral para cima (side kick up/down)",
+   "elevacao lateral de perna pilates",
+   "side kick up down"
+  ]
+ },
+ {
+  "slug": "teaser",
+  "name": "Teaser",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/teaser.svg",
+  "how_to": null,
+  "aliases": [
+   "teaser",
+   "Teaser",
+   "teaser pilates"
+  ]
+ },
+ {
+  "slug": "natacao-swimming",
+  "name": "Natação (swimming)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/natacao-swimming.svg",
+  "how_to": null,
+  "aliases": [
+   "nadando",
+   "natacao pilates",
+   "Natação (swimming)",
+   "swimming"
+  ]
+ },
+ {
+  "slug": "leg-pull-front",
+  "name": "Leg pull front",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/leg-pull-front.svg",
+  "how_to": null,
+  "aliases": [
+   "Leg pull front",
+   "leg pull front",
+   "prancha com elevacao de perna pilates"
+  ]
+ },
+ {
+  "slug": "leg-pull-back",
+  "name": "Leg pull back",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/leg-pull-back.svg",
+  "how_to": null,
+  "aliases": [
+   "leg pull back",
+   "Leg pull back",
+   "prancha invertida com chute"
+  ]
+ },
+ {
+  "slug": "chute-lateral-ajoelhado-kneeling-side-kick",
+  "name": "Chute lateral ajoelhado (kneeling side kick)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/chute-lateral-ajoelhado-kneeling-side-kick.svg",
+  "how_to": null,
+  "aliases": [
+   "chute lateral ajoelhado",
+   "Chute lateral ajoelhado (kneeling side kick)",
+   "kneeling side kick"
+  ]
+ },
+ {
+  "slug": "side-bend-sereia-lateral",
+  "name": "Side bend (sereia lateral)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/side-bend-sereia-lateral.svg",
+  "how_to": null,
+  "aliases": [
+   "prancha lateral pilates",
+   "sereia lateral",
+   "side bend",
+   "Side bend (sereia lateral)"
+  ]
+ },
+ {
+  "slug": "foca-seal",
+  "name": "Foca (seal)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/foca-seal.svg",
+  "how_to": null,
+  "aliases": [
+   "Foca (seal)",
+   "foca pilates",
+   "seal"
+  ]
+ },
+ {
+  "slug": "flexao-pilates-push-up",
+  "name": "Flexão pilates (push-up)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/flexao-pilates-push-up.svg",
+  "how_to": null,
+  "aliases": [
+   "flexao pilates",
+   "Flexão pilates (push-up)",
+   "pilates push up"
+  ]
+ },
+ {
+  "slug": "sereia-sentada-mermaid",
+  "name": "Sereia sentada (mermaid)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/sereia-sentada-mermaid.svg",
+  "how_to": null,
+  "aliases": [
+   "mermaid",
+   "sereia",
+   "sereia sentada",
+   "Sereia sentada (mermaid)"
+  ]
+ },
+ {
+  "slug": "roll-down-na-parede",
+  "name": "Roll down na parede",
+  "muscle_group": "Pilates — Solo",
+  "equip": "parede",
+  "image_path": "exercicios/15-pilates/roll-down-na-parede.svg",
+  "how_to": null,
+  "aliases": [
+   "enrolamento na parede",
+   "roll down",
+   "Roll down na parede",
+   "roll down na parede"
+  ]
+ },
+ {
+  "slug": "enrolamento-pelvico-pelvic-curl",
+  "name": "Enrolamento pélvico (pelvic curl)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/enrolamento-pelvico-pelvic-curl.svg",
+  "how_to": null,
+  "aliases": [
+   "enrolamento pelvico",
+   "Enrolamento pélvico (pelvic curl)",
+   "pelvic curl",
+   "ponte articulada"
+  ]
+ },
+ {
+  "slug": "chest-lift-abdominal-pilates",
+  "name": "Chest lift (abdominal pilates)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/chest-lift-abdominal-pilates.svg",
+  "how_to": null,
+  "aliases": [
+   "abdominal pilates",
+   "chest lift",
+   "Chest lift (abdominal pilates)"
+  ]
+ },
+ {
+  "slug": "toe-taps-toque-de-pes-em-tabletop",
+  "name": "Toe taps (toque de pés em tabletop)",
+  "muscle_group": "Pilates — Solo",
+  "equip": "colchonete",
+  "image_path": "exercicios/15-pilates/toe-taps-toque-de-pes-em-tabletop.svg",
+  "how_to": null,
+  "aliases": [
+   "toe tap pilates",
+   "toe taps",
+   "Toe taps (toque de pés em tabletop)",
+   "toque de pes"
+  ]
+ },
+ {
+  "slug": "aducao-com-anel-magico-deitado",
+  "name": "Adução com anel mágico (deitado)",
+  "muscle_group": "Pilates — Acessórios",
+  "equip": "anel-magico",
+  "image_path": "exercicios/15-pilates/aducao-com-anel-magico-deitado.svg",
+  "how_to": null,
+  "aliases": [
+   "aducao com anel",
+   "Adução com anel mágico (deitado)",
+   "anel magico",
+   "magic circle"
+  ]
+ },
+ {
+  "slug": "abdominal-com-bola-pilates-nas-costas",
+  "name": "Abdominal com bola pilates nas costas",
+  "muscle_group": "Pilates — Acessórios",
+  "equip": "bola-pequena",
+  "image_path": "exercicios/15-pilates/abdominal-com-bola-pilates-nas-costas.svg",
+  "how_to": null,
+  "aliases": [
+   "abdominal com bola pilates",
+   "Abdominal com bola pilates nas costas",
+   "overball abdominal"
+  ]
+ },
+ {
+  "slug": "footwork-no-reformer",
+  "name": "Footwork no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/footwork-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "footwork",
+   "Footwork no reformer",
+   "footwork reformer",
+   "trabalho de pes no reformer"
+  ]
+ },
+ {
+  "slug": "hundred-no-reformer",
+  "name": "Hundred no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/hundred-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "cem no reformer",
+   "Hundred no reformer",
+   "hundred reformer"
+  ]
+ },
+ {
+  "slug": "long-stretch-no-reformer",
+  "name": "Long stretch no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/long-stretch-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "long stretch",
+   "Long stretch no reformer",
+   "long stretch reformer",
+   "prancha no reformer"
+  ]
+ },
+ {
+  "slug": "elefante-no-reformer-elephant",
+  "name": "Elefante no reformer (elephant)",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/elefante-no-reformer-elephant.svg",
+  "how_to": null,
+  "aliases": [
+   "Elefante no reformer (elephant)",
+   "elefante reformer",
+   "elephant"
+  ]
+ },
+ {
+  "slug": "knee-stretch-no-reformer",
+  "name": "Knee stretch no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/knee-stretch-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "knee stretch",
+   "Knee stretch no reformer",
+   "knee stretch reformer"
+  ]
+ },
+ {
+  "slug": "remada-sentada-no-reformer-rowing",
+  "name": "Remada sentada no reformer (rowing)",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/remada-sentada-no-reformer-rowing.svg",
+  "how_to": null,
+  "aliases": [
+   "remada no reformer",
+   "Remada sentada no reformer (rowing)",
+   "rowing reformer"
+  ]
+ },
+ {
+  "slug": "pernas-nas-alcas-feet-in-straps",
+  "name": "Pernas nas alças (feet in straps)",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/pernas-nas-alcas-feet-in-straps.svg",
+  "how_to": null,
+  "aliases": [
+   "feet in straps",
+   "leg circles reformer",
+   "pernas nas alcas",
+   "Pernas nas alças (feet in straps)"
+  ]
+ },
+ {
+  "slug": "short-box-round-back",
+  "name": "Short box round back",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/short-box-round-back.svg",
+  "how_to": null,
+  "aliases": [
+   "short box",
+   "short box round back",
+   "Short box round back"
+  ]
+ },
+ {
+  "slug": "long-box-pulling-straps",
+  "name": "Long box pulling straps",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/long-box-pulling-straps.svg",
+  "how_to": null,
+  "aliases": [
+   "Long box pulling straps",
+   "long box pulling straps",
+   "pulling straps"
+  ]
+ },
+ {
+  "slug": "running-no-reformer",
+  "name": "Running no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/running-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "corrida no reformer",
+   "Running no reformer",
+   "running reformer"
+  ]
+ },
+ {
+  "slug": "ponte-no-reformer-bridging",
+  "name": "Ponte no reformer (bridging)",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/ponte-no-reformer-bridging.svg",
+  "how_to": null,
+  "aliases": [
+   "bridging reformer",
+   "ponte no reformer",
+   "Ponte no reformer (bridging)"
+  ]
+ },
+ {
+  "slug": "stomach-massage-no-reformer",
+  "name": "Stomach massage no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/stomach-massage-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "stomach massage",
+   "Stomach massage no reformer",
+   "stomach massage reformer"
+  ]
+ },
+ {
+  "slug": "chest-expansion-ajoelhado-no-reformer",
+  "name": "Chest expansion ajoelhado no reformer",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/chest-expansion-ajoelhado-no-reformer.svg",
+  "how_to": null,
+  "aliases": [
+   "chest expansion",
+   "Chest expansion ajoelhado no reformer",
+   "chest expansion reformer"
+  ]
+ },
+ {
+  "slug": "circulos-de-braco-nas-alcas-deitado",
+  "name": "Círculos de braço nas alças (deitado)",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "reformer",
+  "image_path": "exercicios/15-pilates/circulos-de-braco-nas-alcas-deitado.svg",
+  "how_to": null,
+  "aliases": [
+   "arm circles reformer",
+   "circulos de braco reformer",
+   "Círculos de braço nas alças (deitado)"
+  ]
+ },
+ {
+  "slug": "footwork-na-chair-wunda-chair",
+  "name": "Footwork na chair (wunda chair)",
+  "muscle_group": "Pilates — Reformer",
+  "equip": "chair",
+  "image_path": "exercicios/15-pilates/footwork-na-chair-wunda-chair.svg",
+  "how_to": null,
+  "aliases": [
+   "chair pilates",
+   "footwork na chair",
+   "Footwork na chair (wunda chair)",
+   "wunda chair"
+  ]
+ },
+ {
+  "slug": "pallof-press-ajoelhado-na-polia",
+  "name": "Pallof press ajoelhado na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/pallof-press-ajoelhado-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "pallof ajoelhado",
+   "pallof press ajoelhado",
+   "Pallof press ajoelhado na polia"
+  ]
+ },
+ {
+  "slug": "pallof-press-meio-ajoelhado-na-polia",
+  "name": "Pallof press meio ajoelhado na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/pallof-press-meio-ajoelhado-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "pallof half kneeling",
+   "pallof meio ajoelhado",
+   "Pallof press meio ajoelhado na polia"
+  ]
+ },
+ {
+  "slug": "pallof-press-com-elevacao-acima-da-cabeca",
+  "name": "Pallof press com elevação acima da cabeça",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/pallof-press-com-elevacao-acima-da-cabeca.svg",
+  "how_to": null,
+  "aliases": [
+   "pallof com elevacao",
+   "pallof overhead",
+   "Pallof press com elevação acima da cabeça"
+  ]
+ },
+ {
+  "slug": "pallof-press-em-base-dividida",
+  "name": "Pallof press em base dividida",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/pallof-press-em-base-dividida.svg",
+  "how_to": null,
+  "aliases": [
+   "pallof base dividida",
+   "Pallof press em base dividida",
+   "pallof split stance"
+  ]
+ },
+ {
+  "slug": "woodchop-alto-para-baixo-na-polia",
+  "name": "Woodchop alto para baixo na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/woodchop-alto-para-baixo-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "cable chop",
+   "lenhador",
+   "lenhador na polia",
+   "woodchop",
+   "Woodchop alto para baixo na polia"
+  ]
+ },
+ {
+  "slug": "lift-baixo-para-cima-na-polia",
+  "name": "Lift baixo para cima na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/lift-baixo-para-cima-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "cable lift",
+   "lenhador invertido",
+   "Lift baixo para cima na polia",
+   "lift na polia"
+  ]
+ },
+ {
+  "slug": "chop-meio-ajoelhado-na-polia",
+  "name": "Chop meio ajoelhado na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/chop-meio-ajoelhado-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "chop ajoelhado",
+   "Chop meio ajoelhado na polia",
+   "half kneeling chop"
+  ]
+ },
+ {
+  "slug": "lift-meio-ajoelhado-na-polia",
+  "name": "Lift meio ajoelhado na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/lift-meio-ajoelhado-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "half kneeling lift",
+   "lift ajoelhado",
+   "Lift meio ajoelhado na polia"
+  ]
+ },
+ {
+  "slug": "caminhada-antirrotacao-na-polia-walkout",
+  "name": "Caminhada antirrotação na polia (walkout)",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/caminhada-antirrotacao-na-polia-walkout.svg",
+  "how_to": null,
+  "aliases": [
+   "antirrotacao caminhando",
+   "Caminhada antirrotação na polia (walkout)",
+   "pallof walkout"
+  ]
+ },
+ {
+  "slug": "rotacao-de-tronco-na-polia",
+  "name": "Rotação de tronco na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/rotacao-de-tronco-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "cable rotation",
+   "rotacao de tronco na polia",
+   "Rotação de tronco na polia",
+   "torso rotation"
+  ]
+ },
+ {
+  "slug": "remada-unilateral-na-polia-em-base-dividida",
+  "name": "Remada unilateral na polia em base dividida",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/remada-unilateral-na-polia-em-base-dividida.svg",
+  "how_to": null,
+  "aliases": [
+   "cable row split stance",
+   "remada unilateral em pe na polia",
+   "Remada unilateral na polia em base dividida"
+  ]
+ },
+ {
+  "slug": "supino-unilateral-em-pe-na-polia",
+  "name": "Supino unilateral em pé na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/supino-unilateral-em-pe-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "cable press em pe",
+   "Supino unilateral em pé na polia",
+   "supino unilateral na polia"
+  ]
+ },
+ {
+  "slug": "terra-romeno-unilateral-na-polia",
+  "name": "Terra romeno unilateral na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/terra-romeno-unilateral-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "rdl unilateral na polia",
+   "stiff unilateral na polia",
+   "Terra romeno unilateral na polia"
+  ]
+ },
+ {
+  "slug": "agachamento-com-polia-a-frente",
+  "name": "Agachamento com polia à frente",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/agachamento-com-polia-a-frente.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento antiextensao",
+   "Agachamento com polia à frente",
+   "cable squat"
+  ]
+ },
+ {
+  "slug": "puxada-unilateral-meio-ajoelhado-na-polia",
+  "name": "Puxada unilateral meio ajoelhado na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/puxada-unilateral-meio-ajoelhado-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "lat pulldown unilateral ajoelhado",
+   "puxada unilateral ajoelhado",
+   "Puxada unilateral meio ajoelhado na polia"
+  ]
+ },
+ {
+  "slug": "desenvolvimento-meio-ajoelhado-na-polia",
+  "name": "Desenvolvimento meio ajoelhado na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/desenvolvimento-meio-ajoelhado-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "desenvolvimento ajoelhado na polia",
+   "Desenvolvimento meio ajoelhado na polia",
+   "overhead press meio ajoelhado"
+  ]
+ },
+ {
+  "slug": "avanco-reverso-com-polia",
+  "name": "Avanço reverso com polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/avanco-reverso-com-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "avanco reverso na polia",
+   "Avanço reverso com polia",
+   "cable reverse lunge"
+  ]
+ },
+ {
+  "slug": "flexao-de-quadril-na-polia",
+  "name": "Flexão de quadril na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/flexao-de-quadril-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "flexao de quadril na polia",
+   "Flexão de quadril na polia",
+   "hip flexion cable",
+   "psoas na polia"
+  ]
+ },
+ {
+  "slug": "rotacao-externa-a-90-na-polia",
+  "name": "Rotação externa a 90° na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/rotacao-externa-a-90-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "rotacao externa 90 graus",
+   "rotacao externa abduzido na polia",
+   "Rotação externa a 90° na polia"
+  ]
+ },
+ {
+  "slug": "elevacao-em-y-na-polia",
+  "name": "Elevação em Y na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/elevacao-em-y-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "elevacao em y",
+   "Elevação em Y na polia",
+   "y na polia",
+   "y raise"
+  ]
+ },
+ {
+  "slug": "prancha-com-remada-na-polia",
+  "name": "Prancha com remada na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-remada-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "plank row cable",
+   "prancha com remada",
+   "Prancha com remada na polia"
+  ]
+ },
+ {
+  "slug": "agachamento-unilateral-com-apoio-na-polia",
+  "name": "Agachamento unilateral com apoio na polia",
+  "muscle_group": "Estabilização — Polia",
+  "equip": "polia",
+  "image_path": "exercicios/16-estabilizacao/agachamento-unilateral-com-apoio-na-polia.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento unilateral assistido",
+   "Agachamento unilateral com apoio na polia",
+   "pistol assistido na polia"
+  ]
+ },
+ {
+  "slug": "pallof-press-com-elastico",
+  "name": "Pallof press com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/pallof-press-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "pallof com elastico",
+   "pallof elastico",
+   "Pallof press com elástico"
+  ]
+ },
+ {
+  "slug": "pull-apart-com-elastico",
+  "name": "Pull-apart com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/pull-apart-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "abertura com elastico",
+   "band pull apart",
+   "pull apart",
+   "Pull-apart com elástico"
+  ]
+ },
+ {
+  "slug": "face-pull-com-elastico",
+  "name": "Face pull com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/face-pull-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "face pull com elastico",
+   "Face pull com elástico",
+   "face pull elastico"
+  ]
+ },
+ {
+  "slug": "rotacao-externa-com-elastico",
+  "name": "Rotação externa com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/rotacao-externa-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "manguito com elastico",
+   "rotacao externa elastico",
+   "Rotação externa com elástico"
+  ]
+ },
+ {
+  "slug": "rotacao-interna-com-elastico",
+  "name": "Rotação interna com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/rotacao-interna-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "rotacao interna elastico",
+   "Rotação interna com elástico"
+  ]
+ },
+ {
+  "slug": "y-t-w-com-elastico",
+  "name": "Y-T-W com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/y-t-w-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "y t w",
+   "Y-T-W com elástico",
+   "y-t-w elastico",
+   "ytw"
+  ]
+ },
+ {
+  "slug": "remada-em-pe-com-elastico",
+  "name": "Remada em pé com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/remada-em-pe-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "remada elastico",
+   "remada em pe com elastico",
+   "Remada em pé com elástico"
+  ]
+ },
+ {
+  "slug": "supino-em-pe-com-elastico",
+  "name": "Supino em pé com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/supino-em-pe-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "chest press elastico",
+   "supino com elastico",
+   "Supino em pé com elástico"
+  ]
+ },
+ {
+  "slug": "desenvolvimento-com-elastico",
+  "name": "Desenvolvimento com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/desenvolvimento-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "Desenvolvimento com elástico",
+   "desenvolvimento elastico",
+   "overhead press elastico"
+  ]
+ },
+ {
+  "slug": "agachamento-com-elastico",
+  "name": "Agachamento com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/agachamento-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "Agachamento com elástico",
+   "agachamento elastico",
+   "band squat"
+  ]
+ },
+ {
+  "slug": "levantamento-terra-com-elastico",
+  "name": "Levantamento terra com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/levantamento-terra-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "band deadlift",
+   "Levantamento terra com elástico",
+   "terra com elastico"
+  ]
+ },
+ {
+  "slug": "good-morning-com-elastico",
+  "name": "Good morning com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/good-morning-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "bom dia com elastico",
+   "Good morning com elástico",
+   "good morning elastico"
+  ]
+ },
+ {
+  "slug": "monster-walk-com-mini-band",
+  "name": "Monster walk com mini band",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "mini-band",
+  "image_path": "exercicios/16-estabilizacao/monster-walk-com-mini-band.svg",
+  "how_to": null,
+  "aliases": [
+   "caminhada com mini band",
+   "caminhada monstro",
+   "monster walk",
+   "Monster walk com mini band"
+  ]
+ },
+ {
+  "slug": "extensao-terminal-de-joelho-tke-com-elastico",
+  "name": "Extensão terminal de joelho (TKE) com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/extensao-terminal-de-joelho-tke-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "extensao terminal de joelho",
+   "Extensão terminal de joelho (TKE) com elástico",
+   "terminal knee extension",
+   "tke"
+  ]
+ },
+ {
+  "slug": "coice-de-gluteo-em-pe-com-elastico",
+  "name": "Coice de glúteo em pé com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/coice-de-gluteo-em-pe-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "coice com elastico em pe",
+   "Coice de glúteo em pé com elástico",
+   "kickback com elastico"
+  ]
+ },
+ {
+  "slug": "flexao-de-quadril-com-elastico",
+  "name": "Flexão de quadril com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/flexao-de-quadril-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "flexao de quadril elastico",
+   "Flexão de quadril com elástico",
+   "marcha com elastico"
+  ]
+ },
+ {
+  "slug": "woodchop-com-elastico",
+  "name": "Woodchop com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/woodchop-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "lenhador com elastico",
+   "Woodchop com elástico",
+   "woodchop elastico"
+  ]
+ },
+ {
+  "slug": "dead-bug-com-elastico",
+  "name": "Dead bug com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/dead-bug-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "dead bug band",
+   "dead bug com elastico",
+   "Dead bug com elástico"
+  ]
+ },
+ {
+  "slug": "puxada-alta-ajoelhado-com-elastico",
+  "name": "Puxada alta ajoelhado com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/puxada-alta-ajoelhado-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "lat pulldown elastico",
+   "Puxada alta ajoelhado com elástico",
+   "puxada com elastico"
+  ]
+ },
+ {
+  "slug": "eversao-de-tornozelo-com-elastico",
+  "name": "Eversão de tornozelo com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/eversao-de-tornozelo-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "eversao de tornozelo",
+   "Eversão de tornozelo com elástico",
+   "inversao e eversao",
+   "tornozelo com elastico"
+  ]
+ },
+ {
+  "slug": "flexao-plantar-com-elastico",
+  "name": "Flexão plantar com elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/flexao-plantar-com-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "flexao plantar com elastico",
+   "Flexão plantar com elástico",
+   "panturrilha com elastico"
+  ]
+ },
+ {
+  "slug": "abducao-de-quadril-em-pe-com-elastico-no-joelho",
+  "name": "Abdução de quadril em pé com elástico no joelho",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "mini-band",
+  "image_path": "exercicios/16-estabilizacao/abducao-de-quadril-em-pe-com-elastico-no-joelho.svg",
+  "how_to": null,
+  "aliases": [
+   "abducao com mini band no joelho",
+   "Abdução de quadril em pé com elástico no joelho",
+   "isometria de abducao"
+  ]
+ },
+ {
+  "slug": "prancha-com-puxada-de-elastico",
+  "name": "Prancha com puxada de elástico",
+  "muscle_group": "Estabilização — Elástico",
+  "equip": "elastico",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-puxada-de-elastico.svg",
+  "how_to": null,
+  "aliases": [
+   "plank band row",
+   "prancha com elastico",
+   "Prancha com puxada de elástico"
+  ]
+ },
+ {
+  "slug": "equilibrio-unipodal",
+  "name": "Equilíbrio unipodal",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/equilibrio-unipodal.svg",
+  "how_to": null,
+  "aliases": [
+   "apoio unipodal",
+   "equilibrio em uma perna",
+   "equilibrio unipodal",
+   "Equilíbrio unipodal"
+  ]
+ },
+ {
+  "slug": "equilibrio-unipodal-com-alcance-star-excursion",
+  "name": "Equilíbrio unipodal com alcance (star excursion)",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/equilibrio-unipodal-com-alcance-star-excursion.svg",
+  "how_to": null,
+  "aliases": [
+   "alcance unipodal",
+   "Equilíbrio unipodal com alcance (star excursion)",
+   "star excursion",
+   "y balance"
+  ]
+ },
+ {
+  "slug": "aviao-de-quadril-hip-airplane",
+  "name": "Avião de quadril (hip airplane)",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/aviao-de-quadril-hip-airplane.svg",
+  "how_to": null,
+  "aliases": [
+   "aviao de quadril",
+   "Avião de quadril (hip airplane)",
+   "hip airplane"
+  ]
+ },
+ {
+  "slug": "prancha-com-elevacao-de-braco",
+  "name": "Prancha com elevação de braço",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-elevacao-de-braco.svg",
+  "how_to": null,
+  "aliases": [
+   "plank reach",
+   "prancha com elevacao de braco",
+   "Prancha com elevação de braço"
+  ]
+ },
+ {
+  "slug": "prancha-com-elevacao-de-perna",
+  "name": "Prancha com elevação de perna",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-elevacao-de-perna.svg",
+  "how_to": null,
+  "aliases": [
+   "plank leg lift",
+   "prancha com elevacao de perna",
+   "Prancha com elevação de perna"
+  ]
+ },
+ {
+  "slug": "prancha-com-toque-no-ombro",
+  "name": "Prancha com toque no ombro",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-toque-no-ombro.svg",
+  "how_to": null,
+  "aliases": [
+   "plank shoulder tap",
+   "Prancha com toque no ombro",
+   "prancha toque no ombro",
+   "shoulder tap"
+  ]
+ },
+ {
+  "slug": "prancha-lateral-com-elevacao-de-perna",
+  "name": "Prancha lateral com elevação de perna",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/prancha-lateral-com-elevacao-de-perna.svg",
+  "how_to": null,
+  "aliases": [
+   "prancha lateral com elevacao de perna",
+   "Prancha lateral com elevação de perna",
+   "side plank leg raise"
+  ]
+ },
+ {
+  "slug": "prancha-reversa",
+  "name": "Prancha reversa",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/prancha-reversa.svg",
+  "how_to": null,
+  "aliases": [
+   "prancha invertida",
+   "prancha reversa",
+   "Prancha reversa",
+   "reverse plank"
+  ]
+ },
+ {
+  "slug": "prancha-com-caminhada-plank-walk-out",
+  "name": "Prancha com caminhada (plank walk-out)",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-caminhada-plank-walk-out.svg",
+  "how_to": null,
+  "aliases": [
+   "plank walkout",
+   "prancha caminhando",
+   "Prancha com caminhada (plank walk-out)"
+  ]
+ },
+ {
+  "slug": "mexer-a-panela-na-bola-stir-the-pot",
+  "name": "Mexer a panela na bola (stir the pot)",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/mexer-a-panela-na-bola-stir-the-pot.svg",
+  "how_to": null,
+  "aliases": [
+   "mexer a panela",
+   "Mexer a panela na bola (stir the pot)",
+   "stir the pot"
+  ]
+ },
+ {
+  "slug": "ponte-com-marcha",
+  "name": "Ponte com marcha",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/16-estabilizacao/ponte-com-marcha.svg",
+  "how_to": null,
+  "aliases": [
+   "glute bridge march",
+   "marcha na ponte",
+   "ponte com marcha",
+   "Ponte com marcha"
+  ]
+ },
+ {
+  "slug": "roda-abdominal-ab-wheel",
+  "name": "Roda abdominal (ab wheel)",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "roda-abdominal",
+  "image_path": "exercicios/16-estabilizacao/roda-abdominal-ab-wheel.svg",
+  "how_to": null,
+  "aliases": [
+   "ab wheel",
+   "roda abdominal",
+   "Roda abdominal (ab wheel)",
+   "rodinha"
+  ]
+ },
+ {
+  "slug": "abdominal-anti-extensao-no-rolo-rollout-ajoelhado",
+  "name": "Abdominal anti-extensão no rolo (rollout ajoelhado)",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "roda-abdominal",
+  "image_path": "exercicios/16-estabilizacao/abdominal-anti-extensao-no-rolo-rollout-ajoelhado.svg",
+  "how_to": null,
+  "aliases": [
+   "Abdominal anti-extensão no rolo (rollout ajoelhado)",
+   "rollout",
+   "rollout ajoelhado"
+  ]
+ },
+ {
+  "slug": "prancha-na-bola-suica",
+  "name": "Prancha na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/prancha-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "prancha bola suica",
+   "prancha na bola",
+   "Prancha na bola suíça"
+  ]
+ },
+ {
+  "slug": "rollout-na-bola-suica",
+  "name": "Rollout na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/rollout-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "rolamento na bola",
+   "rollout bola suica",
+   "Rollout na bola suíça"
+  ]
+ },
+ {
+  "slug": "pike-na-bola-suica",
+  "name": "Pike na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/pike-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "ball pike",
+   "pike na bola",
+   "Pike na bola suíça"
+  ]
+ },
+ {
+  "slug": "joelho-ao-peito-na-bola-suica",
+  "name": "Joelho ao peito na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/joelho-ao-peito-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "ball tuck",
+   "Joelho ao peito na bola suíça",
+   "joelho no peito na bola",
+   "knee tuck bola"
+  ]
+ },
+ {
+  "slug": "agachamento-na-parede-com-bola-suica",
+  "name": "Agachamento na parede com bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/agachamento-na-parede-com-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento com bola na parede",
+   "Agachamento na parede com bola suíça",
+   "wall squat bola"
+  ]
+ },
+ {
+  "slug": "dead-bug-com-bola-suica",
+  "name": "Dead bug com bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/dead-bug-com-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "dead bug com bola",
+   "Dead bug com bola suíça"
+  ]
+ },
+ {
+  "slug": "hiperextensao-lombar-na-bola-suica",
+  "name": "Hiperextensão lombar na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/hiperextensao-lombar-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "extensao lombar na bola",
+   "hiperextensao na bola",
+   "Hiperextensão lombar na bola suíça"
+  ]
+ },
+ {
+  "slug": "abdominal-na-bola-suica",
+  "name": "Abdominal na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/abdominal-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "abdominal na bola",
+   "Abdominal na bola suíça",
+   "crunch na bola suica"
+  ]
+ },
+ {
+  "slug": "ponte-com-pes-na-bola-suica",
+  "name": "Ponte com pés na bola suíça",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bola-suica",
+  "image_path": "exercicios/16-estabilizacao/ponte-com-pes-na-bola-suica.svg",
+  "how_to": null,
+  "aliases": [
+   "ponte com pes na bola",
+   "Ponte com pés na bola suíça",
+   "ponte na bola"
+  ]
+ },
+ {
+  "slug": "agachamento-no-bosu",
+  "name": "Agachamento no bosu",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bosu",
+  "image_path": "exercicios/16-estabilizacao/agachamento-no-bosu.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento no bosu",
+   "Agachamento no bosu",
+   "bosu squat"
+  ]
+ },
+ {
+  "slug": "flexao-de-braco-no-bosu",
+  "name": "Flexão de braço no bosu",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bosu",
+  "image_path": "exercicios/16-estabilizacao/flexao-de-braco-no-bosu.svg",
+  "how_to": null,
+  "aliases": [
+   "bosu push up",
+   "flexao no bosu",
+   "Flexão de braço no bosu"
+  ]
+ },
+ {
+  "slug": "equilibrio-unipodal-no-bosu",
+  "name": "Equilíbrio unipodal no bosu",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bosu",
+  "image_path": "exercicios/16-estabilizacao/equilibrio-unipodal-no-bosu.svg",
+  "how_to": null,
+  "aliases": [
+   "bosu unipodal",
+   "equilibrio no bosu",
+   "Equilíbrio unipodal no bosu"
+  ]
+ },
+ {
+  "slug": "avanco-com-pe-no-bosu",
+  "name": "Avanço com pé no bosu",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bosu",
+  "image_path": "exercicios/16-estabilizacao/avanco-com-pe-no-bosu.svg",
+  "how_to": null,
+  "aliases": [
+   "avanco no bosu",
+   "Avanço com pé no bosu",
+   "lunge no bosu"
+  ]
+ },
+ {
+  "slug": "prancha-no-bosu",
+  "name": "Prancha no bosu",
+  "muscle_group": "Estabilização — Bola suíça e bosu",
+  "equip": "bosu",
+  "image_path": "exercicios/16-estabilizacao/prancha-no-bosu.svg",
+  "how_to": null,
+  "aliases": [
+   "bosu plank",
+   "prancha no bosu",
+   "Prancha no bosu"
+  ]
+ },
+ {
+  "slug": "remada-no-trx",
+  "name": "Remada no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/remada-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "remada no trx",
+   "Remada no TRX",
+   "trx row"
+  ]
+ },
+ {
+  "slug": "flexao-no-trx",
+  "name": "Flexão no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/flexao-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "flexao no trx",
+   "Flexão no TRX",
+   "trx push up"
+  ]
+ },
+ {
+  "slug": "agachamento-no-trx",
+  "name": "Agachamento no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/agachamento-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "Agachamento no TRX",
+   "agachamento no trx",
+   "trx squat"
+  ]
+ },
+ {
+  "slug": "avanco-com-pe-no-trx",
+  "name": "Avanço com pé no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/avanco-com-pe-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "avanco no trx",
+   "Avanço com pé no TRX",
+   "bulgaro no trx",
+   "trx lunge"
+  ]
+ },
+ {
+  "slug": "pike-no-trx",
+  "name": "Pike no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/pike-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "pike no trx",
+   "Pike no TRX",
+   "trx pike"
+  ]
+ },
+ {
+  "slug": "joelho-ao-peito-no-trx",
+  "name": "Joelho ao peito no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/joelho-ao-peito-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "Joelho ao peito no TRX",
+   "joelho ao peito no trx",
+   "trx knee tuck"
+  ]
+ },
+ {
+  "slug": "rosca-biceps-no-trx",
+  "name": "Rosca bíceps no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/rosca-biceps-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "Rosca bíceps no TRX",
+   "rosca no trx",
+   "trx biceps curl"
+  ]
+ },
+ {
+  "slug": "triceps-no-trx",
+  "name": "Tríceps no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/triceps-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "triceps no trx",
+   "trx triceps extension",
+   "Tríceps no TRX"
+  ]
+ },
+ {
+  "slug": "elevacao-em-y-no-trx",
+  "name": "Elevação em Y no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/elevacao-em-y-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "Elevação em Y no TRX",
+   "trx y raise",
+   "y no trx"
+  ]
+ },
+ {
+  "slug": "prancha-com-pes-no-trx",
+  "name": "Prancha com pés no TRX",
+  "muscle_group": "Estabilização — TRX (suspensão)",
+  "equip": "trx",
+  "image_path": "exercicios/16-estabilizacao/prancha-com-pes-no-trx.svg",
+  "how_to": null,
+  "aliases": [
+   "Prancha com pés no TRX",
+   "prancha no trx",
+   "trx plank"
+  ]
+ },
+ {
+  "slug": "agachamento-profundo-com-mobilidade",
+  "name": "Agachamento profundo com mobilidade",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/agachamento-profundo-com-mobilidade.svg",
+  "how_to": null,
+  "aliases": [
+   "agachamento profundo",
+   "Agachamento profundo com mobilidade",
+   "deep squat",
+   "squat hold"
+  ]
+ },
+ {
+  "slug": "world-s-greatest-stretch",
+  "name": "World's greatest stretch",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/world-s-greatest-stretch.svg",
+  "how_to": null,
+  "aliases": [
+   "melhor alongamento do mundo",
+   "wgs",
+   "World's greatest stretch",
+   "worlds greatest stretch"
+  ]
+ },
+ {
+  "slug": "alongamento-de-flexor-do-quadril-ajoelhado",
+  "name": "Alongamento de flexor do quadril ajoelhado",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/alongamento-de-flexor-do-quadril-ajoelhado.svg",
+  "how_to": null,
+  "aliases": [
+   "Alongamento de flexor do quadril ajoelhado",
+   "alongamento de psoas",
+   "flexor de quadril",
+   "hip flexor stretch"
+  ]
+ },
+ {
+  "slug": "mobilidade-toracica-em-quatro-apoios-thread-the-needle",
+  "name": "Mobilidade torácica em quatro apoios (thread the needle)",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/mobilidade-toracica-em-quatro-apoios-thread-the-needle.svg",
+  "how_to": null,
+  "aliases": [
+   "mobilidade toracica",
+   "Mobilidade torácica em quatro apoios (thread the needle)",
+   "passar a linha",
+   "thread the needle"
+  ]
+ },
+ {
+  "slug": "livro-aberto-open-book-deitado-de-lado",
+  "name": "Livro aberto (open book) deitado de lado",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/livro-aberto-open-book-deitado-de-lado.svg",
+  "how_to": null,
+  "aliases": [
+   "livro aberto",
+   "Livro aberto (open book) deitado de lado",
+   "open book",
+   "rotacao toracica deitado"
+  ]
+ },
+ {
+  "slug": "90-90-de-quadril",
+  "name": "90/90 de quadril",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/90-90-de-quadril.svg",
+  "how_to": null,
+  "aliases": [
+   "90 90",
+   "90/90",
+   "90/90 de quadril",
+   "mobilidade 90 90"
+  ]
+ },
+ {
+  "slug": "cachorro-olhando-para-baixo",
+  "name": "Cachorro olhando para baixo",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/cachorro-olhando-para-baixo.svg",
+  "how_to": null,
+  "aliases": [
+   "cachorro olhando para baixo",
+   "Cachorro olhando para baixo",
+   "downward dog",
+   "v invertido"
+  ]
+ },
+ {
+  "slug": "cobra-extensao-lombar-no-solo",
+  "name": "Cobra (extensão lombar no solo)",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/cobra-extensao-lombar-no-solo.svg",
+  "how_to": null,
+  "aliases": [
+   "cobra",
+   "Cobra (extensão lombar no solo)",
+   "extensao lombar no solo",
+   "upward dog"
+  ]
+ },
+ {
+  "slug": "postura-da-crianca",
+  "name": "Postura da criança",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/postura-da-crianca.svg",
+  "how_to": null,
+  "aliases": [
+   "balasana",
+   "childs pose",
+   "postura da crianca",
+   "Postura da criança"
+  ]
+ },
+ {
+  "slug": "alongamento-de-posteriores-em-pe",
+  "name": "Alongamento de posteriores em pé",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/alongamento-de-posteriores-em-pe.svg",
+  "how_to": null,
+  "aliases": [
+   "alongamento de isquiotibiais em pe",
+   "alongamento de posterior",
+   "Alongamento de posteriores em pé"
+  ]
+ },
+ {
+  "slug": "mobilidade-de-tornozelo-joelho-a-parede",
+  "name": "Mobilidade de tornozelo (joelho à parede)",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "parede",
+  "image_path": "exercicios/17-mobilidade-funcional/mobilidade-de-tornozelo-joelho-a-parede.svg",
+  "how_to": null,
+  "aliases": [
+   "joelho na parede",
+   "knee to wall",
+   "mobilidade de tornozelo",
+   "Mobilidade de tornozelo (joelho à parede)"
+  ]
+ },
+ {
+  "slug": "gato-camelo-em-pe-cat-cow-em-pe",
+  "name": "Gato-camelo em pé (cat-cow em pé)",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/gato-camelo-em-pe-cat-cow-em-pe.svg",
+  "how_to": null,
+  "aliases": [
+   "cat cow em pe",
+   "gato camelo em pe",
+   "Gato-camelo em pé (cat-cow em pé)"
+  ]
+ },
+ {
+  "slug": "rotacao-de-quadril-em-pe-abrir-o-portao",
+  "name": "Rotação de quadril em pé (abrir o portão)",
+  "muscle_group": "Mobilidade — Quadril e coluna",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/rotacao-de-quadril-em-pe-abrir-o-portao.svg",
+  "how_to": null,
+  "aliases": [
+   "abrir o portao",
+   "hip opener",
+   "rotacao de quadril em pe",
+   "Rotação de quadril em pé (abrir o portão)"
+  ]
+ },
+ {
+  "slug": "polichinelo",
+  "name": "Polichinelo",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/polichinelo.svg",
+  "how_to": null,
+  "aliases": [
+   "jumping jack",
+   "jumping jacks",
+   "Polichinelo",
+   "polichinelo"
+  ]
+ },
+ {
+  "slug": "skipping-alto",
+  "name": "Skipping alto",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/skipping-alto.svg",
+  "how_to": null,
+  "aliases": [
+   "joelho alto",
+   "skipping",
+   "Skipping alto",
+   "skipping alto"
+  ]
+ },
+ {
+  "slug": "salto-lateral-skater",
+  "name": "Salto lateral (skater)",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/salto-lateral-skater.svg",
+  "how_to": null,
+  "aliases": [
+   "salto do patinador",
+   "Salto lateral (skater)",
+   "skater",
+   "skater jump"
+  ]
+ },
+ {
+  "slug": "corrida-estacionaria",
+  "name": "Corrida estacionária",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/corrida-estacionaria.svg",
+  "how_to": null,
+  "aliases": [
+   "corrida estacionaria",
+   "Corrida estacionária",
+   "corrida parada"
+  ]
+ },
+ {
+  "slug": "sprawl",
+  "name": "Sprawl",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/sprawl.svg",
+  "how_to": null,
+  "aliases": [
+   "sprawl",
+   "Sprawl"
+  ]
+ },
+ {
+  "slug": "agachamento-com-salto-lateral-lateral-hop",
+  "name": "Agachamento com salto lateral (lateral hop)",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/agachamento-com-salto-lateral-lateral-hop.svg",
+  "how_to": null,
+  "aliases": [
+   "Agachamento com salto lateral (lateral hop)",
+   "lateral hop",
+   "salto lateral sobre linha"
+  ]
+ },
+ {
+  "slug": "prancha-com-salto-de-pernas-plank-jack",
+  "name": "Prancha com salto de pernas (plank jack)",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/prancha-com-salto-de-pernas-plank-jack.svg",
+  "how_to": null,
+  "aliases": [
+   "plank jack",
+   "Prancha com salto de pernas (plank jack)",
+   "prancha polichinelo"
+  ]
+ },
+ {
+  "slug": "escalador-cruzado-cross-mountain-climber",
+  "name": "Escalador cruzado (cross mountain climber)",
+  "muscle_group": "Funcional — Condicionamento",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/escalador-cruzado-cross-mountain-climber.svg",
+  "how_to": null,
+  "aliases": [
+   "cross mountain climber",
+   "escalador cruzado",
+   "Escalador cruzado (cross mountain climber)"
+  ]
+ },
+ {
+  "slug": "lancamento-de-medicine-ball-no-chao-slam-ball",
+  "name": "Lançamento de medicine ball no chão (slam ball)",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "medicine-ball",
+  "image_path": "exercicios/13-crossfit/lancamento-de-medicine-ball-no-chao-slam-ball.svg",
+  "how_to": null,
+  "aliases": [
+   "arremesso de bola no chao",
+   "ball slam",
+   "Lançamento de medicine ball no chão (slam ball)",
+   "slam ball"
+  ]
+ },
+ {
+  "slug": "corda-naval-battle-rope",
+  "name": "Corda naval (battle rope)",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "corda-naval",
+  "image_path": "exercicios/13-crossfit/corda-naval-battle-rope.svg",
+  "how_to": null,
+  "aliases": [
+   "battle rope",
+   "corda naval",
+   "Corda naval (battle rope)",
+   "cordas navais"
+  ]
+ },
+ {
+  "slug": "arremesso-de-medicine-ball-no-peito-chest-pass",
+  "name": "Arremesso de medicine ball no peito (chest pass)",
+  "muscle_group": "CrossFit — Condicionamento",
+  "equip": "medicine-ball",
+  "image_path": "exercicios/13-crossfit/arremesso-de-medicine-ball-no-peito-chest-pass.svg",
+  "how_to": null,
+  "aliases": [
+   "Arremesso de medicine ball no peito (chest pass)",
+   "chest pass",
+   "passe de peito com medicine ball"
+  ]
+ },
+ {
+  "slug": "arremesso-rotacional-de-medicine-ball-na-parede",
+  "name": "Arremesso rotacional de medicine ball na parede",
+  "muscle_group": "Estabilização — Equilíbrio e core",
+  "equip": "medicine-ball",
+  "image_path": "exercicios/16-estabilizacao/arremesso-rotacional-de-medicine-ball-na-parede.svg",
+  "how_to": null,
+  "aliases": [
+   "arremesso rotacional",
+   "Arremesso rotacional de medicine ball na parede",
+   "medicine ball rotacional",
+   "rotational throw"
+  ]
+ }
+]
