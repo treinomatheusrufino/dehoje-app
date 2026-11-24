@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v38';
+const APP_V = 'v39';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -696,7 +696,7 @@ async function studentView(token, preview = false) {
   if (!preview) try { localStorage.setItem('dh_student_token', token); } catch {}
   if (!preview) try { const base = location.origin + location.pathname, url = base + '?a=' + token + '#/a/' + token;
     if (location.search !== '?a=' + token || location.hash !== '#/a/' + token) history.replaceState(null, '', url);
-    const mf = { name: 'DE HOJE', short_name: 'DE HOJE', id: url, start_url: url, scope: base, display: 'standalone', background_color: '#ffffff', theme_color: '#16A34A', lang: 'pt-BR', icons: [192, 512].map(n => ({ src: base + 'icons/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' })) };
+    const mf = { name: 'DE HOJE', short_name: 'DE HOJE', id: url, start_url: url, scope: base, display: 'standalone', background_color: '#ffffff', theme_color: '#16A34A', lang: 'pt-BR', icons: [...[192, 512].map(n => ({ src: base + 'icons/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' })), { src: base + 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
     addManifest('data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(mf))); } catch {}
   try { const r = await sb.rpc('student_plan', { p_token: token }); if (r.error) throw r.error; P = r.data;
     if (!P) { try { localStorage.removeItem(planKey); if (localStorage.getItem('dh_student_token') === token) localStorage.removeItem('dh_student_token'); } catch {} return app.innerHTML = '<h2>Link inválido</h2><p class=muted>Peça um novo link ao seu treinador.</p>'; }
