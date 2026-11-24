@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DE HOJE — app de treinos para personal trainers</title>
+<meta name="description" content="Cole a ficha que você já usa. O DE HOJE separa em Treino A, B, C, reconhece mais de 500 exercícios e entrega no celular do aluno com desenho, cronômetro e registro de carga. R$ 39,90 por mês.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DE HOJE — cole a ficha, seu aluno recebe o treino pronto">
+<meta property="og:description" content="Mais de 500 exercícios desenhados, cronômetro de descanso, registro de carga e aviso no seu WhatsApp. Teste grátis.">
+<meta property="og:image" content="https://treinomatheusrufino.github.io/dehoje-app/og.png">
+<meta property="og:url" content="https://treinomatheusrufino.github.io/dehoje-app/conheca.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#16A34A">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root{--tinta:#1B2A49;--verde:#16A34A;--grama:#0F6B33;--neblina:#EEF2F0;--linha:#D6DCD8;--branco:#fff;--cinza:#5B6474}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--branco);color:var(--tinta);font:400 17px/1.55 Archivo,system-ui,sans-serif;font-stretch:100%}
+a{color:inherit}
+img{display:block;max-width:100%}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+:focus-visible{outline:3px solid var(--verde);outline-offset:3px;border-radius:4px}
+
+/* topo */
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.marca{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:850;font-stretch:118%;letter-spacing:.5px;font-size:20px}
+.marca img{width:34px;height:34px;border-radius:8px}
+.top a.entrar{font-weight:600;text-decoration:none;font-size:15px;color:var(--cinza)}
+
+/* herói */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:28px 0 64px}
+h1{font-stretch:112%;font-weight:850;font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.5px;margin:0 0 20px;max-width:15ch}
+.sub{font-size:19px;color:var(--cinza);max-width:44ch;margin:0 0 28px}
+.btns{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 24px;border-radius:12px;font:700 17px Archivo,sans-serif;text-decoration:none;border:0;cursor:pointer}
+.btn.p{background:var(--verde);color:#fff}
+.btn.p:hover{background:var(--grama)}
+.btn.s{background:transparent;color:var(--tinta);box-shadow:inset 0 0 0 2px var(--linha)}
+.btn.s:hover{box-shadow:inset 0 0 0 2px var(--tinta)}
+.nota{font-size:14px;color:var(--cinza);margin:14px 0 0}
+
+/* demonstração: ficha de texto vira tela do aluno */
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+.ficha{background:var(--neblina);border-radius:14px;padding:16px 16px 18px;font:500 13.5px/1.55 Archivo,sans-serif;font-stretch:88%}
+.ficha small{display:block;color:var(--cinza);font-size:12px;margin-bottom:8px;font-stretch:100%}
+.ficha p{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ficha .h{font-weight:800;margin-top:8px}
+.ficha .h:first-of-type{margin-top:0}
+.tela{background:var(--tinta);color:#fff;border-radius:22px;padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px}
+.tela .t{font-weight:800;font-stretch:110%;font-size:15px}
+.tela .t span{display:block;font-weight:500;font-size:12px;color:#B9C3D6;font-stretch:100%}
+.tela .bars{display:flex;gap:3px}.tela .bars i{flex:1;height:5px;border-radius:3px;background:#3A4A6B}.tela .bars i.on{background:var(--verde)}
+.tela .ex{background:#fff;border-radius:14px;padding:6px 6px 8px;color:var(--tinta)}
+.tela .ex img{width:100%;height:auto;aspect-ratio:160/150}
+.tela .ex b{display:block;font-size:14px;padding:0 4px}
+.tela .ex em{font-style:normal;font-size:12.5px;color:var(--cinza);padding:0 4px}
+.tela .pausa{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#B9C3D6}
+.tela .pausa svg{flex:0 0 46px}
+@media (prefers-reduced-motion:no-preference){
+  .ficha p{animation:marca .5s ease both}
+  .ficha p:nth-child(2){animation-delay:.15s}.ficha p:nth-child(3){animation-delay:.3s}.ficha p:nth-child(4){animation-delay:.45s}.ficha p:nth-child(5){animation-delay:.6s}.ficha p:nth-child(6){animation-delay:.75s}.ficha p:nth-child(7){animation-delay:.9s}.ficha p:nth-child(8){animation-delay:1.05s}
+  .tela{animation:entra .7s 1.3s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes marca{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+  @keyframes entra{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  .anel{animation:anel 6s linear infinite}
+  @keyframes anel{from{stroke-dashoffset:0}to{stroke-dashoffset:66}}
+}
+
+/* seções */
+section{padding:64px 0;border-top:1px solid var(--linha)}
+h2{font-stretch:112%;font-weight:850;font-size:clamp(26px,3.4vw,38px);line-height:1.08;margin:0 0 14px;max-width:22ch}
+.lead{color:var(--cinza);max-width:56ch;margin:0 0 36px}
+
+/* como funciona: é uma sequência, então numerada */
+.passos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:28px;counter-reset:p}
+.passos li{counter-increment:p;padding-top:58px;position:relative}
+.passos li::before{content:counter(p);position:absolute;top:0;left:0;font-weight:900;font-stretch:125%;font-size:44px;line-height:1;color:var(--verde)}
+.passos b{display:block;font-size:19px;margin-bottom:6px}
+.passos p{margin:0;color:var(--cinza)}
+
+/* aluno: desenhos são a linguagem visual */
+.aluno{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.aluno figure{margin:0}
+.aluno img{width:100%;aspect-ratio:160/150;background:var(--neblina);border-radius:14px}
+.aluno figcaption{margin-top:10px}
+.aluno figcaption b{display:block;font-size:17px}
+.aluno figcaption span{color:var(--cinza);font-size:15px}
+
+.lista{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px;margin:0;padding:0;list-style:none}
+.lista li{padding-left:30px;position:relative}
+.lista li::before{content:"";position:absolute;left:0;top:7px;width:16px;height:9px;border-left:3px solid var(--verde);border-bottom:3px solid var(--verde);transform:rotate(-45deg)}
+.lista b{display:block}
+.lista span{color:var(--cinza);font-size:15px}
+
+.faixa{display:flex;gap:6px;overflow:hidden;margin:6px 0 18px}
+.faixa img{width:110px;flex:0 0 110px;aspect-ratio:160/150;background:var(--neblina);border-radius:12px}
+.cats{color:var(--cinza);font-size:15px;margin:0}
+
+/* preço */
+.preco{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
+.valor{background:var(--tinta);color:#fff;border-radius:22px;padding:30px 28px}
+.valor .num{font-weight:900;font-stretch:118%;font-size:64px;line-height:1;letter-spacing:-1px}
+.valor .num small{font-size:20px;font-weight:600;letter-spacing:0;font-stretch:100%}
+.valor p{color:#C9D2E3;margin:10px 0 22px}
+.valor ul{margin:0 0 24px;padding:0 0 0 20px;color:#E7ECF5}
+.valor li{margin:4px 0}
+.valor .btn{width:100%}
+.anual{margin-top:14px;font-size:15px;color:#C9D2E3}
+.planos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.btn.s2{background:transparent;color:#fff;box-shadow:inset 0 0 0 2px #3A4A6B;font-size:15px;min-height:46px;padding:0 10px}
+.btn.s2:hover{box-shadow:inset 0 0 0 2px #fff}
+
+/* perguntas */
+details{border-bottom:1px solid var(--linha);padding:16px 0}
+summary{cursor:pointer;font-weight:700;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:"+";font-weight:400;font-size:24px;line-height:1;color:var(--verde)}
+details[open] summary::after{content:"−"}
+details p{margin:10px 0 0;color:var(--cinza);max-width:62ch}
+
+/* formulário */
+form{display:grid;gap:12px;max-width:460px}
+label{font-weight:600;font-size:15px;display:grid;gap:6px}
+input,select{font:400 17px Archivo,sans-serif;min-height:50px;padding:0 14px;border-radius:12px;border:2px solid var(--linha);background:#fff;color:var(--tinta)}
+input:focus,select:focus{border-color:var(--verde);outline:none}
+.msg{font-size:15px;min-height:22px;margin:0}
+.msg.err{color:#B42318}
+.ok{background:var(--neblina);border-radius:16px;padding:20px;max-width:460px}
+.ok b{display:block;font-size:19px;margin-bottom:6px}
+
+footer{border-top:1px solid var(--linha);padding:28px 0 40px;color:var(--cinza);font-size:14px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+
+@media (max-width:880px){
+  .hero{grid-template-columns:1fr;gap:34px;padding-bottom:48px}
+  .passos{grid-template-columns:1fr;gap:26px}
+  .aluno{grid-template-columns:1fr 1fr}
+  .lista{grid-template-columns:1fr}
+  .preco{grid-template-columns:1fr}
+  section{padding:48px 0}
+}
+@media (max-width:420px){.demo{grid-template-columns:1fr 1fr;gap:10px}.ficha{font-size:12px;padding:12px}.valor .num{font-size:54px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="marca" href="#"><img src="icons/icon-192.png" alt="">DE HOJE</a>
+    <a class="entrar" href="./">Já tenho conta</a>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Cole a ficha. Seu aluno recebe o treino pronto.</h1>
+        <p class="sub">O DE HOJE separa a ficha em Treino A, B e C, reconhece mais de 500 exercícios e entrega tudo no celular do aluno, com desenho de cada movimento, cronômetro de descanso e registro de carga.</p>
+        <div class="btns">
+          <a class="btn p" href="#testar">Testar grátis</a>
+          <a class="btn s" href="#preco">Ver preço</a>
+        </div>
+        <p class="nota">Teste completo com um aluno seu. Sem cartão.</p>
+      </div>
+
+      <div class="demo" aria-label="Exemplo: a ficha de texto vira a tela do aluno">
+        <div class="ficha">
+          <small>A ficha que você já manda</small>
+          <p class="h">TREINO A Peito e tríceps</p>
+          <p>Supino reto 4x10 pausa 90s</p>
+          <p>Crucifixo inclinado 3x12</p>
+          <p>Tríceps na corda 3x15</p>
+          <p class="h">TREINO B Costas</p>
+          <p>Puxada frontal 4x10</p>
+          <p>Remada baixa 3x12</p>
+        </div>
+        <div class="tela">
+          <div class="t">Treino A<span>Peito e tríceps</span></div>
+          <div class="bars"><i class="on"></i><i></i><i></i></div>
+          <div class="ex">
+            <img src="exercicios/01-peito/supino-reto-com-barra.svg" alt="Desenho animado do supino reto">
+            <b>Supino reto</b>
+            <em>Série 2 de 4, 10 repetições</em>
+          </div>
+          <div class="pausa">
+            <svg viewBox="0 0 46 26" aria-hidden="true"><path d="M4 23a19 19 0 0 1 38 0" fill="none" stroke="#3A4A6B" stroke-width="5" stroke-linecap="round"/><path class="anel" d="M4 23a19 19 0 0 1 38 0" fill="none" stroke="#16A34A" stroke-width="5" stroke-linecap="round" stroke-dasharray="60 66"/></svg>
+            Descanso de 90 s
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Do texto ao celular do aluno em três passos</h2>
+      <p class="lead">Você continua escrevendo a ficha do seu jeito. O app faz a parte chata.</p>
+      <ol class="passos">
+        <li><b>Cole a ficha inteira</b><p>Todos os treinos juntos, do jeito que você já manda no WhatsApp. O app separa por dia e entende séries, repetições, pausas, bi-sets e observações.</p></li>
+        <li><b>Revise a prévia</b><p>Confira os treinos separados, arraste exercícios entre eles e renomeie. Quando o app fica em dúvida, ele pergunta.</p></li>
+        <li><b>Envie o link</b><p>O aluno abre no celular, sem senha e sem baixar nada. Dá para colocar na tela de início e usar até sem internet.</p></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>O que o seu aluno vê</h2>
+      <p class="lead">Um exercício por vez, com o desenho do movimento e o músculo trabalhado em verde.</p>
+      <div class="aluno">
+        <figure><img src="exercicios/09-quadriceps/agachamento-goblet-com-halter.svg" alt="Desenho animado do agachamento goblet" loading="lazy"><figcaption><b>Desenho de cada exercício</b><span>Animado, simples e sem vídeo pesado.</span></figcaption></figure>
+        <figure><img src="exercicios/02-costas/remada-baixa-com-triangulo.svg" alt="Desenho animado da remada baixa" loading="lazy"><figcaption><b>Cronômetro de descanso</b><span>Começa sozinho ao fim de cada série.</span></figcaption></figure>
+        <figure><img src="exercicios/13-crossfit/thruster-com-barra.svg" alt="Desenho animado do thruster" loading="lazy"><figcaption><b>Registro de carga</b><span>O aluno anota peso e repetições e vê a evolução.</span></figcaption></figure>
+        <figure><img src="exercicios/15-pilates/teaser.svg" alt="Desenho animado do teaser de pilates" loading="lazy"><figcaption><b>Feedback no seu WhatsApp</b><span>Ao terminar, ele dá nota e comenta. Chega direto para você.</span></figcaption></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>532 exercícios já desenhados</h2>
+      <div class="faixa" aria-hidden="true">
+        <img src="exercicios/14-hyrox/sled-push-empurrar-treno.svg" alt="" loading="lazy">
+        <img src="exercicios/13-crossfit/wall-ball.svg" alt="" loading="lazy">
+        <img src="exercicios/16-estabilizacao/pallof-press-meio-ajoelhado-na-polia.svg" alt="" loading="lazy">
+        <img src="exercicios/15-pilates/hundred-cem.svg" alt="" loading="lazy">
+        <img src="exercicios/16-estabilizacao/remada-no-trx.svg" alt="" loading="lazy">
+        <img src="exercicios/14-hyrox/remo-ergometro.svg" alt="" loading="lazy">
+        <img src="exercicios/10-posteriores/kettlebell-swing.svg" alt="" loading="lazy">
+        <img src="exercicios/16-estabilizacao/agachamento-no-bosu.svg" alt="" loading="lazy">
+      </div>
+      <p class="cats">Musculação, CrossFit, Hyrox, pilates de solo e reformer, estabilização com polia, elástico, bola, bosu e TRX, mobilidade e exercícios para gestantes. Escreveu um que não está na lista? O aluno vê o nome e a sua observação, e você pode cadastrar o seu.</p>
+    </section>
+
+    <section>
+      <h2>Feito para quem vive de personal</h2>
+      <ul class="lista">
+        <li><b>Sua marca no app do aluno</b><span>Seu logo e o seu nome aparecem como "seu treinador".</span></li>
+        <li><b>Cada um vê só o que é seu</b><span>Nenhum treinador vê alunos de outro, e o aluno só vê o próprio treino.</span></li>
+        <li><b>Avaliações e fotos com consentimento</b><span>O aluno escolhe arquivo por arquivo o que você pode ver, como pede a LGPD.</span></li>
+        <li><b>Nada se perde</b><span>Histórico de cargas, notas e comentários de todos os treinos fica guardado.</span></li>
+      </ul>
+    </section>
+
+    <section id="preco">
+      <div class="preco">
+        <div>
+          <h2>Um preço, alunos ilimitados</h2>
+          <p class="lead">Menos do que uma aula avulsa por mês. Teste antes com um aluno seu e assine só se fizer sentido.</p>
+        </div>
+        <div class="valor">
+          <div class="num">R$ 39,90<small> por mês</small></div>
+          <p>Tudo incluído, sem taxa por aluno.</p>
+          <ul>
+            <li>Alunos ilimitados</li>
+            <li>Ficha colada separada automaticamente</li>
+            <li>532 exercícios desenhados</li>
+            <li>Feedback automático no WhatsApp</li>
+            <li>Sua marca no app do aluno</li>
+          </ul>
+          <a class="btn p" href="#testar">Testar grátis</a>
+          <div class="planos"><a class="btn s2" id="assMensal" href="#" target="_blank" rel="noopener">Assinar mensal</a><a class="btn s2" id="assAnual" href="#" target="_blank" rel="noopener">Assinar anual</a></div>
+          <p class="anual">Plano anual: R$ 399,90 por ano, economia de R$ 78,90 (quase dois meses de graça).</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Perguntas frequentes</h2>
+      <details><summary>Preciso baixar algum aplicativo?</summary><p>Não. O DE HOJE funciona direto no navegador do celular. O aluno pode colocar o ícone na tela de início e abrir como um aplicativo, inclusive sem internet depois da primeira vez.</p></details>
+      <details><summary>E se eu escrever a ficha de um jeito diferente?</summary><p>O app entende os formatos mais comuns, como "4x10", "3 x 8 a 12", "pausa 90s", bi-set e pirâmide. Antes de enviar você sempre vê a prévia e pode corrigir qualquer coisa.</p></details>
+      <details><summary>Como funciona o teste grátis?</summary><p>Você recebe um convite, cola um treino seu e manda o link para alguém próximo ver no celular como o aluno recebe. Não pedimos cartão.</p></details>
+      <details><summary>Como eu pago?</summary><p>Por Pix ou cartão, combinado pelo WhatsApp. Você pode cancelar quando quiser e nenhum dado é apagado se a assinatura vencer: tudo volta quando você renovar.</p></details>
+      <details><summary>Os dados dos meus alunos ficam seguros?</summary><p>Sim. Cada treinador acessa só os próprios alunos, as conexões são criptografadas e seguimos a LGPD. Leia a <a href="legal.html#privacidade">Política de Privacidade</a>.</p></details>
+    </section>
+
+    <section id="testar">
+      <h2>Teste com um aluno seu</h2>
+      <p class="lead">Deixe seu nome e WhatsApp. Você recebe o convite para testar em seguida.</p>
+      <div id="area">
+        <form id="f" novalidate>
+          <label>Seu nome<input id="nome" autocomplete="name" required></label>
+          <label>WhatsApp com DDD<input id="fone" inputmode="tel" autocomplete="tel" placeholder="(18) 99999-9999" required></label>
+          <label>Quantos alunos você atende hoje?<select id="alunos"><option value="">Escolha</option><option>Até 10</option><option>11 a 30</option><option>31 a 60</option><option>Mais de 60</option></select></label>
+          <button class="btn p" type="submit" id="enviar">Quero testar grátis</button>
+          <p class="msg" id="m" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>DE HOJE, de Matheus Rufino Treinamento. Presidente Prudente/SP.</span>
+    <span><a href="legal.html#privacidade">Privacidade</a> &nbsp; <a href="legal.html#termos">Termos de uso</a> &nbsp; <a href="mailto:mrufino.contato@gmail.com">Contato</a></span>
+  </footer>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+const sb = createClient('https://hvqtgnlqcidutvnlxtpd.supabase.co', 'sb_publishable_4bsl7qLRH1N38ZbEahcH4A_u-34P_EU');
+const $ = id => document.getElementById(id);
+const WA = '5518997577794';
+// Links de pagamento: cole aqui o link do Mercado Pago (ou outro) de cada plano. Vazio = abre o WhatsApp com o plano escolhido.
+const PAGAMENTO = { mensal: '', anual: '' };
+const wa = t => `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+$('assMensal').href = PAGAMENTO.mensal || wa('Olá! Quero assinar o DE HOJE no plano mensal (R$ 39,90 por mês).');
+$('assAnual').href = PAGAMENTO.anual || wa('Olá! Quero assinar o DE HOJE no plano anual (R$ 399,90 por ano).');
+const origem = new URLSearchParams(location.search).get('origem') || document.referrer.replace(/^https?:\/\//, '').split('/')[0] || 'direto';
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const nome = $('nome').value.trim(), fone = $('fone').value.replace(/\D/g, ''), alunos = $('alunos').value;
+  const m = $('m'); m.className = 'msg err';
+  if (nome.length < 2) { m.textContent = 'Digite seu nome.'; return $('nome').focus(); }
+  if (fone.length < 10) { m.textContent = 'Digite seu WhatsApp com DDD.'; return $('fone').focus(); }
+  $('enviar').disabled = true; m.className = 'msg'; m.textContent = 'Enviando…';
+  const { error } = await sb.rpc('submit_lead', { p_name: nome, p_phone: fone, p_students: alunos || null, p_source: origem.slice(0, 60) });
+  if (error) { $('enviar').disabled = false; m.className = 'msg err'; m.textContent = /fetch|network/i.test(error.message) ? 'Sem internet no momento. Confira a conexão e tente de novo.' : error.message; return; }
+  const txt = `Olá! Quero testar o DE HOJE. Sou ${nome}${alunos ? ` e atendo ${alunos.toLowerCase()} alunos` : ''}.`;
+  $('area').innerHTML = `<div class="ok"><b>Recebemos seu contato, ${nome.split(' ')[0].replace(/[<>&]/g, '')}.</b><p>Para receber o convite agora, mande a mensagem pronta no WhatsApp.</p><a class="btn p" href="https://wa.me/${WA}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Abrir o WhatsApp</a></div>`;
+});
+</script>
+</body>
+</html>

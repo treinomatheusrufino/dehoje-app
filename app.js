@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v28';
+const APP_V = 'v30';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -88,7 +88,7 @@ function login() {
   app.innerHTML = `${ic ? `<div class=msg><b>Você foi convidado para testar o DE HOJE 🎉</b><p>Crie sua conta abaixo com seu e-mail e uma senha. Seu código de convite <b>${esc(ic)}</b> já está aplicado.</p></div>` : ''}<h2>${ic ? 'Criar conta de treinador' : 'Entrar'}</h2><input id=e type=email placeholder="E-mail" autocomplete=email><input id=p type=password placeholder="Senha (mín. 8 caracteres)" autocomplete=${ic ? 'new-password' : 'current-password'}>
   <label class=muted>Código de convite (só para criar conta nova)</label><input id=ic placeholder="DEMO-XXXXXX" value="${esc(ic)}" autocapitalize=characters>
   ${(() => { try { return localStorage.getItem('dh_student_token'); } catch { return ''; } })() ? '<div class=msg><b>É aluno?</b><p>Você não precisa de conta.</p><a class="btn p" href="?a=' + esc(localStorage.getItem('dh_student_token')) + '">Abrir meu treino</a></div>' : ''}
-  ${ic ? '<button class=p id=up>Criar minha conta</button> <button id=in>Já tenho conta — entrar</button>' : '<button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button>'} <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
+  ${ic ? '' : '<p class=muted>Ainda não conhece o DE HOJE? <a href="conheca.html">Veja como funciona e teste grátis</a>.</p>'}${ic ? '<button class=p id=up>Criar minha conta</button> <button id=in>Já tenho conta — entrar</button>' : '<button class=p id=in>Entrar</button> <button id=up>Criar conta de treinador</button>'} <button id=fg>Esqueci a senha</button><p id=m class=err></p>`;
   const go = async (fn) => { $('#m').textContent = ''; const r = await fn({ email: $('#e').value.trim(), password: $('#p').value });
     if (r.error) return $('#m').textContent = ptErr(r.error.message);
     if (r.data.session) return location.reload();
@@ -402,7 +402,7 @@ TREINO B – Pernas + Glúteos
 // ---------- painel do dono (versão de teste)
 async function admin() {
   app.innerHTML = '<h2>Admin</h2><div id=ad>Carregando…</div>';
-  const [{ data: o, error }, { data: M }, { data: DR }, { data: ER }] = await Promise.all([sb.rpc('admin_overview'), sb.rpc('admin_metrics'), sb.rpc('admin_data_requests'), sb.rpc('admin_errors')]); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  const [{ data: o, error }, { data: M }, { data: DR }, { data: ER }, { data: LD }] = await Promise.all([sb.rpc('admin_overview'), sb.rpc('admin_metrics'), sb.rpc('admin_data_requests'), sb.rpc('admin_errors'), sb.rpc('admin_leads')]); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
   const brl = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const base = location.origin + location.pathname, link = c => base + '#/convite/' + c;
   const wtxt = (c, d = 2) => `Olá! Você foi convidado para testar o DE HOJE, o app de treinos para personal trainers. 💪\n\n1) Abra este link e crie sua conta: ${link(c)}\n2) Seu código de convite: ${c}\n\nVocê terá ${d} dia${d > 1 ? 's' : ''} de teste completo: cole um treino seu, salve para alguém próximo (namorada, marido, esposa…) e mande o link para o celular dessa pessoa ver como fica.`;
@@ -417,6 +417,9 @@ async function admin() {
       ${(M.vencendo_7d || []).length ? `<p class=warn>Vencem em 7 dias: ${M.vencendo_7d.map(v => esc(v.marca || 'sem marca') + ' (' + new Date(v.vence + 'T12:00:00').toLocaleDateString('pt-BR') + ')').join(', ')}</p>` : ''}</div>`; }
   const openDR = (DR || []).filter(r => r.status === 'aberto');
   if (openDR.length) h += `<div class=box2><b>🔒 Pedidos LGPD (${openDR.length})</b><p class=muted>Responda em até 15 dias. Para exclusão, confirme com a pessoa antes de apagar.</p>${openDR.map(r => `<div class=row><div><b>${r.tipo === 'excluir' ? 'Exclusão' : 'Cópia dos dados'}</b> · ${esc(r.aluno ? 'aluno ' + r.aluno : r.treinador_email || '')}<br><small class=muted>${new Date(r.criado).toLocaleString('pt-BR')}${r.nota ? ' · ' + esc(r.nota) : ''}</small><br><button class=sm data-drdl="${r.id}">⬇️ Baixar dados</button> ${r.tipo === 'excluir' ? `<button class="sm danger" data-drdel="${r.id}">🗑 Excluir definitivamente</button> ` : ''}<button class=sm data-drok=${r.id}>Marcar como concluído</button></div></div>`).join('')}</div>`;
+  const LDS = { novo: 'Novo', contatado: 'Contatado', convidado: 'Convite enviado', assinou: 'Assinou', descartado: 'Descartado' };
+  const sales = location.origin + location.pathname.replace(/[^/]*$/, '') + 'conheca.html';
+  h += `<div class=box2><b>🎯 Interessados (${(LD || []).length})</b><p class=muted>Treinadores que pediram teste na página de vendas. Divulgue o link: <a href="${sales}" target=_blank rel=noopener>página de vendas</a> <button class=sm data-cp="${esc(sales)}">Copiar link</button></p>${(LD || []).slice(0, 30).map(l => `<div class=row><div><b>${esc(l.nome)}</b> · ${esc(l.alunos || 'alunos não informado')}<br><small class=muted>${new Date(l.criado).toLocaleString('pt-BR')}${l.origem ? ' · veio de ' + esc(l.origem) : ''}</small><br><a class="btn sm p" target=_blank rel=noopener href="https://wa.me/${esc(l.fone)}?text=${encodeURIComponent('Olá, ' + l.nome.split(' ')[0] + '! Aqui é do DE HOJE. Vi que você quer testar o app. Vou te mandar o convite agora.')}">💬 WhatsApp</a> <select data-ld=${l.id}>${Object.entries(LDS).map(([k, v]) => `<option value=${k}${k === l.status ? ' selected' : ''}>${v}</option>`).join('')}</select></div></div>`).join('') || '<p class=muted>Ninguém ainda. Compartilhe o link da página de vendas nos grupos de personal.</p>'}</div>`;
   if (ER && ER.total_7d) h += `<div class=box2><b>🐞 Erros no app (7 dias): ${ER.total_7d}</b><p class=muted>Problemas que treinadores e alunos viram. Mande um print desta lista para o Claude corrigir.</p>${(ER.top || []).map(e => `<div class=row><div><small><b>${e.n}×</b> · ${esc(e.who)} · ${new Date(e.ultimo).toLocaleString('pt-BR')}${e.versao ? ' · ' + esc(e.versao) : ''}</small><br><code style="font-size:12px;word-break:break-word">${esc(e.message)}</code></div></div>`).join('')}</div>`;
   h += `<div class=box2><b>Novo convite</b><p class=muted>Cada convite libera 1 treinador. Você controla quantos alunos ele pode ter e por quantos dias.</p><div class=mgrid><label>Nome (para você lembrar)<input id=il placeholder="Ex.: João Personal"></label><label>Alunos permitidos<input id=im type=number inputmode=numeric value=1 min=1 max=50></label><label>Dias de teste<input id=idd type=number inputmode=numeric value=2 min=1 max=365></label></div><button class=p id=ib>Gerar convite</button><div id=ir></div></div>`;
   const tr = o.trainers || []; h += `<h2>Treinadores (${tr.length})</h2>`;
@@ -439,6 +442,7 @@ async function admin() {
   app.querySelectorAll('[data-blk]').forEach(b => b.onclick = () => confirm('Bloquear este treinador? Ele e os alunos dele perdem o acesso (nada é apagado).') && act('admin_set_trainer', { p_id: b.dataset.blk, p_plan: 'bloqueado' }));
   app.querySelectorAll('[data-unb]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.unb, p_plan: 'demo', p_extra_days: 0 }));
   app.querySelectorAll('[data-pro]').forEach(b => b.onclick = () => confirm('Liberar este treinador sem limite de alunos e sem prazo?') && act('admin_set_trainer', { p_id: b.dataset.pro, p_plan: 'pro' }));
+  app.querySelectorAll('[data-ld]').forEach(sl => sl.onchange = async () => { const r = await sb.rpc('admin_set_lead', { p_id: sl.dataset.ld, p_status: sl.value }); if (r.error) alert(r.error.message); });
   const drById = Object.fromEntries((DR || []).map(r => [r.id, r]));
   const dl = (obj, name) => { const b = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
   app.querySelectorAll('[data-drdl]').forEach(b => b.onclick = async () => { const r = drById[b.dataset.drdl]; let res;
@@ -453,9 +457,9 @@ async function admin() {
     if (e) { b.disabled = false; b.textContent = '🗑 Excluir definitivamente'; return alert('Não foi possível excluir: ' + e); }
     alert(`Excluído ✓ (${data.files || 0} arquivo${data.files === 1 ? '' : 's'} apagado${data.files === 1 ? '' : 's'}). Avise a pessoa que o pedido foi atendido.`); admin(); });
   app.querySelectorAll('[data-drok]').forEach(b => b.onclick = () => confirm('Marcar este pedido como concluído?') && act('admin_close_data_request', { p_id: b.dataset.drok, p_status: 'concluido' }));
-  app.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => { const sug = b.dataset.pc ? (b.dataset.pc / 100).toFixed(2).replace('.', ',') : '44,90';
-    const v = prompt('Valor recebido (R$). Ex.: 44,90 para 1 mês ou 538,80 para 12 meses:', sug); if (v === null) return; const cents = Math.round(parseFloat(String(v).replace(/\./g, '').replace(',', '.')) * 100); if (!(cents > 0)) return alert('Valor inválido.');
-    const m = prompt('Quantos meses esse pagamento cobre? (1 a 24)', '1'); if (m === null) return; const months = parseInt(m, 10); if (!(months >= 1 && months <= 24)) return alert('Número de meses inválido.');
+  app.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => { const sug = b.dataset.pc ? (b.dataset.pc / 100).toFixed(2).replace('.', ',') : '39,90';
+    const v = prompt('Valor recebido (R$). Mensal: 39,90 (1 mês) · Anual: 399,90 (12 meses):', sug); if (v === null) return; const cents = Math.round(parseFloat(String(v).replace(/\./g, '').replace(',', '.')) * 100); if (!(cents > 0)) return alert('Valor inválido.');
+    const m = prompt('Quantos meses esse pagamento cobre? (1 a 24)', cents >= 30000 ? '12' : '1'); if (m === null) return; const months = parseInt(m, 10); if (!(months >= 1 && months <= 24)) return alert('Número de meses inválido.');
     const met = prompt('Forma de pagamento (Pix, cartão, dinheiro…):', 'Pix'); if (met === null) return;
     const lim = prompt('Limite de alunos neste plano (deixe vazio para ilimitado):', ''); if (lim === null) return; const max = lim.trim() ? parseInt(lim, 10) : null;
     act('admin_register_payment', { p_id: b.dataset.pay, p_amount_cents: cents, p_months: months, p_method: met.trim() || null, p_note: null, p_max_students: max > 0 ? max : null }); });
