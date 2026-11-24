@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v37';
+const APP_V = 'v38';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -37,7 +37,7 @@ async function boot2() {
   if (!session) return login();
   await loadProfile(); if (!profile || ['pendente', 'bloqueado'].includes(profile.plan)) return gate();
   if (!(await termsOk())) return termsGate();
-  menu(); show('stu');
+  menu(); show('hoje');
 }
 // ---------- assinar / renovar: abre o WhatsApp do responsável com a mensagem pronta
 async function wantSub(kind) { const { data } = await sb.rpc('support_contact'); const ph = (data?.phone || '').replace(/\D/g, '');
@@ -61,7 +61,7 @@ function termsGate() {
     $('#tcb').disabled = true; const ua = navigator.userAgent.slice(0, 300);
     const a = await sb.rpc('accept_terms', { p_doc: 'termos', p_version: TERMS_V, p_ua: ua }); const b = await sb.rpc('accept_terms', { p_doc: 'privacidade', p_version: TERMS_V, p_ua: ua });
     if (a.error || b.error) { $('#tcb').disabled = false; return $('#tcm').textContent = ptErr((a.error || b.error).message); }
-    try { localStorage.setItem('dh_terms_' + session.user.id, TERMS_V); } catch {} menu(); show('stu'); };
+    try { localStorage.setItem('dh_terms_' + session.user.id, TERMS_V); } catch {} menu(); show('hoje'); };
 }
 async function loadProfile() {
   const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
@@ -111,7 +111,7 @@ function newPass() {
   $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
-  nav.innerHTML = [['stu', 'Alunos'], ['agd', 'Agenda'], ['imp', 'Importar ficha'], ['ia', '✨ DE HOJE.IA'], ['lib', 'Exercícios'], ['mus', 'Didática'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  nav.innerHTML = [['hoje', 'Hoje'], ['stu', 'Alunos'], ['agd', 'Agenda'], ['fin', '💰 Financeiro'], ['imp', 'Importar ficha'], ['ia', '✨ DE HOJE.IA'], ['lib', 'Exercícios'], ['mus', 'Didática'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
     d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''} <button class="sm p" onclick="wantSub('assinar')">Quero assinar</button>`; nav.before(d); }
   if (profile.plan === 'pro' && profile.paid_until && !document.querySelector('.demob')) { const left = Math.ceil((new Date(profile.paid_until + 'T23:59:59') - Date.now()) / 864e5);
@@ -120,8 +120,11 @@ function menu() {
       d.insertAdjacentHTML('beforeend', ' <button class="sm p" onclick="wantSub(\'renovar\')">Renovar</button>'); nav.before(d); } }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
-function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp: () => imp(), ia: iaView, stu: students, perfil, adm: admin, mus: musculos, agd: agenda })[k](); }
+function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ hoje: () => X('painel'), fin: () => X('financeiro'), lib, imp: () => imp(), ia: () => iaView(), stu: students, perfil, adm: admin, mus: musculos, agd: agenda })[k](); }
 
+// recursos extras do treinador (painel, financeiro, avaliação, modelos…) ficam em extras.js
+const xctx = (reload) => ({ app, sb, mdl, session, profile, abrirAluno: id => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'stu')); aluno(id); }, show, ia: o => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'ia')); iaView(o); }, reload: reload || (() => {}) });
+async function X(fn, ...a) { app.innerHTML = 'Carregando…'; try { const m = await import('./extras.js'); await m[fn](xctx(), ...a); } catch (e) { oops(e); app.innerHTML = `<p class=err>Não carregou: ${esc(e.message)}</p><button class=p onclick="location.reload()">Tentar de novo</button>`; } }
 // ---------- agenda do treinador
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 const ST_AG = { marcada: ['Aguardando o aluno', 'ag-wait'], confirmada: ['Confirmada ✓', 'ag-ok'], desmarcada: ['Não vai treinar', 'ag-no'], cancelada: ['Cancelada por você', 'ag-cx'], realizada: ['Realizada', 'ag-done'] };
@@ -411,10 +414,10 @@ async function pick(cb) {
 const linkOf = tk => location.origin + location.pathname + '?a=' + tk + '#/a/' + tk;
 
 // ---------- DE HOJE.IA: monta o treino pelo objetivo
-async function iaView() {
+async function iaView(o = {}) {
   app.innerHTML = 'Carregando…';
   const [{ montarIA }, { data: al }] = await Promise.all([import('./ia_ui.js'), sb.from('students').select('name').eq('trainer_id', session.user.id).order('name')]);
-  montarIA(app, { alunos: (al || []).map(a => a.name), usar: texto => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'imp')); imp(texto); scrollTo(0, 0); } });
+  montarIA(app, { nome: o.nome || '', modelo: t => import('./extras.js').then(m => m.salvarModelo(xctx(), t)), alunos: (al || []).map(a => a.name), usar: texto => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'imp')); imp(texto); scrollTo(0, 0); } });
 }
 // ---------- importar ficha
 async function recog(f, byId) { // liga cada linha da ficha a um exercício da biblioteca (com desenho)
@@ -430,7 +433,9 @@ async function recog(f, byId) { // liga cada linha da ficha a um exercício da b
 }
 async function imp(pre) {
   app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p>${profile?.plan === 'demo' ? '<p class=dnote>🧪 Dica para o teste: use o nome de alguém próximo (namorada, marido, esposa…) como aluno e mande o link para o celular dessa pessoa.</p>' : ''}
-  <textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
+  <div class=bar2><button id=mdl_open>📁 Meus modelos</button><button id=mdl_ia>✨ Montar com DE HOJE.IA</button></div><textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
+  $('#mdl_open').onclick = () => import('./extras.js').then(m => m.abrirModelos(xctx(), t => { $('#t').value = t; $('#go').click(); }));
+  $('#mdl_ia').onclick = () => show('ia');
   $('#go').onclick = async () => {
     const f = parseFicha($('#t').value); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
     if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei exercícios. Escreva um por linha, com séries e repetições (ex.: "Supino reto 4x10").</p>';
@@ -447,10 +452,11 @@ async function imp(pre) {
           tot++;
           if (it.ex) h += `<div class=row>${im(it.ex.image_path)}<div>${bi}<b>${esc(it.texto)}</b><br><small class=muted>→ ${esc(it.ex.name)}</small>${ob}<br><button class=sm data-pk="${si},${ii}">Trocar</button> <button class=sm data-vx=${it.ex.id}>🎬 Vídeo</button></div></div>`;
           else { rev++; h += `<div class=row><div>${bi}<b>${esc(it.texto)}</b><br><small class=warn>Sem desenho${it.sug ? ' (parecido: ' + esc(it.sug.name) + ')' : ''}</small>${ob}<br><button class="sm p" data-pk="${si},${ii}">Escolher exercício</button> <button class=sm data-cr="${si},${ii}">＋ Criar novo</button></div></div>`; } }); });
-      $('#r').innerHTML = `<p class=muted>${f.sessoes.length} treinos · ${tot} exercícios · ${rev} sem desenho</p>` + h + '<button class=p id=sv>Salvar para o aluno</button><p id=sm></p>';
+      $('#r').innerHTML = `<p class=muted>${f.sessoes.length} treinos · ${tot} exercícios · ${rev} sem desenho</p>` + h + '<button class=p id=sv>Salvar para o aluno</button> <button id=svm>📁 Salvar como modelo</button><p id=sm></p>';
       $('#r').querySelectorAll('[data-vx]').forEach(b => b.onclick = () => exModal(lb.find(x => x.id == b.dataset.vx)));
       $('#r').querySelectorAll('[data-cr]').forEach(b => b.onclick = () => { const [si, ii] = b.dataset.cr.split(',').map(Number); f.aluno = $('#an').value; f.rd = +$('#rd').value || 60; createEx(e => { f.sessoes[si].itens[ii].ex = e; view(); }, f.sessoes[si].itens[ii].busca); });
       $('#sv').onclick = () => salvar(f, $('#an').value.trim(), +$('#rd').value || 60);
+      $('#svm').onclick = () => import('./extras.js').then(m => m.salvarModelo(xctx(), $('#t').value, f.sessoes.map(z => z.foco || z.nome).slice(0, 3).join(' / ')));
       $('#r').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { const [si, ii] = b.dataset.pk.split(',').map(Number); f.aluno = $('#an').value; f.rd = +$('#rd').value || 60; pick(e => { f.sessoes[si].itens[ii].ex = e; view(); }); });
     };
     view();
@@ -600,7 +606,7 @@ async function aluno(id) {
   app.innerHTML = 'Carregando…'; const lbq = await getLib();
   const [s, w, h, ev, bm] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
-    sb.from('workouts').select('id,name,position,day_note,workout_blocks(id,position,set_type,sets,rest_seconds,block_items(id,position,raw_text,note,reps,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
+    sb.from('workouts').select('id,name,position,day_note,created_at,workout_blocks(id,position,set_type,sets,rest_seconds,block_items(id,position,raw_text,note,reps,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
     sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,notified_at,notify_error,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
     sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000),
     sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on')]);
@@ -614,7 +620,7 @@ async function aluno(id) {
    <p class=muted>O aluno abre esse link no celular, sem senha. Dica: “Adicionar à tela inicial” para virar app.</p><button class=sm id=nl>Gerar novo link (invalida o anterior)</button></div>${consentBox}`;
   if (!(h.data || []).length) x += `<div class="box2 guide"><b>Próximos passos</b><ol class=steps><li>Toque em <b>Enviar no WhatsApp</b> e mande o link para a pessoa.</li><li>No <b>celular dela</b>, abra o link e toque em <b>Adicionar à tela inicial</b>.</li><li>Ela abre pelo ícone DE HOJE e faz o treino.</li><li>O resultado aparece aqui e em <b>Alunos → Atividade recente</b>.</li></ol><p class=muted><small>Dica: não abra o link do aluno no seu celular. Veja sempre no celular da pessoa, para não misturar os acessos.</small></p></div>`;
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
-  x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div>`;
+  x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div><div id=xtra></div>`;
   const itemsById = {};
   (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2><p class="${wo.day_note ? 'dnote' : ''}">${wo.day_note ? '📌 ' + esc(wo.day_note) + ' ' : ''}<button class=sm data-dn=${wo.id}>${wo.day_note ? 'Editar observação do dia' : '＋ Observação do dia'}</button></p>`;
     wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => { itemsById[i.id] = { i, b, wo };
@@ -625,13 +631,14 @@ async function aluno(id) {
   const evo = {}; (ev.data || []).forEach(l => { const n = l.block_items?.exercises?.name || l.block_items?.raw_text || '?'; const e = evo[n] || (evo[n] = { first: Number(l.load_kg), last: 0, best: 0, n: 0 }); e.last = Number(l.load_kg); e.best = Math.max(e.best, Number(l.load_kg)); e.n++; });
   const el = Object.entries(evo); if (el.length) x += '<h2>Evolução de cargas</h2><div class=box2><table class=evo><tr><th>Exercício</th><th>1ª</th><th>Última</th><th>Melhor</th></tr>' + el.map(([n, e]) => `<tr><td>${esc(n)}</td><td>${e.first}</td><td>${e.last} ${e.last > e.first ? '<span class=ok>▲</span>' : e.last < e.first ? '<span class=err>▼</span>' : ''}</td><td>${e.best}</td></tr>`).join('') + '</table><small class=muted>Cargas em kg.</small></div>';
   const ms = bm.data || [], f0 = ms[0];
-  x += `<h2>Avaliações</h2><div class=box2><div class=mgrid><label>Data<input id=m_d type=date value="${new Date().toISOString().slice(0, 10)}"></label><label>Peso (kg)<input id=m_w inputmode=decimal></label><label>% gordura<input id=m_f inputmode=decimal></label><label>Cintura (cm)<input id=m_wa inputmode=decimal></label><label>Quadril (cm)<input id=m_h inputmode=decimal></label><label>Peito (cm)<input id=m_c inputmode=decimal></label><label>Braço (cm)<input id=m_a inputmode=decimal></label><label>Coxa (cm)<input id=m_t inputmode=decimal></label></div><button class=p id=mb>Salvar avaliação</button> <small id=mm class=muted></small>`;
+  x += `<h2>Medidas rápidas</h2><div class=box2><div class=mgrid><label>Data<input id=m_d type=date value="${new Date().toISOString().slice(0, 10)}"></label><label>Peso (kg)<input id=m_w inputmode=decimal></label><label>% gordura<input id=m_f inputmode=decimal></label><label>Cintura (cm)<input id=m_wa inputmode=decimal></label><label>Quadril (cm)<input id=m_h inputmode=decimal></label><label>Peito (cm)<input id=m_c inputmode=decimal></label><label>Braço (cm)<input id=m_a inputmode=decimal></label><label>Coxa (cm)<input id=m_t inputmode=decimal></label></div><button class=p id=mb>Salvar avaliação</button> <small id=mm class=muted></small>`;
   if (ms.length) x += '<div style="overflow:auto"><table class=evo><tr><th>Data</th><th>Peso</th><th>%G</th><th>Cint.</th><th>Quad.</th><th>Peit.</th><th>Braç.</th><th>Coxa</th><th></th></tr>' + [...ms].reverse().map(m => `<tr><td>${dbr(m.measured_on)}</td><td>${fmt(m.weight_kg)}${f0 && m.id !== f0.id && m.weight_kg != null && f0.weight_kg != null ? `<br><small class="${m.weight_kg < f0.weight_kg ? 'ok' : 'muted'}">${m.weight_kg - f0.weight_kg > 0 ? '+' : ''}${fmt(Math.round((m.weight_kg - f0.weight_kg) * 10) / 10)}</small>` : ''}</td><td>${fmt(m.body_fat_pct)}</td><td>${fmt(m.waist_cm)}</td><td>${fmt(m.hip_cm)}</td><td>${fmt(m.chest_cm)}</td><td>${fmt(m.arm_cm)}</td><td>${fmt(m.thigh_cm)}</td><td><button class=sm data-dm=${m.id}>×</button></td></tr>`).join('') + '</table></div>';
   x += `</div><h2>Arquivos e fotos</h2><div class=box2><b>Enviar para ${esc(st.name.split(' ')[0])}</b><select id=tk>${Object.entries(KINDS).map(([k, v]) => `<option value=${k}>${v}</option>`).join('')}</select><input id=tf type=file accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"><input id=tn placeholder="Observação (opcional)">
    <fieldset class=share><legend><b>Deixar visível para o aluno?</b></legend><label><input type=radio name=tsh value=1> Sim, o aluno também vê</label><label><input type=radio name=tsh value=0> Não, só eu vejo</label></fieldset><button class=p id=tsv>Enviar arquivo</button> <small id=tm></small>
    <div id=tl class=flist>Carregando…</div><small class=muted>Fotos, avaliações e laudos que o aluno marcar como “só eu vejo” não aparecem aqui — é escolha dele.</small></div>`;
   x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>${z.notified_at ? '<br><small class=ok>✓ enviado ao seu WhatsApp</small>' : z.notify_error ? `<br><small class=warn>Não foi para o WhatsApp: ${esc(z.notify_error)}</small>` : ''}` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Arquivar aluno</button> <small class=muted>O link para de funcionar, mas nada é apagado. Dá para reativar.</small></p>'; app.innerHTML = x;
+  import('./extras.js').then(m => m.alunoExtras(xctx(() => aluno(id)), $('#xtra'), st, w.data || [])).catch(oops);
   app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
   app.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const z = (h.data || []).find(q => q.id === b.dataset.rp);
     const d = mdl(`<h3>Responder ao aluno</h3>${z.comment ? `<p class=muted>“${esc(z.comment)}”</p>` : ''}<textarea id=rt>${esc(z.trainer_reply || '')}</textarea><p id=rm class=err></p><button class=p id=rs>Enviar resposta</button> <button id=rc>Cancelar</button>`);
@@ -740,7 +747,7 @@ async function studentView(token, preview = false) {
   const ld = w => { try { return JSON.parse(localStorage.getItem(key(w))) || {}; } catch { return {}; } };
   const sv = (w, o) => { try { localStorage.setItem(key(w), JSON.stringify(o)); } catch {} };
   const upd = (fn) => { const o = ld(wk.id); fn(o); sv(wk.id, o); return o; };
-  let wk = null, steps = [], idx = 0, rest = null, tick = null;
+  let wk = null, steps = [], idx = 0, rest = null, tick = null, AX = null;
   const stepsOf = w => { const out = [], seen = {};
     w.items.forEach(i => { if (i.kind === 'cardio') return out.push({ cardio: true, items: [i] });
       if (i.biset && seen[i.group]) return seen[i.group].items.push(i);
@@ -783,7 +790,7 @@ async function studentView(token, preview = false) {
   // --- início: escolher o treino do dia
   const home = () => { stopRest(); wk = null; document.title = 'DE HOJE'; unwake();
     let h = `${offline ? '<div class=msg id=offb><b>📴 Modo offline</b><p>Pode treinar normalmente. Seus resultados ficam guardados no celular e vão para o treinador quando a internet voltar.</p></div>' : ''}<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
-    if (!P.workouts.length) { app.innerHTML = h + '<div id=agBox></div><p class=muted>Seu treino ainda não foi cadastrado.</p>'; minhasAulas(); return; }
+    if (!P.workouts.length) { app.innerHTML = h + '<div id=xtA></div><div id=agBox></div><p class=muted>Seu treino ainda não foi cadastrado.</p>'; minhasAulas(); if (AX) try { AX.cartoesAluno({ P, token, sb, mdl, box: $('#xtA'), preview }); } catch (e) { oops(e); } return; }
     const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);
     const ss = (P.sessions || []).map(x => new Date(x)), wkc = ss.filter(x => x >= mon).length, m30 = ss.filter(x => now - x < 30 * 864e5).length;
     const days = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, n) => { const a = new Date(mon); a.setDate(mon.getDate() + n); const b = new Date(a); b.setDate(a.getDate() + 1); const did = ss.some(x => x >= a && x < b); return `<span class="dot${did ? ' on' : ''}${n === dow ? ' today' : ''}">${l}</span>`; }).join('');
@@ -795,7 +802,7 @@ async function studentView(token, preview = false) {
     const ms = P.measures || []; if (ms.length) { const a = ms[0], z = ms[ms.length - 1], df = (k, u) => ms.length > 1 && a[k] != null && z[k] != null ? ` (${z[k] - a[k] > 0 ? '+' : ''}${String(Math.round((z[k] - a[k]) * 10) / 10).replace('.', ',')} ${u})` : '';
       const parts = []; if (z.weight != null) parts.push(`Peso <b>${String(z.weight).replace('.', ',')} kg</b>${df('weight', 'kg')}`); if (z.waist != null) parts.push(`Cintura <b>${String(z.waist).replace('.', ',')} cm</b>${df('waist', 'cm')}`); if (z.fat != null) parts.push(`Gordura <b>${String(z.fat).replace('.', ',')}%</b>${df('fat', '%')}`);
       if (parts.length) h += `<div class=week><b>Seu progresso</b><br><small>${parts.join('<br>')}</small></div>`; }
-    h += '<p class=muted>Qual treino você vai fazer hoje?</p>';
+    h += '<div id=xtA></div><p class=muted>Qual treino você vai fazer hoje?</p>';
     P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
       const nEx = stepsOf(w).length;
       h += `<div class=wcard><div class=wc1><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${nEx} exercício${nEx === 1 ? '' : 's'}</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
@@ -805,7 +812,7 @@ async function studentView(token, preview = false) {
     if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
     if (P.student.code) h += `<p class=muted><small>Seu ID: <b>${esc(P.student.code)}</b></small></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. Depois de aberto uma vez com internet, o treino funciona mesmo sem internet.</small></p>';
-    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; minhasAulas(); };
+    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; minhasAulas(); if (AX) try { AX.cartoesAluno({ P, token, sb, mdl, box: $('#xtA'), preview }); } catch (e) { oops(e); } };
   // --- lembrete diário no celular (notificação)
   const VAPID = 'BFm8CvaeBGiulH7lhBGC5RRVFkLJ2jweVdYC08Nh-FjObAbFEikDVx678BS3KK7YnK-J01IhpnbTDllqPG7SHBg';
   const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
@@ -899,7 +906,7 @@ async function studentView(token, preview = false) {
         <label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> Cardio concluído</label></div>`; }
     else {
       s.items.forEach((i, ix) => { const ex = i.exercise;
-        h += `<div class="exv${s.biset ? ' bi' : ''}">${s.biset ? `<span class="tag bi">Bi-set · exercício ${'ABC'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `${im(ex.image, ex.name)}<small class=muted>${esc(ex.name)}</small>` : ''}<p class=alvo>${alvo(s, i)}</p>${i.video?.url && /^https?:\/\//i.test(i.video.url) ? `<a class="btn vid" href="${esc(i.video.url)}" target=_blank rel=noopener>▶ Ver vídeo</a>` : ''}${i.video?.note ? `<p class=tnote>💬 ${esc(i.video.note)}</p>` : ''}${i.note ? `<p class=inote>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
+        h += `<div class="exv${s.biset ? ' bi' : ''}">${s.biset ? `<span class="tag bi">Bi-set · exercício ${'ABC'[ix] || ix + 1}</span>` : ''}<h3>${esc(i.text)}</h3>${ex ? `${im(ex.image, ex.name)}<small class=muted>${esc(ex.name)}</small>` : ''}<p class=alvo>${alvo(s, i)}</p>${i.video?.url && /^https?:\/\//i.test(i.video.url) ? `<a class="btn vid" href="${esc(i.video.url)}" target=_blank rel=noopener>▶ Ver vídeo</a>` : ''}${i.video?.note ? `<p class=tnote>💬 ${esc(i.video.note)}</p>` : ''}${i.note ? `<p class=inote>${esc(i.note)}</p>` : ''}${i.last ? `<p class=muted>Última vez: ${i.last.load ?? '-'} kg × ${i.last.reps ?? '-'}</p>` : ''}${(() => { const sg = AX && AX.sugestao(i, s.sets); return sg ? `<div class=sug>📈 <b>Hora de subir a carga: tente ${String(sg.kg).replace('.', ',')} kg</b><br><small>${esc(sg.txt)}</small><br><button class="sm p" data-sug=${i.id} data-kg=${sg.kg}>Usar ${String(sg.kg).replace('.', ',')} kg</button></div>` : ''; })()}${ex?.how_to ? `<details><summary>Como fazer</summary><p>${esc(ex.how_to)}</p></details>` : ''}</div>`; });
       const hasLast = s.items.some(i => i.last);
       h += `<div class="sets${s.biset ? ' bi' : ''}"><b>Séries</b>${hasLast ? ' <button class=sm data-rep>Repetir última vez</button>' : ''}${s.biset ? ' <small class=muted>(faça A e B em sequência, depois marque ✓ e descanse)</small>' : ''}`;
       for (let k = 1; k <= s.sets; k++) { const dn = st[`d_${idx}_${k}`];
@@ -915,6 +922,7 @@ async function studentView(token, preview = false) {
     app.querySelector('[data-cancel]').onclick = () => { if (!confirm('Cancelar este treino? O que você marcou hoje será apagado e nada será enviado ao treinador.')) return; stopRest(); try { localStorage.removeItem(key(wk.id)); } catch {} home(); };
     app.querySelectorAll('input[data-i]').forEach(e => e.oninput = () => upd(o => { o[`${e.dataset.i}_${e.dataset.s}_${e.dataset.f}`] = e.value; }));
     app.querySelectorAll('textarea[data-n]').forEach(e => e.oninput = () => upd(o => { o['n_' + e.dataset.n] = e.value; }));
+    app.querySelectorAll('[data-sug]').forEach(b => b.onclick = () => { upd(o => { for (let k = 1; k <= s.sets; k++) o[`${b.dataset.sug}_${k}_load`] = String(b.dataset.kg).replace('.', ','); }); play(); });
     const rp = app.querySelector('[data-rep]'); if (rp) rp.onclick = () => { upd(o => { s.items.forEach(i => { if (!i.last) return; for (let k = 1; k <= s.sets; k++) { if (!o[`${i.id}_${k}_load`] && i.last.load != null) o[`${i.id}_${k}_load`] = String(i.last.load); if (!o[`${i.id}_${k}_reps`] && i.last.reps != null) o[`${i.id}_${k}_reps`] = String(i.last.reps); } }); }); play(); };
     const ivb = app.querySelector('[data-iv]'); if (ivb) ivb.onclick = () => runIntervals(s.items[0], intervalOf(s.items[0].text) || intervalOf(s.items[0].note));
     app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { upd(o => { o['c' + e.dataset.c] = e.checked; }); paintSegs(); });
@@ -952,8 +960,10 @@ async function studentView(token, preview = false) {
       try { localStorage.removeItem(key(wk.id)); } catch {}
       unwake();
       if (!queued && comentario) notify(r.data);
-      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : `<p>Seu treinador já pode ver o seu resultado${comentario ? ' e recebeu o seu comentário' : ''} ✓</p>`}<button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
+      const antes = P.sessions || [], novos = AX ? AX.marcos(antes, [new Date().toISOString(), ...antes]) : [];
+      app.innerHTML = `<h2>Treino concluído! 💪</h2><p>Parabéns, ${esc(P.student.name.split(' ')[0])}!</p>${novos.length ? `<div class=pr>${novos.join('<br>')}</div>` : ''}${queued ? '<p class=warn>Sem internet agora: seu treino ficou guardado e será enviado ao treinador quando a conexão voltar.</p>' : `<p>Seu treinador já pode ver o seu resultado${comentario ? ' e recebeu o seu comentário' : ''} ✓</p>`}<button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = () => { if (!queued) { P.sessions = [new Date().toISOString(), ...(P.sessions || [])]; } home(); }; };
   };
+  try { AX = await import('./aluno_extras.js'); } catch {}
   home();
 }
 boot();

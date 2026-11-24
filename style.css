@@ -188,3 +188,25 @@ footer.lgpd a{color:var(--g)}
 .ia-vb{display:grid;grid-template-columns:110px 1fr 30px;gap:8px;align-items:center;font-size:13.5px;margin:4px 0}.ia-vb i{height:9px;background:var(--b);border-radius:6px;overflow:hidden}.ia-vb b{display:block;height:100%;background:var(--o)}.ia-vb em{font-style:normal;font-weight:700;text-align:right}
 .ia-txt{min-height:340px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.45;background:#fff}
 .ia-acts{display:flex;flex-wrap:wrap;gap:8px}.ia-acts .p{flex:1 1 100%;padding:13px;font-weight:700}
+/* v38: painel, financeiro, avaliação, ficha de saúde, conquistas */
+.pn-oi{font-size:18px;font-weight:700;margin:4px 0 10px}.pn-oi small{font-weight:400;display:block;font-size:14px}
+.pn-cont{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}.pn-cont div{border:1px solid var(--b);border-radius:12px;padding:8px 4px;text-align:center}.pn-cont b{display:block;font-size:17px}.pn-cont small{color:var(--g);font-size:12px}
+.pn-card{padding:10px 12px}.pn-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.pn-n{background:var(--od);color:#fff;border-radius:999px;padding:0 9px;font-size:13px;font-weight:700}
+.pn-l{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--b)}.pn-l:first-of-type{border-top:0}.pn-l>a{color:var(--n);text-decoration:none;flex:1;min-width:0}.pn-a{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.pn-a .sm,.pn-a .btn{margin:0;padding:5px 10px;font-size:13px}
+.pn-warn{border-color:#E0A800;background:#FFFBEB}
+.fn-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 8px}.fn-sum div{border:1px solid var(--b);border-radius:12px;padding:8px 6px}.fn-sum small{display:block;color:var(--g);font-size:12px}.fn-sum b{font-size:14.5px}
+@media(max-width:480px){.fn-sum,.pn-cont{grid-template-columns:repeat(2,1fr)}}
+.fn-r{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--b);padding:10px 0}.fn-a{display:flex;flex-direction:column;gap:6px;align-items:flex-end}.fn-a .sm,.fn-a .btn{margin:0;padding:5px 10px;font-size:13px;white-space:nowrap}.fn-ed{font-size:13px;color:var(--od)}
+.av-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0}.av-g div{border:1px solid var(--b);border-radius:12px;padding:8px 10px;background:#fff}.av-g small{display:block;color:var(--g);font-size:12px}.av-g b{font-size:19px}.av-g em{display:block;font-style:normal;font-size:12.5px;color:var(--od)}
+.ax-graf{margin:8px 0}.ax-graf svg{width:100%;max-width:420px;height:auto}
+.ax-alert{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:8px 10px;margin:6px 0}.ax-alert ul{margin:4px 0 0;padding-left:18px}
+.ax-q{border-bottom:1px solid var(--b);padding:6px 0}.ax-q p{margin:0 0 6px}.ax-sn{display:flex;gap:8px}.ax-sn button{flex:1;max-width:120px}
+.ax-sn button.on,.ax-chips button.on{background:var(--od);border-color:var(--od);color:#fff}
+.ax-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.ax-chips button{padding:7px 11px;font-size:14px}.ax-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ax-cta{border:2px solid var(--o);background:#F3FBF6}
+.ax-bg{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.ax-b{display:flex;flex-direction:column;align-items:center;width:64px;font-size:24px;filter:grayscale(1);opacity:.35}.ax-b small{font-size:10.5px;text-align:center;line-height:1.15;margin-top:2px}.ax-b.on{filter:none;opacity:1}
+.ax-rel .stats{margin:8px 0}.ax-rel ul{padding-left:20px;margin:4px 0 10px}.ax-nav{display:flex;justify-content:space-between;margin:10px 0}
+.sug{background:#ECFDF3;border:1px solid var(--o);border-radius:10px;padding:8px 10px;margin:8px 0;text-align:left}.sug .sm{margin-top:6px}
+.rep-h{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--o);padding-bottom:8px;margin-bottom:8px}.rep-h b{font-size:20px}.rep-m{text-align:right;font-weight:700}.rep-f{color:var(--g)}
+.modal.full .box{max-height:100vh;height:100vh;border-radius:0}
+@media print{body.printing>*:not(.modal){display:none!important}body.printing .modal{position:static;background:none;display:block}body.printing .modal .box{max-height:none;height:auto;overflow:visible;padding:0;max-width:none}body.printing .noprint{display:none!important}}

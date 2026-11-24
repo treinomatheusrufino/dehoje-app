@@ -7,13 +7,13 @@ const LOCAIS = [['A', 'Academia'], ['C', 'Casa (halteres e elásticos)'], ['P', 
 const DICAS = ['Foco em glúteos', 'Foco em braços', 'Dor no joelho', 'Dor lombar', 'Sem impacto', 'Incluir cardio', 'Com bi-sets', 'Sem máquinas', 'Treino de 40 minutos'];
 const VOLUME_OBJ = ['hipertrofia', 'gluteos'];
 
-export function montarIA(root, { alunos = [], usar }) {
+export function montarIA(root, { alunos = [], usar, nome = '', modelo }) {
   let st = { objetivo: 'hipertrofia', sexo: 'f', nivel: 2, dias: 3, duracao: 60, local: 'A', aquecimento: true, pedido: '', nome: '' };
   try { st = { ...st, ...JSON.parse(localStorage.getItem('dh_ia') || '{}'), pedido: '', nome: '' }; } catch {}
   const chips = (k, opts) => `<div class=ia-chips data-k=${k}>${opts.map(([v, t]) => `<button type=button data-v="${v}" class="${String(st[k]) === String(v) ? 'on' : ''}">${t}</button>`).join('')}</div>`;
   root.innerHTML = `<div class=ia>
     <div class=ia-top><h2>✨ DE HOJE.IA</h2><p class=muted>Escolha o objetivo, conte o que você quer e a IA monta a semana de treinos com os exercícios e desenhos do app. Você revisa e ajusta antes de salvar para o aluno.</p></div>
-    <label class=muted>Nome do aluno</label><input id=ia-nome list=ia-al placeholder="Ex.: Gabriela" autocomplete=off><datalist id=ia-al>${alunos.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
+    <label class=muted>Nome do aluno</label><input id=ia-nome list=ia-al placeholder="Ex.: Gabriela" autocomplete=off value="${esc(nome)}"><datalist id=ia-al>${alunos.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
     <label class=muted>Objetivo do treino</label>
     <div class="ia-chips ia-obj" data-k=objetivo>${Object.entries(OBJETIVOS).map(([v, t]) => `<button type=button data-v="${v}" class="${st.objetivo === v ? 'on' : ''}"><span>${ICON[v]}</span>${t}</button>`).join('')}</div>
     <div class=ia-2>
@@ -52,9 +52,10 @@ export function montarIA(root, { alunos = [], usar }) {
       ${vol.length ? `<details class=ia-vol ${VOLUME_OBJ.includes(st.objetivo) ? 'open' : ''}><summary>Séries por músculo na semana</summary>${vol.map(([g, n]) => `<div class=ia-vb><span>${esc(g)}</span><i><b style="width:${Math.round(n / mx * 100)}%"></b></i><em>${n}</em></div>`).join('')}${VOLUME_OBJ.includes(st.objetivo) ? '<p class=muted>Para hipertrofia, a faixa mais usada é de 10 a 20 séries por músculo na semana.</p>' : ''}</details>` : ''}
       <label class=muted>Treino gerado (pode editar à vontade)</label>
       <textarea id=ia-txt class=ia-txt spellcheck=false>${esc(r.texto)}</textarea>
-      <div class=ia-acts><button class=p id=ia-use>Usar este treino</button><button id=ia-again>↻ Gerar outra versão</button><button id=ia-copy>Copiar texto</button></div>
+      <div class=ia-acts><button class=p id=ia-use>Usar este treino</button><button id=ia-again>↻ Gerar outra versão</button><button id=ia-copy>Copiar texto</button>${modelo ? '<button id=ia-tpl>📁 Salvar como modelo</button>' : ''}</div>
       <p class=muted>Ao tocar em <b>Usar este treino</b>, ele vai para o Importar ficha: os desenhos aparecem e você salva para o aluno.</p></div>`;
     $('#ia-use').onclick = () => usar($('#ia-txt').value);
+    if ($('#ia-tpl')) $('#ia-tpl').onclick = () => modelo($('#ia-txt').value);
     $('#ia-again').onclick = () => { seed = Date.now(); gerar(); };
     $('#ia-copy').onclick = async () => { try { await navigator.clipboard.writeText($('#ia-txt').value); $('#ia-copy').textContent = 'Copiado ✓'; } catch { $('#ia-txt').select(); } };
     $('#ia-res').scrollIntoView({ behavior: 'smooth', block: 'start' });
