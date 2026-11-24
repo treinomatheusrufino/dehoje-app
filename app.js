@@ -7,7 +7,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 const ptErr = m => { m = String(m || ''); if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.'; if (/Email not confirmed/i.test(m)) return 'E-mail ainda não confirmado. Fale com o responsável pelo DE HOJE.';
   if (/rate limit/i.test(m)) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'; if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem internet no momento. Confira a conexão e tente de novo.'; if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Saia e entre de novo.'; return m; };
 // se algo inesperado falhar, mostra um aviso com botão de recarregar (nunca fica preso em "Carregando…")
-const APP_V = 'v34';
+const APP_V = 'v35';
 let lastErr = '', errCount = 0;
 const logErr = (msg, where) => { try { msg = String(msg || '').slice(0, 500); if (!msg || msg === lastErr || errCount > 10) return; lastErr = msg; errCount++;
   const aluno = document.body.classList.contains('aluno'); let tk = null; if (aluno) try { tk = localStorage.getItem('dh_student_token'); } catch {}
@@ -111,7 +111,7 @@ function newPass() {
   $('#sv').onclick = async () => { const r = await sb.auth.updateUser({ password: $('#n').value }); if (r.error) return $('#m').textContent = r.error.message; location.href = location.origin + location.pathname; };
 }
 function menu() {
-  nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['mus', 'Didática'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
+  nav.innerHTML = [['stu', 'Alunos'], ['agd', 'Agenda'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['mus', 'Didática'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
     d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''} <button class="sm p" onclick="wantSub('assinar')">Quero assinar</button>`; nav.before(d); }
   if (profile.plan === 'pro' && profile.paid_until && !document.querySelector('.demob')) { const left = Math.ceil((new Date(profile.paid_until + 'T23:59:59') - Date.now()) / 864e5);
@@ -120,7 +120,80 @@ function menu() {
       d.insertAdjacentHTML('beforeend', ' <button class="sm p" onclick="wantSub(\'renovar\')">Renovar</button>'); nav.before(d); } }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
-function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin, mus: musculos })[k](); }
+function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin, mus: musculos, agd: agenda })[k](); }
+
+// ---------- agenda do treinador
+const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const ST_AG = { marcada: ['Aguardando o aluno', 'ag-wait'], confirmada: ['Confirmada ✓', 'ag-ok'], desmarcada: ['Desmarcou', 'ag-no'], cancelada: ['Cancelada por você', 'ag-cx'], realizada: ['Realizada', 'ag-done'] };
+const hhmm = d => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const segunda = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+let agSemana = null;
+async function agenda() {
+  agSemana = agSemana || segunda(new Date());
+  const ini = new Date(agSemana), fim = new Date(agSemana); fim.setDate(fim.getDate() + 7);
+  app.innerHTML = '<h2>Agenda</h2><p class=muted>Carregando…</p>';
+  const [{ data: al }, { data: ap, error }, { count }] = await Promise.all([
+    sb.from('students').select('id,name,phone,token,active').eq('active', true).order('name'),
+    sb.from('appointments').select('id,student_id,starts_at,duration_min,status,place,note,student_note,series_id').gte('starts_at', ini.toISOString()).lt('starts_at', fim.toISOString()).order('starts_at'),
+    sb.from('appointments').select('id', { count: 'exact', head: true })]);
+  if (error) return app.innerHTML = `<h2>Agenda</h2><p class=err>${esc(ptErr(error.message))}</p>`;
+  const alunos = al || [], porId = Object.fromEntries(alunos.map(a => [a.id, a])), lista = ap || [];
+  const f = d => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const ult = new Date(fim); ult.setDate(ult.getDate() - 1);
+  const cnt = k => lista.filter(a => a.status === k).length;
+  let h = `<h2>Agenda</h2><div class=ag-nav><button class=sm data-nv=-1 aria-label="Semana anterior">◀</button><b>${f(ini)} a ${f(ult)}</b><button class=sm data-nv=1 aria-label="Próxima semana">▶</button><button class=sm data-hj>Hoje</button></div>
+    <button class=p id=agNovo>+ Novo horário</button><div id=agForm></div>`;
+  const pl = (n, um, v) => `<b>${n}</b> ${n === 1 ? um : v}`, tot = lista.filter(a => a.status !== 'cancelada').length;
+  if (lista.length) h += `<div class=ag-res><span>${pl(tot, 'aula', 'aulas')}</span><span class=ag-ok>${pl(cnt('confirmada'), 'confirmada', 'confirmadas')}</span><span class=ag-wait>${pl(cnt('marcada'), 'aguardando', 'aguardando')}</span><span class=ag-no>${pl(cnt('desmarcada'), 'desmarcada', 'desmarcadas')}</span></div>`;
+  if (!count) h += `<div class="box2 ag-exemplo"><b>Exemplo de como fica</b><p class=muted>Marque os horários dos seus alunos. Eles recebem a aula no app e tocam em Confirmar ou Desmarcar. Você recebe o aviso no WhatsApp.</p>
+    <div class=ag-dia><div class=ag-dh>Segunda</div>${[['07:00', 'Ana Paula', 'confirmada', 'Academia'], ['08:00', 'Carlos', 'marcada', 'Condomínio'], ['18:30', 'Juliana', 'desmarcada', 'Online']].map(([t, n, st, l]) => `<div class=ag-it><div class=ag-h>${t}</div><div class=ag-c><b>${n}</b><span class="ag-st ${ST_AG[st][1]}">${ST_AG[st][0]}</span><small class=muted>${l}${st === 'desmarcada' ? ' · Motivo: consulta médica' : ''}</small></div></div>`).join('')}</div></div>`;
+  for (let i = 0; i < 7; i++) {
+    const dia = new Date(ini); dia.setDate(ini.getDate() + i); const d2 = new Date(dia); d2.setDate(dia.getDate() + 1);
+    const it = lista.filter(a => { const t = new Date(a.starts_at); return t >= dia && t < d2; });
+    const hoje = dia.toDateString() === new Date().toDateString();
+    if (!it.length && !hoje) continue;
+    h += `<div class="ag-dia${hoje ? ' hoje' : ''}"><div class=ag-dh>${DIAS[dia.getDay()]}, ${f(dia)}${hoje ? ' · hoje' : ''}</div>`;
+    h += it.length ? it.map(a => { const t = new Date(a.starts_at), t2 = new Date(t.getTime() + a.duration_min * 6e4), al1 = porId[a.student_id] || {}, [lab, cls] = ST_AG[a.status], fut = t > new Date();
+      const msg = `Oi, ${(al1.name || '').split(' ')[0]}! Lembrete da sua aula de ${DIAS[t.getDay()].toLowerCase()}, ${f(t)}, às ${hhmm(t)}. Confirme ou desmarque no app: ${al1.token ? linkOf(al1.token) : ''}`;
+      return `<div class="ag-it${a.status === 'cancelada' ? ' cx' : ''}"><div class=ag-h>${hhmm(t)}<small>${hhmm(t2)}</small></div><div class=ag-c><b>${esc(al1.name || 'Aluno arquivado')}</b><span class="ag-st ${cls}">${lab}</span>${a.place ? `<small class=muted>${esc(a.place)}</small>` : ''}${a.student_note ? `<small class=ag-mot>Motivo: ${esc(a.student_note)}</small>` : ''}${a.note ? `<small class=muted>Obs.: ${esc(a.note)}</small>` : ''}
+        <div class=ag-ac>${al1.phone && fut && a.status !== 'cancelada' ? `<a class="btn sm" target=_blank rel=noopener href="https://wa.me/${esc(al1.phone.replace(/\D/g, ''))}?text=${encodeURIComponent(msg)}">💬 Lembrar</a>` : ''}${a.status !== 'realizada' && a.status !== 'cancelada' && !fut ? `<button class=sm data-ok=${a.id}>✓ Realizada</button>` : ''}${a.status !== 'cancelada' && a.status !== 'realizada' ? `<button class=sm data-cx=${a.id}>Cancelar</button>` : `<button class=sm data-re=${a.id}>Reativar</button>`}<button class="sm danger" data-del=${a.id} data-se="${a.series_id || ''}">Excluir</button></div></div></div>`; }).join('') : '<p class="muted ag-vazio">Nenhuma aula marcada.</p>';
+    h += '</div>';
+  }
+  if (count && !lista.length) h += '<p class=muted>Nenhuma aula nesta semana.</p>';
+  app.innerHTML = h;
+  app.querySelectorAll('[data-nv]').forEach(b => b.onclick = () => { agSemana.setDate(agSemana.getDate() + 7 * +b.dataset.nv); agenda(); });
+  app.querySelector('[data-hj]').onclick = () => { agSemana = segunda(new Date()); agenda(); };
+  const upd = async (id, st) => { const r = await sb.from('appointments').update({ status: st }).eq('id', id); if (r.error) return alert(ptErr(r.error.message)); agenda(); };
+  app.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => upd(b.dataset.ok, 'realizada'));
+  app.querySelectorAll('[data-cx]').forEach(b => b.onclick = () => upd(b.dataset.cx, 'cancelada'));
+  app.querySelectorAll('[data-re]').forEach(b => b.onclick = () => upd(b.dataset.re, 'marcada'));
+  app.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const serie = b.dataset.se && confirm('Esta aula se repete toda semana.\n\nOK = excluir esta e todas as próximas da série\nCancelar = excluir só esta');
+    if (!serie && !confirm('Excluir esta aula da agenda?')) return;
+    const a = lista.find(x => x.id === b.dataset.del);
+    const r = serie ? await sb.from('appointments').delete().eq('series_id', b.dataset.se).gte('starts_at', a.starts_at) : await sb.from('appointments').delete().eq('id', b.dataset.del);
+    if (r.error) return alert(ptErr(r.error.message)); agenda(); });
+  app.querySelector('#agNovo').onclick = () => {
+    const box = app.querySelector('#agForm'); if (box.innerHTML) return box.innerHTML = '';
+    if (!alunos.length) return box.innerHTML = '<p class=warn>Cadastre um aluno primeiro na aba Alunos.</p>';
+    const hj = new Date(), ds = `${hj.getFullYear()}-${String(hj.getMonth() + 1).padStart(2, '0')}-${String(hj.getDate()).padStart(2, '0')}`;
+    box.innerHTML = `<div class=box2><b>Novo horário</b><div class=mgrid>
+      <label>Aluno<select id=agA>${alunos.map(a => `<option value=${a.id}>${esc(a.name)}</option>`).join('')}</select></label>
+      <label>Dia<input id=agD type=date value=${ds}></label><label>Horário<input id=agH type=time value="07:00" step=300></label>
+      <label>Duração<select id=agT><option value=30>30 min</option><option value=45>45 min</option><option value=60 selected>1 hora</option><option value=90>1h30</option></select></label>
+      <label>Local (opcional)<input id=agL placeholder="Academia, online, casa do aluno…"></label></div>
+      <label class=chk><input type=checkbox id=agR checked> Repetir toda semana neste dia e horário</label>
+      <label id=agRw>Por quantas semanas?<select id=agW><option>4</option><option>8</option><option selected>12</option><option>26</option><option>52</option></select></label>
+      <button class=p id=agS>Salvar na agenda</button> <p id=agM class=err></p></div>`;
+    box.querySelector('#agR').onchange = e => box.querySelector('#agRw').hidden = !e.target.checked;
+    box.querySelector('#agS').onclick = async () => { const d = box.querySelector('#agD').value, t = box.querySelector('#agH').value; if (!d || !t) return box.querySelector('#agM').textContent = 'Escolha o dia e o horário.';
+      const dt = new Date(`${d}T${t}:00`), semanas = box.querySelector('#agR').checked ? +box.querySelector('#agW').value : 1;
+      box.querySelector('#agS').disabled = true;
+      const r = await sb.rpc('agenda_create', { p_student: box.querySelector('#agA').value, p_starts: dt.toISOString(), p_duration: +box.querySelector('#agT').value, p_weeks: semanas, p_place: box.querySelector('#agL').value.trim() || null, p_note: null });
+      if (r.error) { box.querySelector('#agS').disabled = false; return box.querySelector('#agM').textContent = ptErr(r.error.message); }
+      agSemana = segunda(dt); agenda(); };
+  };
+}
 
 // ---------- atlas de músculos (aba didática)
 async function musculos() {
@@ -699,7 +772,7 @@ async function studentView(token, preview = false) {
   // --- início: escolher o treino do dia
   const home = () => { stopRest(); wk = null; document.title = 'DE HOJE'; unwake();
     let h = `${offline ? '<div class=msg id=offb><b>📴 Modo offline</b><p>Pode treinar normalmente. Seus resultados ficam guardados no celular e vão para o treinador quando a internet voltar.</p></div>' : ''}<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
-    if (!P.workouts.length) { app.innerHTML = h + '<p class=muted>Seu treino ainda não foi cadastrado.</p>'; return; }
+    if (!P.workouts.length) { app.innerHTML = h + '<div id=agBox></div><p class=muted>Seu treino ainda não foi cadastrado.</p>'; minhasAulas(); return; }
     const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);
     const ss = (P.sessions || []).map(x => new Date(x)), wkc = ss.filter(x => x >= mon).length, m30 = ss.filter(x => now - x < 30 * 864e5).length;
     const days = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, n) => { const a = new Date(mon); a.setDate(mon.getDate() + n); const b = new Date(a); b.setDate(a.getDate() + 1); const did = ss.some(x => x >= a && x < b); return `<span class="dot${did ? ' on' : ''}${n === dow ? ' today' : ''}">${l}</span>`; }).join('');
@@ -716,11 +789,31 @@ async function studentView(token, preview = false) {
       const nEx = stepsOf(w).length;
       h += `<div class=wcard><div class=wc1><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${nEx} exercício${nEx === 1 ? '' : 's'}</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
+    h += '<div id=agBox></div>';
     h += `<div class=wcard><div class=wc1><div><b>📁 Meus arquivos</b><br><small class=muted>Fotos de progresso, avaliações, laudos e exames</small></div><button data-files>Abrir</button></div></div>`;
     if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
     if (P.student.code) h += `<p class=muted><small>Seu ID: <b>${esc(P.student.code)}</b></small></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. Depois de aberto uma vez com internet, o treino funciona mesmo sem internet.</small></p>';
-    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; };
+    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; minhasAulas(); };
+  // --- minhas aulas (agenda): o aluno confirma ou desmarca
+  const minhasAulas = async () => { const box = document.getElementById('agBox'); if (!box || preview) return;
+    let lista; try { const r = await sb.rpc('student_agenda', { p_token: token }); if (r.error) throw r.error; lista = r.data || []; } catch { return; }
+    const agora = Date.now(), prox = lista.filter(a => new Date(a.inicio).getTime() + a.duracao * 6e4 > agora).slice(0, 6);
+    if (!prox.length) return box.innerHTML = '';
+    const DS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    box.innerHTML = `<div class="wcard ag-aluno"><b>📅 Minhas aulas</b>${prox.map(a => { const t = new Date(a.inicio), fut = t.getTime() > agora;
+      const tag = a.status === 'confirmada' ? '<span class="ag-st ag-ok">Confirmada ✓</span>' : a.status === 'desmarcada' ? '<span class="ag-st ag-no">Desmarcada</span>' : a.status === 'realizada' ? '<span class="ag-st ag-done">Realizada</span>' : '<span class="ag-st ag-wait">Confirme sua presença</span>';
+      return `<div class=ag-al data-id=${a.id}><div><b>${DS[t.getDay()]}, ${t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</b>${a.local ? `<small class=muted> · ${esc(a.local)}</small>` : ''}<br>${tag}</div>
+        ${fut && a.status !== 'realizada' ? `<div class=ag-ac>${a.status !== 'confirmada' ? `<button class="sm p" data-cf=${a.id}>Confirmar</button>` : ''}${a.status !== 'desmarcada' ? `<button class=sm data-ds=${a.id}>Desmarcar</button>` : ''}</div>` : ''}</div>`; }).join('')}</div>`;
+    const acao = async (id, act, nota, btn) => { if (btn) btn.disabled = true; const r = await sb.rpc('student_agenda_set', { p_token: token, p_id: id, p_action: act, p_note: nota || null });
+      if (r.error) { if (btn) btn.disabled = false; return alert(ptErr(r.error.message)); }
+      sb.functions.invoke('agenda-aviso', { body: { token, id } }).catch(() => {}); minhasAulas(); };
+    box.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => acao(b.dataset.cf, 'confirmar', null, b));
+    box.querySelectorAll('[data-ds]').forEach(b => b.onclick = () => { const row = b.closest('.ag-al'); if (row.querySelector('.ag-mt')) return;
+      row.insertAdjacentHTML('beforeend', '<div class=ag-mt><input placeholder="Motivo (opcional)" maxlength=300><button class="sm danger">Confirmar desmarcação</button> <button class=sm data-vt>Voltar</button></div>');
+      const mt = row.querySelector('.ag-mt'); mt.querySelector('[data-vt]').onclick = () => mt.remove();
+      mt.querySelector('.danger').onclick = e => acao(b.dataset.ds, 'desmarcar', mt.querySelector('input').value.trim(), e.target); });
+  };
 
   // --- meus arquivos (o aluno escolhe se o treinador vê)
   const callF = async body => { const { data, error } = await sb.functions.invoke('student-files', { body: { token, ...body } });
