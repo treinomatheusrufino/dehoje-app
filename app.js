@@ -453,8 +453,8 @@ async function admin() {
     if (e) { b.disabled = false; b.textContent = '🗑 Excluir definitivamente'; return alert('Não foi possível excluir: ' + e); }
     alert(`Excluído ✓ (${data.files || 0} arquivo${data.files === 1 ? '' : 's'} apagado${data.files === 1 ? '' : 's'}). Avise a pessoa que o pedido foi atendido.`); admin(); });
   app.querySelectorAll('[data-drok]').forEach(b => b.onclick = () => confirm('Marcar este pedido como concluído?') && act('admin_close_data_request', { p_id: b.dataset.drok, p_status: 'concluido' }));
-  app.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => { const sug = b.dataset.pc ? (b.dataset.pc / 100).toFixed(2).replace('.', ',') : '49,90';
-    const v = prompt('Valor recebido (R$). Ex.: 49,90 para 1 mês ou 479,00 para 12 meses:', sug); if (v === null) return; const cents = Math.round(parseFloat(String(v).replace(/\./g, '').replace(',', '.')) * 100); if (!(cents > 0)) return alert('Valor inválido.');
+  app.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => { const sug = b.dataset.pc ? (b.dataset.pc / 100).toFixed(2).replace('.', ',') : '44,90';
+    const v = prompt('Valor recebido (R$). Ex.: 44,90 para 1 mês ou 538,80 para 12 meses:', sug); if (v === null) return; const cents = Math.round(parseFloat(String(v).replace(/\./g, '').replace(',', '.')) * 100); if (!(cents > 0)) return alert('Valor inválido.');
     const m = prompt('Quantos meses esse pagamento cobre? (1 a 24)', '1'); if (m === null) return; const months = parseInt(m, 10); if (!(months >= 1 && months <= 24)) return alert('Número de meses inválido.');
     const met = prompt('Forma de pagamento (Pix, cartão, dinheiro…):', 'Pix'); if (met === null) return;
     const lim = prompt('Limite de alunos neste plano (deixe vazio para ilimitado):', ''); if (lim === null) return; const max = lim.trim() ? parseInt(lim, 10) : null;
