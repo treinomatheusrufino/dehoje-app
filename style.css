@@ -131,3 +131,19 @@ footer.lgpd a{color:var(--g)}
 .atlas-exfig img{max-width:260px;width:100%;display:block;margin:0 auto}
 .modal.full .box{max-height:94vh}
 @media (max-width:640px){.atlas-grid{grid-template-columns:1fr}.atlas-corpo svg{max-height:56vh}.atlas-info{position:static}}
+/* aba Didática */
+.did-tabs{display:flex;gap:4px;background:#F1F3F2;border-radius:12px;padding:4px;margin:6px 0 14px}
+.did-tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 6px;font-weight:700;font-size:15px;color:var(--g)}
+.did-tabs button.on{background:#fff;color:var(--n);box-shadow:0 1px 3px #0002}
+.did .atlas h2{font-size:18px;margin-top:4px}
+.did-filtros{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin:6px 0 12px}
+.did-filtros button{flex:0 0 auto;border:1px solid var(--b);background:#fff;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600}
+.did-filtros button.on{background:var(--o);border-color:var(--o);color:#fff}
+.did-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.did-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:4px;border:1px solid var(--b);background:#fff;border-radius:14px;padding:8px 10px 12px;font:inherit;color:inherit}
+.did-card img{width:100%;aspect-ratio:160/150;background:#F5F7F6;border-radius:10px}
+.did-card b{font-size:14.5px;line-height:1.25}
+.did-dose{display:inline-block;background:#DCFCE7;color:#15803D;border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:600}
+.did-reg{display:inline-block;color:var(--g);font-size:12.5px}
+.did-ficha img{width:100%;max-width:320px;display:block;margin:0 auto 6px;background:#F5F7F6;border-radius:14px}
+.did-ficha ol{padding-left:20px;margin:6px 0}.did-ficha li{margin:6px 0}

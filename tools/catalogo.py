@@ -47,8 +47,10 @@ def supine(hip=(86, 126), torso=-90, **kw):
     return pose(hip, torso, **kw)
 
 def hook(hip=(84, 126), torso=-90, foot=(116, 132), **kw):  # deitado de costas, joelhos dobrados
-    kw.setdefault('nU', 90); kw.setdefault('nL', 90)
-    return pose(hip, torso, nA=foot, fA=foot, knee='up', **kw)
+    kw.setdefault('nU', 90); kw.setdefault('nL', 90); kw.setdefault('knee', 'up')
+    if 'nT' not in kw: kw.setdefault('nA', foot)
+    if 'fT' not in kw: kw.setdefault('fA', foot)
+    return pose(hip, torso, **kw)
 
 def prone(hip=(72, 126), torso=90, **kw):
     kw.setdefault('nT', -90); kw.setdefault('nS', -90); kw.setdefault('fT', -90); kw.setdefault('fS', -90)
@@ -107,9 +109,9 @@ HIP = dict(nU=-20, nL=40)
 
 E = []  # lista final
 
-def ex(name, folder, group, equip, A, B=None, hl=(), props=(), static=(), aliases=(), how=None, **kw):
+def ex(name, folder, group, equip, A, B=None, hl=(), props=(), static=(), aliases=(), how=None, regiao=None, dose=None, passos=None, secao=None, **kw):
     E.append(dict(name=name, folder=folder, group=group, equip=equip, A=A, B=B or A, hl=list(hl), props=list(props),
-                  static=list(static), aliases=list(aliases), how=how, kw=kw))
+                  static=list(static), aliases=list(aliases), how=how, regiao=regiao, dose=dose, passos=passos, secao=secao, kw=kw))
 
 CF, HY, PI, ES, MO = '13-crossfit', '14-hyrox', '15-pilates', '16-estabilizacao', '17-mobilidade-funcional'
 BOX = ('caixa', 108, 140, 18)
@@ -401,3 +403,5 @@ ex('Lançamento de medicine ball no chão (slam ball)', CF, 'CrossFit — Condic
 ex('Corda naval (battle rope)', CF, 'CrossFit — Condicionamento', 'corda-naval', sq(.5, torso=160, nU=60, nL=80), sq(.5, torso=160, nU=30, nL=50), ['ombro', 'braco', 'core'], [('corda_naval',)], aliases=['battle rope', 'corda naval', 'cordas navais'])
 ex('Arremesso de medicine ball no peito (chest pass)', CF, 'CrossFit — Condicionamento', 'medicine-ball', split(**CHEST), split(**FWD), ['peito', 'braco'], [('bola',)], aliases=['chest pass', 'passe de peito com medicine ball'])
 ex('Arremesso rotacional de medicine ball na parede', ES, 'Estabilização — Equilíbrio e core', 'medicine-ball', sq(.3, torso=170, nU=-40, nL=30), sq(.3, torso=172, nU=80, nL=90), ['core'], [('bola',)], [('parede', 140)], aliases=['rotational throw', 'arremesso rotacional', 'medicine ball rotacional'])
+
+from catalogo_mob import *  # noqa: lote 3 (mobilidade e alongamentos)

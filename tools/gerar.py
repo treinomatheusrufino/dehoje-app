@@ -24,5 +24,12 @@ for e in catalogo.E:
         open(os.path.join(pv, sl + '__B.svg'), 'w').write(render(e['name'], e['B'], e['B'], hl=e['hl'], props=e['props'], static=e['static'], **e['kw']))
     rows.append(dict(slug=sl, name=e['name'], muscle_group=e['group'], equip=e['equip'], image_path=f"exercicios/{e['folder']}/{sl}.svg",
                      how_to=e['how'], aliases=sorted(set([e['name']] + e['aliases']), key=str.lower)))
+did = {'mobilidade': [], 'alongamento': []}
+for e in catalogo.E:
+    if e.get('secao'):
+        sl = slug(e['name'])
+        did[e['secao']].append(dict(nome=e['name'], img=f"exercicios/{e['folder']}/{sl}.svg", regiao=e['regiao'], dose=e['dose'], passos=e['passos']))
+open(os.path.join(ROOT, '..', 'didatica_dados.js'), 'w').write('// gerado por tools/gerar.py — não editar à mão\nexport const DIDATICA = ' + json.dumps(did, ensure_ascii=False, indent=1) + ';\n')
+print(len(did['mobilidade']), 'mobilidade,', len(did['alongamento']), 'alongamentos na Didática')
 json.dump(rows, open(os.path.join(os.path.dirname(__file__), 'lote2.json'), 'w'), ensure_ascii=False, indent=1)
 print(len(rows), 'exercícios gerados')

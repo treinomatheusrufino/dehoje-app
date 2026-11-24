@@ -103,7 +103,7 @@ def render(name, A, B=None, hl=(), props=(), static=(), floor=True, far_arm=Fals
         out.append(draw_static(s))
     # elementos presos ao corpo que ficam atrás (cabos, elásticos)
     for p in props:
-        if p[0] in ('cabo', 'elastico', 'corda_naval', 'corda_pular', 'trx'):
+        if p[0] in ('cabo', 'elastico', 'corda_naval', 'corda_pular', 'trx', 'liga'):
             out.append(draw_prop(p, ja, jb))
     # perna de trás e braço de trás (cinza)
     if far_leg:
@@ -123,7 +123,7 @@ def render(name, A, B=None, hl=(), props=(), static=(), floor=True, far_arm=Fals
     ea = eye(ja, head_tilt); eb = eye(jb, head_tilt)
     out.append(path(pts(ea), pts(eb), P, 2.5))
     for p in props:
-        if p[0] not in ('cabo', 'elastico', 'corda_naval', 'corda_pular', 'trx'):
+        if p[0] not in ('cabo', 'elastico', 'corda_naval', 'corda_pular', 'trx', 'liga'):
             out.append(draw_prop(p, ja, jb))
     out.append('</svg>')
     return ''.join(out)
@@ -183,6 +183,11 @@ def draw_prop(p, ja, jb):
             top = (c[0] - 4, c[1] - 70) if up else (c[0] - 4, 139)
             return f'M{f(c[0])} {f(c[1])}Q{f(top[0] + (-30 if up else 30))} {f(top[1])} {f(c[0] - 2)} {f(c[1] + 1)}'
         return path(arc(ca, True), arc(cb, False), S, 2)
+    if kind == 'liga':  # faixa/elástico ligando duas articulações (ex.: mão e pé)
+        a2, b2 = hand_pt(ja, o['b']), hand_pt(jb, o['b'])
+        return path(pts([ca, a2]), pts([cb, b2]), S, 2, '4 3')
+    if kind == 'bastao':  # bastão/cabo de vassoura na mão (visto de lado = ponto)
+        return circle(ca, cb, 3.5, P)
     if kind == 'pe_circulo':  # alvo de wall ball / marca
         return circle(o['c'], o['c'], o.get('r', 6), 'none', B, 2)
     raise ValueError(kind)
@@ -221,6 +226,10 @@ def draw_static(s):
     if k == 'reformer':
         return (path('M14 118L146 118', 'M14 118L146 118', B, 3) + path('M20 118L20 136M140 118L140 136', 'M20 118L20 136M140 118L140 136', B, 2)
                 + path('M138 118L138 92', 'M138 118L138 92', B, 4))
+    if k == 'rolo':
+        _, c = s; return circle(c, c, 7, 'none', B, 3)
+    if k == 'cadeira':
+        _, x, y = s; return path(pts([(x - 14, y), (x + 14, y)]), pts([(x - 14, y), (x + 14, y)]), B, 4) + path(pts([(x - 12, y), (x - 12, 136)]), pts([(x - 12, y), (x - 12, 136)]), B, 2) + path(pts([(x + 12, y), (x + 12, 136)]), pts([(x + 12, y), (x + 12, 136)]), B, 2) + path(pts([(x - 14, y), (x - 16, y - 30)]), pts([(x - 14, y), (x - 16, y - 30)]), B, 3)
     if k == 'faixa_chao':
         _, x0, x1 = s; return path(pts([(x0, 136), (x1, 136)]), pts([(x0, 136), (x1, 136)]), G, 3)
     raise ValueError(k)

@@ -8,8 +8,8 @@
   "how_to": null,
   "aliases": [
    "agachamento crossfit",
-   "Air squat",
-   "air squat"
+   "air squat",
+   "Air squat"
   ]
  },
  {
@@ -63,8 +63,8 @@
    "agachamento com barra acima da cabeca",
    "agachamento overhead",
    "ohs",
-   "overhead squat",
-   "Overhead squat"
+   "Overhead squat",
+   "overhead squat"
   ]
  },
  {
@@ -77,8 +77,8 @@
   "aliases": [
    "agachamento unilateral pistol",
    "pistol",
-   "Pistol squat",
-   "pistol squat"
+   "pistol squat",
+   "Pistol squat"
   ]
  },
  {
@@ -89,8 +89,8 @@
   "image_path": "exercicios/13-crossfit/box-jump.svg",
   "how_to": null,
   "aliases": [
-   "Box jump",
    "box jump",
+   "Box jump",
    "salto na caixa",
    "salto no caixote"
   ]
@@ -133,8 +133,8 @@
   "aliases": [
    "salto com joelhos no peito",
    "salto grupado",
-   "tuck jump",
-   "Tuck jump"
+   "Tuck jump",
+   "tuck jump"
   ]
  },
  {
@@ -244,8 +244,8 @@
   "aliases": [
    "caminhada do caranguejo",
    "caranguejo",
-   "crab walk",
-   "Crab walk"
+   "Crab walk",
+   "crab walk"
   ]
  },
  {
@@ -254,7 +254,7 @@
   "muscle_group": "Mobilidade — Posteriores e ombros",
   "equip": "peso-do-corpo",
   "image_path": "exercicios/17-mobilidade-funcional/inchworm-lagarta.svg",
-  "how_to": null,
+  "how_to": "1) Em pé, incline o tronco e apoie as mãos no chão, dobrando os joelhos se precisar. 2) Caminhe com as mãos à frente até a prancha. 3) Volte caminhando com as mãos e suba devagar.",
   "aliases": [
    "inchworm",
    "Inchworm (lagarta)",
@@ -273,8 +273,8 @@
    "arremesso",
    "clean",
    "levantamento olimpico clean",
-   "Power clean",
-   "power clean"
+   "power clean",
+   "Power clean"
   ]
  },
  {
@@ -300,8 +300,8 @@
   "aliases": [
    "clean completo",
    "full clean",
-   "Squat clean",
-   "squat clean"
+   "squat clean",
+   "Squat clean"
   ]
  },
  {
@@ -341,8 +341,8 @@
   "aliases": [
    "full snatch",
    "snatch completo",
-   "squat snatch",
-   "Squat snatch"
+   "Squat snatch",
+   "squat snatch"
   ]
  },
  {
@@ -381,8 +381,8 @@
   "aliases": [
    "arremesso completo",
    "c&j",
-   "Clean and jerk",
-   "clean and jerk"
+   "clean and jerk",
+   "Clean and jerk"
   ]
  },
  {
@@ -395,8 +395,8 @@
   "aliases": [
    "levantamento terra sumo com remada alta",
    "sdhp",
-   "sumo deadlift high pull",
-   "Sumo deadlift high pull"
+   "Sumo deadlift high pull",
+   "sumo deadlift high pull"
   ]
  },
  {
@@ -486,8 +486,8 @@
   "image_path": "exercicios/13-crossfit/devil-press.svg",
   "how_to": null,
   "aliases": [
-   "Devil press",
-   "devil press"
+   "devil press",
+   "Devil press"
   ]
  },
  {
@@ -498,8 +498,8 @@
   "image_path": "exercicios/13-crossfit/man-maker.svg",
   "how_to": null,
   "aliases": [
-   "Man maker",
    "man maker",
+   "Man maker",
    "manmaker"
   ]
  },
@@ -514,8 +514,8 @@
    "arranco com halter",
    "db snatch",
    "dumbbell snatch",
-   "Snatch com halter",
-   "snatch com halter"
+   "snatch com halter",
+   "Snatch com halter"
   ]
  },
  {
@@ -611,8 +611,8 @@
   "aliases": [
    "pes na barra",
    "t2b",
-   "toes to bar",
-   "Toes to bar"
+   "Toes to bar",
+   "toes to bar"
   ]
  },
  {
@@ -681,8 +681,8 @@
   "aliases": [
    "remada australiana na argola",
    "remada na argola",
-   "ring row",
-   "Ring row"
+   "Ring row",
+   "ring row"
   ]
  },
  {
@@ -722,8 +722,8 @@
   "how_to": null,
   "aliases": [
    "caminhada em parada de mao",
-   "Handstand walk",
-   "handstand walk"
+   "handstand walk",
+   "Handstand walk"
   ]
  },
  {
@@ -736,8 +736,8 @@
   "aliases": [
    "caminhada na parede",
    "subida na parede",
-   "wall walk",
-   "Wall walk"
+   "Wall walk",
+   "wall walk"
   ]
  },
  {
@@ -806,8 +806,8 @@
   "aliases": [
    "canoa",
    "hollow body",
-   "hollow hold",
-   "Hollow hold"
+   "Hollow hold",
+   "hollow hold"
   ]
  },
  {
@@ -819,8 +819,8 @@
   "how_to": null,
   "aliases": [
    "canoa balancando",
-   "hollow rock",
-   "Hollow rock"
+   "Hollow rock",
+   "hollow rock"
   ]
  },
  {
@@ -847,8 +847,8 @@
   "aliases": [
    "canivete",
    "v up",
-   "v-up",
-   "V-up"
+   "V-up",
+   "v-up"
   ]
  },
  {
@@ -890,8 +890,8 @@
   "aliases": [
    "ski",
    "ski erg",
-   "SkiErg",
-   "skierg"
+   "skierg",
+   "SkiErg"
   ]
  },
  {
@@ -1006,8 +1006,8 @@
   "aliases": [
    "bike",
    "bike erg",
-   "BikeErg",
-   "bikeerg"
+   "bikeerg",
+   "BikeErg"
   ]
  },
  {
@@ -1019,8 +1019,8 @@
   "how_to": null,
   "aliases": [
    "clean com saco de areia",
-   "sandbag clean",
-   "Sandbag clean"
+   "Sandbag clean",
+   "sandbag clean"
   ]
  },
  {
@@ -1369,8 +1369,8 @@
   "how_to": null,
   "aliases": [
    "canivete pilates",
-   "jackknife",
-   "Jackknife"
+   "Jackknife",
+   "jackknife"
   ]
  },
  {
@@ -1530,8 +1530,8 @@
   "aliases": [
    "enrolamento na parede",
    "roll down",
-   "Roll down na parede",
-   "roll down na parede"
+   "roll down na parede",
+   "Roll down na parede"
   ]
  },
  {
@@ -1705,8 +1705,8 @@
   "how_to": null,
   "aliases": [
    "short box",
-   "short box round back",
-   "Short box round back"
+   "Short box round back",
+   "short box round back"
   ]
  },
  {
@@ -1717,8 +1717,8 @@
   "image_path": "exercicios/15-pilates/long-box-pulling-straps.svg",
   "how_to": null,
   "aliases": [
-   "Long box pulling straps",
    "long box pulling straps",
+   "Long box pulling straps",
    "pulling straps"
   ]
  },
@@ -2540,8 +2540,8 @@
   "aliases": [
    "glute bridge march",
    "marcha na ponte",
-   "ponte com marcha",
-   "Ponte com marcha"
+   "Ponte com marcha",
+   "ponte com marcha"
   ]
  },
  {
@@ -2696,8 +2696,8 @@
   "image_path": "exercicios/16-estabilizacao/agachamento-no-bosu.svg",
   "how_to": null,
   "aliases": [
-   "agachamento no bosu",
    "Agachamento no bosu",
+   "agachamento no bosu",
    "bosu squat"
   ]
  },
@@ -2749,8 +2749,8 @@
   "how_to": null,
   "aliases": [
    "bosu plank",
-   "prancha no bosu",
-   "Prancha no bosu"
+   "Prancha no bosu",
+   "prancha no bosu"
   ]
  },
  {
@@ -2787,8 +2787,8 @@
   "image_path": "exercicios/16-estabilizacao/agachamento-no-trx.svg",
   "how_to": null,
   "aliases": [
-   "Agachamento no TRX",
    "agachamento no trx",
+   "Agachamento no TRX",
    "trx squat"
   ]
  },
@@ -2814,8 +2814,8 @@
   "image_path": "exercicios/16-estabilizacao/pike-no-trx.svg",
   "how_to": null,
   "aliases": [
-   "pike no trx",
    "Pike no TRX",
+   "pike no trx",
    "trx pike"
   ]
  },
@@ -2890,7 +2890,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "peso-do-corpo",
   "image_path": "exercicios/17-mobilidade-funcional/agachamento-profundo-com-mobilidade.svg",
-  "how_to": null,
+  "how_to": "1) Desça no agachamento mais profundo que conseguir com os calcanhares no chão. 2) Mantenha o peito aberto e as mãos juntas à frente. 3) Mexa o quadril de um lado para o outro, com calma.",
   "aliases": [
    "agachamento profundo",
    "Agachamento profundo com mobilidade",
@@ -2904,7 +2904,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "peso-do-corpo",
   "image_path": "exercicios/17-mobilidade-funcional/world-s-greatest-stretch.svg",
-  "how_to": null,
+  "how_to": "1) Dê um passo grande à frente e apoie as mãos no chão. 2) Leve o cotovelo para perto do pé da frente. 3) Gire o tronco abrindo o braço para o teto e troque de lado.",
   "aliases": [
    "melhor alongamento do mundo",
    "wgs",
@@ -2918,7 +2918,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/alongamento-de-flexor-do-quadril-ajoelhado.svg",
-  "how_to": null,
+  "how_to": "1) Fique meio ajoelhado com um pé à frente. 2) Contraia o glúteo da perna de trás e leve o quadril à frente. 3) Suba o braço do mesmo lado do joelho apoiado.",
   "aliases": [
    "Alongamento de flexor do quadril ajoelhado",
    "alongamento de psoas",
@@ -2932,7 +2932,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/mobilidade-toracica-em-quatro-apoios-thread-the-needle.svg",
-  "how_to": null,
+  "how_to": "1) Em quatro apoios, passe um braço por baixo do corpo. 2) Deixe o ombro e a cabeça descerem até o chão. 3) Volte abrindo o braço para o teto.",
   "aliases": [
    "mobilidade toracica",
    "Mobilidade torácica em quatro apoios (thread the needle)",
@@ -2946,7 +2946,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/livro-aberto-open-book-deitado-de-lado.svg",
-  "how_to": null,
+  "how_to": "1) Deite de lado com os joelhos dobrados à frente e os braços estendidos juntos. 2) Abra o braço de cima por cima do corpo até o outro lado. 3) Joelhos ficam juntos. Siga a mão com o olhar.",
   "aliases": [
    "livro aberto",
    "Livro aberto (open book) deitado de lado",
@@ -2960,7 +2960,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/90-90-de-quadril.svg",
-  "how_to": null,
+  "how_to": "1) Sente com as duas pernas dobradas a 90 graus, uma à frente e outra ao lado. 2) Mantenha o tronco alto e incline à frente sobre a perna da frente. 3) Gire os joelhos para o outro lado e repita.",
   "aliases": [
    "90 90",
    "90/90",
@@ -2974,7 +2974,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/cachorro-olhando-para-baixo.svg",
-  "how_to": null,
+  "how_to": "1) Comece em prancha e leve o quadril para cima e para trás. 2) Empurre o chão com as mãos e leve os calcanhares em direção ao chão. 3) Pode dobrar um pouco os joelhos para manter a coluna reta.",
   "aliases": [
    "cachorro olhando para baixo",
    "Cachorro olhando para baixo",
@@ -2988,7 +2988,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/cobra-extensao-lombar-no-solo.svg",
-  "how_to": null,
+  "how_to": "1) Deite de bruços com as mãos ao lado do peito. 2) Estique os braços levantando o tronco, quadril no chão. 3) Ombros longe das orelhas.",
   "aliases": [
    "cobra",
    "Cobra (extensão lombar no solo)",
@@ -3002,7 +3002,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "colchonete",
   "image_path": "exercicios/17-mobilidade-funcional/postura-da-crianca.svg",
-  "how_to": null,
+  "how_to": "1) Ajoelhe e sente sobre os calcanhares. 2) Incline o tronco à frente e estique os braços no chão. 3) Respire fundo soltando as costas.",
   "aliases": [
    "balasana",
    "childs pose",
@@ -3016,7 +3016,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "peso-do-corpo",
   "image_path": "exercicios/17-mobilidade-funcional/alongamento-de-posteriores-em-pe.svg",
-  "how_to": null,
+  "how_to": "1) Em pé, pés juntos. 2) Incline o tronco à frente deixando os braços pendurados. 3) Dobre levemente os joelhos se a lombar puxar.",
   "aliases": [
    "alongamento de isquiotibiais em pe",
    "alongamento de posterior",
@@ -3029,7 +3029,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "parede",
   "image_path": "exercicios/17-mobilidade-funcional/mobilidade-de-tornozelo-joelho-a-parede.svg",
-  "how_to": null,
+  "how_to": "1) Fique de frente para a parede com um pé a alguns centímetros dela. 2) Leve o joelho até tocar a parede sem tirar o calcanhar do chão. 3) Afaste o pé aos poucos para progredir.",
   "aliases": [
    "joelho na parede",
    "knee to wall",
@@ -3043,7 +3043,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "peso-do-corpo",
   "image_path": "exercicios/17-mobilidade-funcional/gato-camelo-em-pe-cat-cow-em-pe.svg",
-  "how_to": null,
+  "how_to": "1) Em pé, joelhos levemente dobrados e mãos nas coxas. 2) Arredonde as costas olhando para o umbigo. 3) Depois estufe o peito e olhe à frente.",
   "aliases": [
    "cat cow em pe",
    "gato camelo em pe",
@@ -3056,7 +3056,7 @@
   "muscle_group": "Mobilidade — Quadril e coluna",
   "equip": "peso-do-corpo",
   "image_path": "exercicios/17-mobilidade-funcional/rotacao-de-quadril-em-pe-abrir-o-portao.svg",
-  "how_to": null,
+  "how_to": "1) Em pé, suba um joelho à frente. 2) Abra o joelho para o lado, como se abrisse um portão. 3) Volte e troque de perna.",
   "aliases": [
    "abrir o portao",
    "hip opener",
@@ -3088,8 +3088,8 @@
   "aliases": [
    "joelho alto",
    "skipping",
-   "Skipping alto",
-   "skipping alto"
+   "skipping alto",
+   "Skipping alto"
   ]
  },
  {
@@ -3127,8 +3127,8 @@
   "image_path": "exercicios/17-mobilidade-funcional/sprawl.svg",
   "how_to": null,
   "aliases": [
-   "sprawl",
-   "Sprawl"
+   "Sprawl",
+   "sprawl"
   ]
  },
  {
@@ -3223,6 +3223,829 @@
    "Arremesso rotacional de medicine ball na parede",
    "medicine ball rotacional",
    "rotational throw"
+  ]
+ },
+ {
+  "slug": "balanco-de-perna-frente-e-tras",
+  "name": "Balanço de perna frente e trás",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/balanco-de-perna-frente-e-tras.svg",
+  "how_to": "1) Apoie uma mão na parede e fique em pé sobre uma perna. 2) Balance a outra perna para a frente e para trás, solta e controlada. 3) Aumente a amplitude aos poucos, sem forçar a lombar.",
+  "aliases": [
+   "balanco de perna",
+   "Balanço de perna frente e trás",
+   "leg swing",
+   "pendulo de perna"
+  ]
+ },
+ {
+  "slug": "circulos-de-quadril-em-pe",
+  "name": "Círculos de quadril em pé",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/circulos-de-quadril-em-pe.svg",
+  "how_to": "1) Em pé, apoie uma mão na parede. 2) Suba o joelho até a altura do quadril. 3) Abra o joelho para o lado e leve para trás desenhando um círculo grande. Depois inverta o sentido.",
+  "aliases": [
+   "abrir e fechar o portao",
+   "circulo de quadril",
+   "Círculos de quadril em pé",
+   "hip circles"
+  ]
+ },
+ {
+  "slug": "rotacao-de-quadril-sentado-limpador-de-para-brisa",
+  "name": "Rotação de quadril sentado (limpador de para-brisa)",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/rotacao-de-quadril-sentado-limpador-de-para-brisa.svg",
+  "how_to": "1) Sente com os joelhos dobrados e os pés afastados, mãos apoiadas atrás. 2) Deixe os dois joelhos caírem para um lado, devagar. 3) Volte ao centro e leve para o outro lado.",
+  "aliases": [
+   "limpador de parabrisa",
+   "rotacao de quadril sentado",
+   "Rotação de quadril sentado (limpador de para-brisa)",
+   "windshield wipers"
+  ]
+ },
+ {
+  "slug": "balanco-para-tras-em-quatro-apoios-rock-back",
+  "name": "Balanço para trás em quatro apoios (rock back)",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/balanco-para-tras-em-quatro-apoios-rock-back.svg",
+  "how_to": "1) Fique em quatro apoios, mãos embaixo dos ombros e joelhos embaixo do quadril. 2) Leve o quadril para trás em direção aos calcanhares, mantendo a coluna longa. 3) Volte à posição inicial sem arredondar as costas.",
+  "aliases": [
+   "balanco em quatro apoios",
+   "Balanço para trás em quatro apoios (rock back)",
+   "quadrupede rock back",
+   "rock back"
+  ]
+ },
+ {
+  "slug": "sapo-em-quatro-apoios-frog-rock",
+  "name": "Sapo em quatro apoios (frog rock)",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/sapo-em-quatro-apoios-frog-rock.svg",
+  "how_to": "1) Apoie os antebraços no chão e afaste bem os joelhos, com os pés para fora. 2) Leve o quadril para trás até sentir a parte interna da coxa. 3) Volte devagar. Não force o joelho.",
+  "aliases": [
+   "frog rock",
+   "mobilidade de adutor em quatro apoios",
+   "sapo",
+   "Sapo em quatro apoios (frog rock)"
+  ]
+ },
+ {
+  "slug": "avanco-do-homem-aranha-spiderman-lunge",
+  "name": "Avanço do homem-aranha (spiderman lunge)",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/avanco-do-homem-aranha-spiderman-lunge.svg",
+  "how_to": "1) Comece em prancha alta. 2) Leve um pé para fora da mão, do mesmo lado. 3) Afunde o quadril e aproxime o cotovelo do pé. Volte e troque de lado.",
+  "aliases": [
+   "avanco do homem aranha",
+   "Avanço do homem-aranha (spiderman lunge)",
+   "homem aranha",
+   "spiderman lunge"
+  ]
+ },
+ {
+  "slug": "joelho-ao-peito-caminhando",
+  "name": "Joelho ao peito caminhando",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/joelho-ao-peito-caminhando.svg",
+  "how_to": "1) Dê um passo e suba o joelho de trás em direção ao peito. 2) Abrace a canela e puxe por 2 segundos, ficando alto na perna de apoio. 3) Solte, dê outro passo e troque de perna.",
+  "aliases": [
+   "abraco de joelho",
+   "Joelho ao peito caminhando",
+   "joelho no peito caminhando",
+   "knee hug"
+  ]
+ },
+ {
+  "slug": "chute-com-perna-estendida-caminhando-frankenstein",
+  "name": "Chute com perna estendida caminhando (frankenstein)",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/chute-com-perna-estendida-caminhando-frankenstein.svg",
+  "how_to": "1) Estique um braço à frente na altura do ombro. 2) Chute a perna oposta estendida tentando tocar a mão. 3) Mantenha o tronco ereto e alterne a cada passo.",
+  "aliases": [
+   "Chute com perna estendida caminhando (frankenstein)",
+   "chute de soldado",
+   "frankenstein walk",
+   "toy soldier"
+  ]
+ },
+ {
+  "slug": "agachamento-sumo-com-abertura-prying-squat",
+  "name": "Agachamento sumô com abertura (prying squat)",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/agachamento-sumo-com-abertura-prying-squat.svg",
+  "how_to": "1) Desça em um agachamento profundo com os pés um pouco afastados. 2) Use os cotovelos para empurrar os joelhos para fora. 3) Balance o peso de um lado para o outro, com calma.",
+  "aliases": [
+   "agachamento com abertura",
+   "Agachamento sumô com abertura (prying squat)",
+   "goblet prying",
+   "prying squat"
+  ]
+ },
+ {
+  "slug": "escorpiao-deitado-de-brucos",
+  "name": "Escorpião deitado de bruços",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/escorpiao-deitado-de-brucos.svg",
+  "how_to": "1) Deite de bruços com os braços abertos para os lados. 2) Leve o calcanhar de uma perna em direção à mão oposta, girando o quadril. 3) Ombros ficam no chão. Volte e troque.",
+  "aliases": [
+   "escorpiao",
+   "escorpiao deitado",
+   "Escorpião deitado de bruços",
+   "scorpion"
+  ]
+ },
+ {
+  "slug": "dobradica-de-quadril-com-bastao",
+  "name": "Dobradiça de quadril com bastão",
+  "muscle_group": "Mobilidade — Quadril",
+  "equip": "bastao",
+  "image_path": "exercicios/17-mobilidade-funcional/dobradica-de-quadril-com-bastao.svg",
+  "how_to": "1) Segure um bastão nas costas tocando cabeça, meio das costas e quadril. 2) Empurre o quadril para trás inclinando o tronco, sem perder os três pontos de contato. 3) Volte apertando o glúteo. É o movimento base do terra.",
+  "aliases": [
+   "dobradica de quadril",
+   "Dobradiça de quadril com bastão",
+   "hip hinge",
+   "hip hinge com bastao"
+  ]
+ },
+ {
+  "slug": "rotacao-toracica-em-quatro-apoios-mao-na-nuca",
+  "name": "Rotação torácica em quatro apoios (mão na nuca)",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/rotacao-toracica-em-quatro-apoios-mao-na-nuca.svg",
+  "how_to": "1) Em quatro apoios, coloque uma mão atrás da cabeça. 2) Leve o cotovelo em direção ao braço de apoio. 3) Gire abrindo o cotovelo para o teto, seguindo com o olhar.",
+  "aliases": [
+   "cotovelo ao teto",
+   "rotacao toracica em quatro apoios",
+   "Rotação torácica em quatro apoios (mão na nuca)",
+   "thoracic rotation"
+  ]
+ },
+ {
+  "slug": "extensao-toracica-no-rolo",
+  "name": "Extensão torácica no rolo",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "rolo",
+  "image_path": "exercicios/17-mobilidade-funcional/extensao-toracica-no-rolo.svg",
+  "how_to": "1) Deite com o rolo atravessado embaixo do meio das costas, mãos atrás da cabeça. 2) Deixe a parte de cima das costas descer sobre o rolo, sem arquear a lombar. 3) Suba e mude o rolo um pouco de lugar.",
+  "aliases": [
+   "extensao toracica no rolo",
+   "Extensão torácica no rolo",
+   "foam roller toracica",
+   "rolo na toracica"
+  ]
+ },
+ {
+  "slug": "extensao-toracica-sentado-na-cadeira",
+  "name": "Extensão torácica sentado na cadeira",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "cadeira",
+  "image_path": "exercicios/17-mobilidade-funcional/extensao-toracica-sentado-na-cadeira.svg",
+  "how_to": "1) Sente com as mãos atrás da cabeça e o encosto na altura do meio das costas. 2) Incline a parte de cima das costas para trás sobre o encosto. 3) Volte devagar. Ótimo para quem passa o dia sentado.",
+  "aliases": [
+   "extensao toracica na cadeira",
+   "Extensão torácica sentado na cadeira",
+   "mobilidade toracica sentado"
+  ]
+ },
+ {
+  "slug": "flexao-e-extensao-da-coluna-sentado",
+  "name": "Flexão e extensão da coluna sentado",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/flexao-e-extensao-da-coluna-sentado.svg",
+  "how_to": "1) Sente na beira da cadeira com as mãos nos joelhos. 2) Arredonde as costas olhando para o umbigo. 3) Depois estufe o peito e olhe para a frente. Respire junto com o movimento.",
+  "aliases": [
+   "cat cow sentado",
+   "Flexão e extensão da coluna sentado",
+   "gato camelo sentado"
+  ]
+ },
+ {
+  "slug": "respiracao-do-crocodilo",
+  "name": "Respiração do crocodilo",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/respiracao-do-crocodilo.svg",
+  "how_to": "1) Deite de bruços com a testa apoiada nas mãos. 2) Puxe o ar pelo nariz enchendo a barriga e as costas contra o chão. 3) Solte o ar devagar pela boca, relaxando.",
+  "aliases": [
+   "crocodile breathing",
+   "respiracao crocodilo",
+   "Respiração do crocodilo"
+  ]
+ },
+ {
+  "slug": "avanco-com-rotacao-de-tronco",
+  "name": "Avanço com rotação de tronco",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/avanco-com-rotacao-de-tronco.svg",
+  "how_to": "1) Dê um passo à frente e desça no avanço. 2) Com os braços à frente, gire o tronco para o lado da perna da frente. 3) Volte ao centro, levante e troque de perna.",
+  "aliases": [
+   "avanco com giro",
+   "Avanço com rotação de tronco",
+   "lunge com rotacao",
+   "lunge twist"
+  ]
+ },
+ {
+  "slug": "agachamento-profundo-com-rotacao-toracica",
+  "name": "Agachamento profundo com rotação torácica",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/agachamento-profundo-com-rotacao-toracica.svg",
+  "how_to": "1) Desça em agachamento profundo e apoie uma mão no chão. 2) Gire o tronco e leve o outro braço para o teto. 3) Siga a mão com o olhar e troque de lado.",
+  "aliases": [
+   "agachamento com rotacao",
+   "Agachamento profundo com rotação torácica",
+   "deep squat rotation"
+  ]
+ },
+ {
+  "slug": "rotacao-de-tronco-em-pe-com-bastao",
+  "name": "Rotação de tronco em pé com bastão",
+  "muscle_group": "Mobilidade — Coluna e torácica",
+  "equip": "bastao",
+  "image_path": "exercicios/17-mobilidade-funcional/rotacao-de-tronco-em-pe-com-bastao.svg",
+  "how_to": "1) Apoie um bastão nos ombros atrás do pescoço. 2) Com o quadril parado, gire o tronco para um lado e para o outro. 3) Faça devagar, sem dar trancos.",
+  "aliases": [
+   "rotacao com bastao",
+   "Rotação de tronco em pé com bastão",
+   "torcao com cabo de vassoura"
+  ]
+ },
+ {
+  "slug": "circulos-de-braco",
+  "name": "Círculos de braço",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/circulos-de-braco.svg",
+  "how_to": "1) Em pé, braços estendidos ao lado do corpo. 2) Desenhe círculos grandes com os braços, passando perto das orelhas. 3) Depois inverta o sentido.",
+  "aliases": [
+   "arm circles",
+   "circulos de braco",
+   "Círculos de braço",
+   "rotacao de bracos"
+  ]
+ },
+ {
+  "slug": "deslizamento-na-parede-wall-slide",
+  "name": "Deslizamento na parede (wall slide)",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "parede",
+  "image_path": "exercicios/17-mobilidade-funcional/deslizamento-na-parede-wall-slide.svg",
+  "how_to": "1) Encoste costas, cabeça e braços na parede, cotovelos dobrados em W. 2) Deslize os braços para cima até formar um Y, sem desencostar. 3) Desça devagar contraindo as escápulas.",
+  "aliases": [
+   "anjo na parede",
+   "deslizamento na parede",
+   "Deslizamento na parede (wall slide)",
+   "wall slide"
+  ]
+ },
+ {
+  "slug": "passagem-de-bastao-shoulder-dislocate",
+  "name": "Passagem de bastão (shoulder dislocate)",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "bastao",
+  "image_path": "exercicios/17-mobilidade-funcional/passagem-de-bastao-shoulder-dislocate.svg",
+  "how_to": "1) Segure um bastão ou cabo de vassoura com as mãos bem afastadas. 2) Com os braços estendidos, leve o bastão por cima da cabeça até atrás do corpo. 3) Volte pelo mesmo caminho. Afaste mais as mãos se sentir dor.",
+  "aliases": [
+   "pass through",
+   "passagem de bastao",
+   "Passagem de bastão (shoulder dislocate)",
+   "shoulder dislocate"
+  ]
+ },
+ {
+  "slug": "anjos-no-chao",
+  "name": "Anjos no chão",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/anjos-no-chao.svg",
+  "how_to": "1) Deite de costas com os joelhos dobrados e os braços em W no chão. 2) Deslize os braços acima da cabeça sem tirar do chão. 3) Volte ao W apertando as escápulas.",
+  "aliases": [
+   "anjos no chao",
+   "Anjos no chão",
+   "floor angels",
+   "snow angels"
+  ]
+ },
+ {
+  "slug": "flexao-escapular-scapular-push-up",
+  "name": "Flexão escapular (scapular push-up)",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/flexao-escapular-scapular-push-up.svg",
+  "how_to": "1) Fique em prancha alta com os braços esticados. 2) Sem dobrar os cotovelos, deixe o peito descer entre as escápulas. 3) Empurre o chão afastando as escápulas e arredondando um pouco as costas.",
+  "aliases": [
+   "flexao escapular",
+   "Flexão escapular (scapular push-up)",
+   "push up plus",
+   "scapular push up"
+  ]
+ },
+ {
+  "slug": "ativacao-escapular-na-barra-scapular-pull-up",
+  "name": "Ativação escapular na barra (scapular pull-up)",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "barra-fixa",
+  "image_path": "exercicios/17-mobilidade-funcional/ativacao-escapular-na-barra-scapular-pull-up.svg",
+  "how_to": "1) Pendure-se na barra com os braços esticados. 2) Sem dobrar os cotovelos, puxe os ombros para baixo e para trás. 3) Solte devagar até voltar a ficar pendurado.",
+  "aliases": [
+   "ativacao escapular",
+   "Ativação escapular na barra (scapular pull-up)",
+   "escapula na barra",
+   "scapular pull up"
+  ]
+ },
+ {
+  "slug": "rotacao-de-ombro-deitado-sleeper",
+  "name": "Rotação de ombro deitado (sleeper)",
+  "muscle_group": "Mobilidade — Ombros",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/rotacao-de-ombro-deitado-sleeper.svg",
+  "how_to": "1) Deite de lado com o braço de baixo à frente, cotovelo dobrado a 90 graus. 2) Com a outra mão, empurre o punho em direção ao chão, devagar. 3) Pare quando sentir a parte de trás do ombro alongar.",
+  "aliases": [
+   "alongamento do dorminhoco",
+   "rotacao interna deitado",
+   "Rotação de ombro deitado (sleeper)",
+   "sleeper stretch"
+  ]
+ },
+ {
+  "slug": "mobilidade-de-tornozelo-meio-ajoelhado",
+  "name": "Mobilidade de tornozelo meio ajoelhado",
+  "muscle_group": "Mobilidade — Tornozelo, punho e pescoço",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/mobilidade-de-tornozelo-meio-ajoelhado.svg",
+  "how_to": "1) Fique meio ajoelhado com o pé da frente inteiro no chão. 2) Leve o joelho da frente à frente, passando da ponta do pé, sem tirar o calcanhar. 3) Volte e repita.",
+  "aliases": [
+   "ankle rock",
+   "mobilidade de tornozelo ajoelhado",
+   "Mobilidade de tornozelo meio ajoelhado"
+  ]
+ },
+ {
+  "slug": "circulos-de-tornozelo-sentado",
+  "name": "Círculos de tornozelo sentado",
+  "muscle_group": "Mobilidade — Tornozelo, punho e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/circulos-de-tornozelo-sentado.svg",
+  "how_to": "1) Sente com as pernas estendidas. 2) Desenhe círculos grandes com a ponta dos pés. 3) Inverta o sentido na metade.",
+  "aliases": [
+   "ankle circles",
+   "circulos de tornozelo",
+   "Círculos de tornozelo sentado"
+  ]
+ },
+ {
+  "slug": "mobilidade-de-punho-em-quatro-apoios",
+  "name": "Mobilidade de punho em quatro apoios",
+  "muscle_group": "Mobilidade — Tornozelo, punho e pescoço",
+  "equip": "colchonete",
+  "image_path": "exercicios/17-mobilidade-funcional/mobilidade-de-punho-em-quatro-apoios.svg",
+  "how_to": "1) Em quatro apoios, mãos embaixo dos ombros e dedos para a frente. 2) Leve o peso do corpo para a frente sobre as mãos, sem tirar a palma do chão. 3) Volte. Depois repita com os dedos virados para os joelhos.",
+  "aliases": [
+   "aquecimento de punho",
+   "mobilidade de punho",
+   "Mobilidade de punho em quatro apoios",
+   "wrist rock"
+  ]
+ },
+ {
+  "slug": "mobilidade-de-pescoco-sim-com-a-cabeca",
+  "name": "Mobilidade de pescoço (sim com a cabeça)",
+  "muscle_group": "Mobilidade — Tornozelo, punho e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/17-mobilidade-funcional/mobilidade-de-pescoco-sim-com-a-cabeca.svg",
+  "how_to": "1) Em pé ou sentado, ombros relaxados. 2) Leve o queixo em direção ao peito, devagar. 3) Depois olhe para o teto sem jogar a cabeça. Nunca force.",
+  "aliases": [
+   "mobilidade cervical",
+   "mobilidade de pescoco",
+   "Mobilidade de pescoço (sim com a cabeça)"
+  ]
+ },
+ {
+  "slug": "alongamento-de-quadriceps-em-pe",
+  "name": "Alongamento de quadríceps em pé",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-quadriceps-em-pe.svg",
+  "how_to": "1) Em pé, apoie uma mão na parede. 2) Dobre um joelho e segure o pé atrás, levando o calcanhar ao glúteo. 3) Mantenha os joelhos juntos e o quadril encaixado.",
+  "aliases": [
+   "alongamento de quadriceps",
+   "Alongamento de quadríceps em pé",
+   "quadriceps em pe"
+  ]
+ },
+ {
+  "slug": "alongamento-de-quadriceps-deitado-de-lado",
+  "name": "Alongamento de quadríceps deitado de lado",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-quadriceps-deitado-de-lado.svg",
+  "how_to": "1) Deite de lado com a cabeça apoiada no braço. 2) Dobre o joelho de cima e segure o pé atrás. 3) Leve o joelho um pouco para trás até sentir a frente da coxa.",
+  "aliases": [
+   "Alongamento de quadríceps deitado de lado",
+   "quadriceps deitado de lado"
+  ]
+ },
+ {
+  "slug": "alongamento-de-quadriceps-no-sofa-couch-stretch",
+  "name": "Alongamento de quadríceps no sofá (couch stretch)",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "parede",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-quadriceps-no-sofa-couch-stretch.svg",
+  "how_to": "1) Ajoelhe de costas para a parede ou sofá e apoie o peito do pé de trás nela. 2) Coloque o outro pé à frente, como no avanço. 3) Suba o tronco e contraia o glúteo da perna de trás.",
+  "aliases": [
+   "Alongamento de quadríceps no sofá (couch stretch)",
+   "alongamento no sofa",
+   "couch stretch",
+   "quadriceps ajoelhado na parede"
+  ]
+ },
+ {
+  "slug": "alongamento-de-posteriores-sentado",
+  "name": "Alongamento de posteriores sentado",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-posteriores-sentado.svg",
+  "how_to": "1) Sente com as pernas estendidas e unidas. 2) Incline o tronco à frente a partir do quadril, levando as mãos aos pés. 3) Mantenha a coluna longa em vez de arredondar.",
+  "aliases": [
+   "alongamento de posterior sentado",
+   "Alongamento de posteriores sentado",
+   "sentar e alcancar"
+  ]
+ },
+ {
+  "slug": "alongamento-de-posteriores-deitado-com-faixa",
+  "name": "Alongamento de posteriores deitado com faixa",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "faixa",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-posteriores-deitado-com-faixa.svg",
+  "how_to": "1) Deite de costas e passe uma faixa ou toalha na sola do pé. 2) Eleve a perna estendida segurando as pontas da faixa. 3) A outra perna fica estendida no chão.",
+  "aliases": [
+   "alongamento com toalha",
+   "Alongamento de posteriores deitado com faixa",
+   "posterior com faixa"
+  ]
+ },
+ {
+  "slug": "alongamento-de-posteriores-com-pe-no-banco",
+  "name": "Alongamento de posteriores com pé no banco",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "banco",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-posteriores-com-pe-no-banco.svg",
+  "how_to": "1) Apoie o calcanhar em um banco baixo com a perna estendida. 2) Incline o tronco à frente com a coluna reta. 3) Sinta atrás da coxa, sem dor no joelho.",
+  "aliases": [
+   "alongamento de isquiotibiais no banco",
+   "Alongamento de posteriores com pé no banco",
+   "posterior no banco"
+  ]
+ },
+ {
+  "slug": "alongamento-de-panturrilha-na-parede",
+  "name": "Alongamento de panturrilha na parede",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "parede",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-panturrilha-na-parede.svg",
+  "how_to": "1) Apoie as mãos na parede e dê um passo grande para trás. 2) Mantenha o calcanhar de trás no chão e o joelho esticado. 3) Dobre o joelho da frente até sentir a panturrilha de trás.",
+  "aliases": [
+   "alongamento de gastrocnemio",
+   "Alongamento de panturrilha na parede",
+   "panturrilha na parede"
+  ]
+ },
+ {
+  "slug": "alongamento-de-panturrilha-no-degrau",
+  "name": "Alongamento de panturrilha no degrau",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "degrau",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-panturrilha-no-degrau.svg",
+  "how_to": "1) Fique com a ponta dos pés na borda de um degrau. 2) Deixe os calcanhares descerem abaixo da linha do degrau. 3) Segure em algo para ter equilíbrio.",
+  "aliases": [
+   "Alongamento de panturrilha no degrau",
+   "calcanhar abaixo do degrau",
+   "panturrilha no degrau"
+  ]
+ },
+ {
+  "slug": "alongamento-de-soleo-na-parede",
+  "name": "Alongamento de sóleo na parede",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "parede",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-soleo-na-parede.svg",
+  "how_to": "1) Na mesma posição do alongamento de panturrilha, com o passo mais curto. 2) Dobre os dois joelhos mantendo o calcanhar de trás no chão. 3) Sinta mais embaixo, perto do tendão de Aquiles.",
+  "aliases": [
+   "alongamento de soleo",
+   "Alongamento de sóleo na parede",
+   "soleo na parede"
+  ]
+ },
+ {
+  "slug": "borboleta-sentado-adutores",
+  "name": "Borboleta sentado (adutores)",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/borboleta-sentado-adutores.svg",
+  "how_to": "1) Sente e junte as solas dos pés, com os joelhos abertos. 2) Segure os pés e mantenha a coluna alta. 3) Incline o tronco à frente devagar ou empurre os joelhos com os cotovelos.",
+  "aliases": [
+   "alongamento de adutores sentado",
+   "borboleta",
+   "Borboleta sentado (adutores)",
+   "butterfly stretch"
+  ]
+ },
+ {
+  "slug": "pombo-alongamento-de-gluteo",
+  "name": "Pombo (alongamento de glúteo)",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/pombo-alongamento-de-gluteo.svg",
+  "how_to": "1) Dobre uma perna à frente com a canela atravessada e estenda a outra para trás. 2) Mantenha o quadril alinhado e apoie as mãos. 3) Incline o tronco sobre a perna da frente, respirando fundo.",
+  "aliases": [
+   "pigeon",
+   "pombo",
+   "Pombo (alongamento de glúteo)",
+   "pombo de yoga"
+  ]
+ },
+ {
+  "slug": "gluteo-em-figura-4-deitado",
+  "name": "Glúteo em figura 4 deitado",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/gluteo-em-figura-4-deitado.svg",
+  "how_to": "1) Deite de costas com os joelhos dobrados. 2) Cruze um tornozelo sobre o joelho oposto, formando um 4. 3) Segure atrás da coxa de baixo e puxe em direção ao peito.",
+  "aliases": [
+   "alongamento de piriforme",
+   "figura 4",
+   "Glúteo em figura 4 deitado",
+   "piriforme deitado"
+  ]
+ },
+ {
+  "slug": "gluteo-em-figura-4-sentado-na-cadeira",
+  "name": "Glúteo em figura 4 sentado na cadeira",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "cadeira",
+  "image_path": "exercicios/18-alongamentos/gluteo-em-figura-4-sentado-na-cadeira.svg",
+  "how_to": "1) Sente e apoie um tornozelo sobre o joelho oposto. 2) Mantenha a coluna reta. 3) Incline o tronco à frente até sentir o glúteo.",
+  "aliases": [
+   "figura 4 sentado",
+   "Glúteo em figura 4 sentado na cadeira",
+   "piriforme sentado"
+  ]
+ },
+ {
+  "slug": "flexor-do-quadril-em-pe-afundo",
+  "name": "Flexor do quadril em pé (afundo)",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/flexor-do-quadril-em-pe-afundo.svg",
+  "how_to": "1) Dê um passo grande à frente, com o calcanhar de trás levantado. 2) Encaixe o quadril, contraia o glúteo de trás e leve o corpo à frente. 3) Para alongar mais, suba o braço do lado da perna de trás.",
+  "aliases": [
+   "alongamento de iliopsoas",
+   "flexor de quadril em pe",
+   "Flexor do quadril em pé (afundo)",
+   "psoas em pe"
+  ]
+ },
+ {
+  "slug": "joelho-ao-peito-deitado",
+  "name": "Joelho ao peito deitado",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/joelho-ao-peito-deitado.svg",
+  "how_to": "1) Deite de costas com as pernas estendidas. 2) Puxe um joelho em direção ao peito com as duas mãos. 3) Relaxe a lombar no chão e troque de perna.",
+  "aliases": [
+   "alongamento de lombar deitado",
+   "joelho ao peito",
+   "Joelho ao peito deitado",
+   "knee to chest"
+  ]
+ },
+ {
+  "slug": "tibial-ajoelhado-sentar-sobre-os-pes",
+  "name": "Tibial ajoelhado (sentar sobre os pés)",
+  "muscle_group": "Alongamento — Pernas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/tibial-ajoelhado-sentar-sobre-os-pes.svg",
+  "how_to": "1) Ajoelhe com o peito dos pés no chão. 2) Sente sobre os calcanhares. 3) Para intensificar, apoie as mãos atrás e levante um pouco os joelhos.",
+  "aliases": [
+   "alongamento de tibial",
+   "sentar nos calcanhares",
+   "Tibial ajoelhado (sentar sobre os pés)"
+  ]
+ },
+ {
+  "slug": "torcao-de-coluna-deitado",
+  "name": "Torção de coluna deitado",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/torcao-de-coluna-deitado.svg",
+  "how_to": "1) Deite de costas com os braços abertos. 2) Dobre os joelhos e deixe-os cair para um lado. 3) Mantenha os ombros no chão e olhe para o lado oposto.",
+  "aliases": [
+   "rotacao de lombar deitado",
+   "supine twist",
+   "torcao deitado",
+   "Torção de coluna deitado"
+  ]
+ },
+ {
+  "slug": "esfinge-extensao-em-antebracos",
+  "name": "Esfinge (extensão em antebraços)",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/esfinge-extensao-em-antebracos.svg",
+  "how_to": "1) Deite de bruços. 2) Apoie os antebraços no chão com os cotovelos embaixo dos ombros. 3) Levante o peito e relaxe a lombar e o glúteo.",
+  "aliases": [
+   "esfinge",
+   "Esfinge (extensão em antebraços)",
+   "postura da esfinge",
+   "sphinx"
+  ]
+ },
+ {
+  "slug": "filhote-puppy-pose",
+  "name": "Filhote (puppy pose)",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/filhote-puppy-pose.svg",
+  "how_to": "1) Em quatro apoios, caminhe com as mãos à frente. 2) Mantenha o quadril em cima dos joelhos e desça o peito em direção ao chão. 3) Respire sentindo as costas e os ombros.",
+  "aliases": [
+   "alongamento de dorsal no chao",
+   "filhote",
+   "Filhote (puppy pose)",
+   "puppy pose"
+  ]
+ },
+ {
+  "slug": "dorsal-no-banco-ajoelhado",
+  "name": "Dorsal no banco ajoelhado",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "banco",
+  "image_path": "exercicios/18-alongamentos/dorsal-no-banco-ajoelhado.svg",
+  "how_to": "1) Ajoelhe de frente para um banco e apoie os cotovelos nele. 2) Leve o quadril para trás deixando o peito descer. 3) Para soltar mais, junte as mãos atrás da cabeça.",
+  "aliases": [
+   "alongamento de dorsal no banco",
+   "Dorsal no banco ajoelhado",
+   "lat stretch"
+  ]
+ },
+ {
+  "slug": "postura-do-bebe-feliz",
+  "name": "Postura do bebê feliz",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/postura-do-bebe-feliz.svg",
+  "how_to": "1) Deite de costas e traga os joelhos em direção às axilas. 2) Segure a parte de fora dos pés com as solas viradas para o teto. 3) Balance devagar de um lado para o outro.",
+  "aliases": [
+   "bebe feliz",
+   "happy baby",
+   "Postura do bebê feliz"
+  ]
+ },
+ {
+  "slug": "espreguicar-deitado-alongamento-global",
+  "name": "Espreguiçar deitado (alongamento global)",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "colchonete",
+  "image_path": "exercicios/18-alongamentos/espreguicar-deitado-alongamento-global.svg",
+  "how_to": "1) Deite de costas e estique os braços acima da cabeça. 2) Estenda as pernas e aponte os pés. 3) Cresça para os dois lados ao mesmo tempo enquanto solta o ar.",
+  "aliases": [
+   "alongamento global deitado",
+   "espreguicar",
+   "Espreguiçar deitado (alongamento global)"
+  ]
+ },
+ {
+  "slug": "espreguicar-em-pe-bracos-acima",
+  "name": "Espreguiçar em pé (braços acima)",
+  "muscle_group": "Alongamento — Tronco e costas",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/espreguicar-em-pe-bracos-acima.svg",
+  "how_to": "1) Em pé, entrelace os dedos. 2) Leve os braços acima da cabeça e suba na ponta dos pés. 3) Cresça o máximo que puder respirando fundo.",
+  "aliases": [
+   "alongamento em pe bracos acima",
+   "espreguicar em pe",
+   "Espreguiçar em pé (braços acima)"
+  ]
+ },
+ {
+  "slug": "alongamento-de-peitoral-na-parede",
+  "name": "Alongamento de peitoral na parede",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "parede",
+  "image_path": "exercicios/18-alongamentos/alongamento-de-peitoral-na-parede.svg",
+  "how_to": "1) Fique de lado para a parede e apoie a palma com o braço estendido na altura do ombro. 2) Gire o corpo para o lado contrário da parede. 3) Sinta a frente do peito e do ombro.",
+  "aliases": [
+   "alongamento de peito na parede",
+   "Alongamento de peitoral na parede",
+   "peitoral na parede"
+  ]
+ },
+ {
+  "slug": "peitoral-com-maos-entrelacadas-atras",
+  "name": "Peitoral com mãos entrelaçadas atrás",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/peitoral-com-maos-entrelacadas-atras.svg",
+  "how_to": "1) Em pé, entrelace os dedos atrás do corpo. 2) Estique os braços e afaste as mãos das costas. 3) Abra o peito sem arquear a lombar.",
+  "aliases": [
+   "abertura de peito",
+   "peitoral com maos atras",
+   "Peitoral com mãos entrelaçadas atrás"
+  ]
+ },
+ {
+  "slug": "ombro-cruzado-a-frente-do-peito",
+  "name": "Ombro cruzado à frente do peito",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/ombro-cruzado-a-frente-do-peito.svg",
+  "how_to": "1) Leve um braço estendido atravessando a frente do peito. 2) Com a outra mão, puxe o cotovelo em direção ao corpo. 3) Ombro baixo, longe da orelha.",
+  "aliases": [
+   "alongamento de deltoide posterior",
+   "ombro cruzado",
+   "Ombro cruzado à frente do peito"
+  ]
+ },
+ {
+  "slug": "triceps-acima-da-cabeca",
+  "name": "Tríceps acima da cabeça",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/triceps-acima-da-cabeca.svg",
+  "how_to": "1) Leve um braço para cima e dobre o cotovelo, com a mão nas costas. 2) Com a outra mão, empurre o cotovelo para trás. 3) Mantenha a cabeça reta.",
+  "aliases": [
+   "alongamento de triceps",
+   "triceps acima da cabeca",
+   "Tríceps acima da cabeça"
+  ]
+ },
+ {
+  "slug": "biceps-na-parede",
+  "name": "Bíceps na parede",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "parede",
+  "image_path": "exercicios/18-alongamentos/biceps-na-parede.svg",
+  "how_to": "1) De costas para a parede, apoie a palma nela com o braço estendido abaixo do ombro. 2) Gire o corpo devagar para longe da parede. 3) Sinta a frente do braço.",
+  "aliases": [
+   "alongamento de biceps",
+   "biceps na parede",
+   "Bíceps na parede"
+  ]
+ },
+ {
+  "slug": "flexores-do-antebraco",
+  "name": "Flexores do antebraço",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/flexores-do-antebraco.svg",
+  "how_to": "1) Estique um braço à frente com a palma para cima. 2) Com a outra mão, puxe os dedos para baixo e para trás. 3) Mantenha o cotovelo esticado.",
+  "aliases": [
+   "alongamento de antebraco",
+   "Flexores do antebraço",
+   "flexores do punho"
+  ]
+ },
+ {
+  "slug": "extensores-do-antebraco",
+  "name": "Extensores do antebraço",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/extensores-do-antebraco.svg",
+  "how_to": "1) Estique um braço à frente com a palma para baixo. 2) Com a outra mão, dobre o punho puxando os dedos para baixo. 3) Ótimo para quem usa muito o computador ou celular.",
+  "aliases": [
+   "alongamento de punho",
+   "Extensores do antebraço",
+   "extensores do punho"
+  ]
+ },
+ {
+  "slug": "pescoco-queixo-ao-peito",
+  "name": "Pescoço: queixo ao peito",
+  "muscle_group": "Alongamento — Ombros, braços e pescoço",
+  "equip": "peso-do-corpo",
+  "image_path": "exercicios/18-alongamentos/pescoco-queixo-ao-peito.svg",
+  "how_to": "1) Sente ou fique em pé com os ombros relaxados. 2) Entrelace as mãos atrás da cabeça e deixe o peso delas puxar o queixo ao peito. 3) Não empurre: só deixe o peso agir.",
+  "aliases": [
+   "alongamento de pescoco",
+   "cervical queixo ao peito",
+   "Pescoço: queixo ao peito"
   ]
  }
 ]
