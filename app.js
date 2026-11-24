@@ -30,7 +30,28 @@ async function boot2() {
   // aberto pelo ícone da tela inicial (sem o link): se este celular é de um aluno, abre o treino dele
   if (!session && savedStu && !location.hash.includes('type=recovery') && !/^#\/convite\//.test(location.hash) && !invCode()) { return studentView(savedStu); }
   if (!session) return login();
-  await loadProfile(); if (!profile || ['pendente', 'bloqueado'].includes(profile.plan)) return gate(); menu(); show('stu');
+  await loadProfile(); if (!profile || ['pendente', 'bloqueado'].includes(profile.plan)) return gate();
+  if (!(await termsOk())) return termsGate();
+  menu(); show('stu');
+}
+// ---------- LGPD: aceite dos Termos e da Política de Privacidade (treinador)
+const TERMS_V = 'v1.0';
+async function termsOk() { try { if (localStorage.getItem('dh_terms_' + session.user.id) === TERMS_V) return true; } catch {}
+  const { data, error } = await sb.from('consents').select('id').eq('user_id', session.user.id).eq('doc', 'termos').eq('version', TERMS_V).limit(1);
+  if (error) return true; // nunca trava o treinador por falha de rede
+  const ok = !!(data && data.length); if (ok) try { localStorage.setItem('dh_terms_' + session.user.id, TERMS_V); } catch {} return ok; }
+function termsGate() {
+  nav.innerHTML = '';
+  app.innerHTML = `<h2>Antes de começar</h2><p class=muted>Para proteger você e seus alunos, leia e aceite os documentos abaixo.</p>
+   <p><a href="legal.html#termos" target=_blank rel=noopener>Termos de Uso</a> · <a href="legal.html#privacidade" target=_blank rel=noopener>Política de Privacidade</a></p>
+   <label class=chk><input type=checkbox id=tc1> Li e aceito os Termos de Uso e a Política de Privacidade.</label>
+   <label class=chk><input type=checkbox id=tc2> Sou profissional de Educação Física e me responsabilizo pelos treinos que prescrevo.</label>
+   <button class=p id=tcb>Aceitar e continuar</button><p id=tcm class=err></p>`;
+  $('#tcb').onclick = async () => { if (!$('#tc1').checked || !$('#tc2').checked) return $('#tcm').textContent = 'Marque as duas opções para continuar.';
+    $('#tcb').disabled = true; const ua = navigator.userAgent.slice(0, 300);
+    const a = await sb.rpc('accept_terms', { p_doc: 'termos', p_version: TERMS_V, p_ua: ua }); const b = await sb.rpc('accept_terms', { p_doc: 'privacidade', p_version: TERMS_V, p_ua: ua });
+    if (a.error || b.error) { $('#tcb').disabled = false; return $('#tcm').textContent = ptErr((a.error || b.error).message); }
+    try { localStorage.setItem('dh_terms_' + session.user.id, TERMS_V); } catch {} menu(); show('stu'); };
 }
 async function loadProfile() {
   const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
@@ -83,6 +104,10 @@ function menu() {
   nav.innerHTML = [['stu', 'Alunos'], ['imp', 'Importar ficha'], ['lib', 'Exercícios'], ['perfil', 'Perfil'], ...(profile.plan === 'owner' ? [['adm', '⚙️ Admin']] : [])].map(([k, t]) => `<button data-k=${k}>${t}</button>`).join('');
   if (profile.plan === 'demo' && !document.querySelector('.demob')) { const d = document.createElement('div'); d.className = 'demob'; const left = profile.demo_until ? Math.ceil((new Date(profile.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
     d.innerHTML = `🧪 <b>Versão de teste</b> · ${profile.max_students || 1} aluno${(profile.max_students || 1) > 1 ? 's' : ''}${left !== null ? ` · ${left > 0 ? `termina em ${left} dia${left === 1 ? '' : 's'}` : 'terminou'}` : ''}`; nav.before(d); }
+  if (profile.plan === 'pro' && profile.paid_until && !document.querySelector('.demob')) { const left = Math.ceil((new Date(profile.paid_until + 'T23:59:59') - Date.now()) / 864e5);
+    if (left <= 7) { const d = document.createElement('div'); d.className = 'demob';
+      d.innerHTML = left >= 0 ? `💳 <b>Sua assinatura vence em ${left} dia${left === 1 ? '' : 's'}</b> · renove para não interromper seus alunos` : left >= -5 ? `⚠️ <b>Assinatura vencida</b> · seus alunos perdem o acesso em ${5 + left} dia${5 + left === 1 ? '' : 's'}. Renove com o responsável pelo DE HOJE.` : '⛔ <b>Assinatura vencida</b> · seus alunos estão sem acesso. Renove com o responsável pelo DE HOJE — nenhum dado foi apagado.';
+      nav.before(d); } }
   nav.onclick = e => e.target.dataset.k && show(e.target.dataset.k);
 }
 function show(k) { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); ({ lib, imp, stu: students, perfil, adm: admin })[k](); }
@@ -162,7 +187,18 @@ async function perfil() {
    <div class=box2><b>💬 WhatsApp automático</b><p class=muted>Quando o aluno finalizar o treino com comentário, a mensagem chega sozinha no seu WhatsApp — ele não precisa fazer nada.</p>
    <details${pr.wa_apikey ? '' : ' open'}><summary>Como ativar (uma vez só, 2 minutos)</summary><ol class=steps><li>Abra <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target=_blank rel=noopener>esta página do CallMeBot</a> e copie o número do robô que aparece lá.</li><li>Salve esse número nos contatos do seu celular (nome: CallMeBot).</li><li>No WhatsApp, mande para ele exatamente: <b>I allow callmebot to send me messages</b></li><li>Ele responde com <b>APIKEY</b> e um número. Copie só o número.</li><li>Cole abaixo, toque em <b>Salvar</b> e depois em <b>Enviar teste</b>.</li></ol></details>
    <label class=muted>Sua APIKEY do CallMeBot</label><input id=wk inputmode=numeric placeholder="Ex.: 1234567" value="${esc(pr.wa_apikey || '')}"><button id=wt>Enviar teste</button> <small id=wm></small></div>
-   <button class=p id=sv2>Salvar</button><p id=pm></p>`;
+   <button class=p id=sv2>Salvar</button><p id=pm></p>
+   <div class=box2 id=subx><b>💳 Minha assinatura</b><p class=muted>Carregando…</p></div>
+   <div class=box2><b>🔒 Meus dados (LGPD)</b><p class=muted>Você pode pedir uma cópia de todos os seus dados ou a exclusão da sua conta. Respondemos em até 15 dias.</p>
+   <button class=sm id=dre>Pedir cópia dos meus dados</button> <button class="sm danger" id=drx>Pedir exclusão da conta</button><p id=drm></p>
+   <small><a href="legal.html#termos" target=_blank rel=noopener>Termos de Uso</a> · <a href="legal.html#privacidade" target=_blank rel=noopener>Política de Privacidade</a></small></div>`;
+  sb.rpc('my_subscription').then(({ data: s }) => { const box = $('#subx'); if (!box || !s) return; const brl = c => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); const dt = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
+    let t = s.plan === 'owner' ? 'Conta do responsável pelo DE HOJE.' : s.plan === 'demo' ? `Versão de teste${s.demo_until ? ' até ' + dt(s.demo_until) : ''} · até ${s.max_students || 1} aluno${(s.max_students || 1) > 1 ? 's' : ''}. Para continuar depois do teste, fale com o responsável pelo DE HOJE.`
+      : s.plan === 'pro' ? (s.paid_until ? `Plano Pro${s.price_cents ? ' · ' + brl(s.price_cents) + '/mês' : ''} · ${s.access_ok ? 'pago até ' + dt(s.paid_until) : '<span class=err>vencido em ' + dt(s.paid_until) + '</span>'}${s.max_students ? ' · até ' + s.max_students + ' alunos' : ' · alunos ilimitados'}` : 'Plano Pro · sem vencimento.') : 'Conta sem plano ativo.';
+    box.innerHTML = `<b>💳 Minha assinatura</b><p>${t}</p>`; });
+  const dreq = async (kind) => { const m = $('#drm'); if (kind === 'excluir' && !confirm('Pedir a exclusão da sua conta e de todos os dados dos seus alunos? O responsável pelo DE HOJE vai confirmar com você antes de apagar.')) return;
+    const r = await sb.rpc('trainer_data_request', { p_kind: kind }); m.innerHTML = r.error ? `<span class=err>${esc(ptErr(r.error.message))}</span>` : `<span class=ok>Pedido registrado ✓ Vamos responder em até 15 dias.</span>`; };
+  $('#dre').onclick = () => dreq('exportar'); $('#drx').onclick = () => dreq('excluir');
   $('#wt').onclick = async () => { const m = $('#wm'); if (!$('#ph').value.replace(/\D/g, '') || !$('#wk').value.trim()) return m.innerHTML = '<span class=err>Preencha seu WhatsApp e a APIKEY e toque em Salvar antes.</span>';
     m.textContent = 'Enviando…'; const { data, error } = await sb.functions.invoke('notify-trainer', { body: { test: true } }); let e = data?.error || null;
     if (error) { e = error.message; try { const c = await error.context?.json(); if (c?.error) e = c.error; } catch {} }
@@ -354,19 +390,31 @@ TREINO B – Pernas + Glúteos
 
 // ---------- painel do dono (versão de teste)
 async function admin() {
-  app.innerHTML = '<h2>Admin — versão de teste</h2><div id=ad>Carregando…</div>';
-  const { data: o, error } = await sb.rpc('admin_overview'); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  app.innerHTML = '<h2>Admin</h2><div id=ad>Carregando…</div>';
+  const [{ data: o, error }, { data: M }, { data: DR }] = await Promise.all([sb.rpc('admin_overview'), sb.rpc('admin_metrics'), sb.rpc('admin_data_requests')]); if (error) return $('#ad').innerHTML = `<p class=err>${esc(error.message)}</p>`;
+  const brl = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const base = location.origin + location.pathname, link = c => base + '#/convite/' + c;
   const wtxt = (c, d = 2) => `Olá! Você foi convidado para testar o DE HOJE, o app de treinos para personal trainers. 💪\n\n1) Abra este link e crie sua conta: ${link(c)}\n2) Seu código de convite: ${c}\n\nVocê terá ${d} dia${d > 1 ? 's' : ''} de teste completo: cole um treino seu, salve para alguém próximo (namorada, marido, esposa…) e mande o link para o celular dessa pessoa ver como fica.`;
   const dt = d => d ? new Date(d).toLocaleDateString('pt-BR') : '–';
-  let h = `<div class=box2><b>Novo convite</b><p class=muted>Cada convite libera 1 treinador. Você controla quantos alunos ele pode ter e por quantos dias.</p><div class=mgrid><label>Nome (para você lembrar)<input id=il placeholder="Ex.: João Personal"></label><label>Alunos permitidos<input id=im type=number inputmode=numeric value=1 min=1 max=50></label><label>Dias de teste<input id=idd type=number inputmode=numeric value=2 min=1 max=365></label></div><button class=p id=ib>Gerar convite</button><div id=ir></div></div>`;
+  let h = '';
+  if (M) { const wk = M.treinos_por_semana || [], mx = Math.max(1, ...wk.map(w => w.treinos));
+    h += `<div class=box2><b>📊 Números do negócio</b><p class=muted>É isso que um investidor ou comprador pergunta primeiro.</p>
+      <div class=stats><div><b>${brl(M.mrr_reais)}</b><small>receita/mês</small></div><div><b>${brl(M.arr_reais)}</b><small>receita/ano</small></div><div><b>${M.pagantes}</b><small>pagantes</small></div><div><b>${M.treinadores_total}</b><small>treinadores</small></div></div>
+      <div class=stats><div><b>${M.treinadores_ativos_30d}</b><small>treinadores ativos 30d</small></div><div><b>${M.alunos_que_treinaram_30d}/${M.alunos_ativos}</b><small>alunos que treinaram 30d</small></div><div><b>${M.treinos_concluidos_30d}</b><small>treinos 30d</small></div><div><b>${M.nota_media_30d ?? '–'}</b><small>nota média</small></div></div>
+      <small class=muted>Convites usados: ${M.convites_usados} · viraram pagantes: ${M.convertidos_demo_para_pro}${M.convites_usados ? ' (' + Math.round(100 * M.convertidos_demo_para_pro / M.convites_usados) + '%)' : ''} · receita total recebida: ${brl(M.receita_total_reais)}</small>
+      ${wk.length ? `<p class=muted style="margin:10px 0 4px">Treinos concluídos por semana</p><div class=wkbars>${wk.map(w => `<div title="${w.treinos} treinos"><i style="height:${Math.round(100 * w.treinos / mx)}%"></i><small>${new Date(w.semana + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</small></div>`).join('')}</div>` : ''}
+      ${(M.vencendo_7d || []).length ? `<p class=warn>Vencem em 7 dias: ${M.vencendo_7d.map(v => esc(v.marca || 'sem marca') + ' (' + new Date(v.vence + 'T12:00:00').toLocaleDateString('pt-BR') + ')').join(', ')}</p>` : ''}</div>`; }
+  const openDR = (DR || []).filter(r => r.status === 'aberto');
+  if (openDR.length) h += `<div class=box2><b>🔒 Pedidos LGPD (${openDR.length})</b><p class=muted>Responda em até 15 dias. Para exclusão, confirme com a pessoa antes de apagar.</p>${openDR.map(r => `<div class=row><div><b>${r.tipo === 'excluir' ? 'Exclusão' : 'Cópia dos dados'}</b> · ${esc(r.aluno ? 'aluno ' + r.aluno : r.treinador_email || '')}<br><small class=muted>${new Date(r.criado).toLocaleString('pt-BR')}${r.nota ? ' · ' + esc(r.nota) : ''}</small><br><button class=sm data-drok=${r.id}>Marcar como concluído</button></div></div>`).join('')}</div>`;
+  h += `<div class=box2><b>Novo convite</b><p class=muted>Cada convite libera 1 treinador. Você controla quantos alunos ele pode ter e por quantos dias.</p><div class=mgrid><label>Nome (para você lembrar)<input id=il placeholder="Ex.: João Personal"></label><label>Alunos permitidos<input id=im type=number inputmode=numeric value=1 min=1 max=50></label><label>Dias de teste<input id=idd type=number inputmode=numeric value=2 min=1 max=365></label></div><button class=p id=ib>Gerar convite</button><div id=ir></div></div>`;
   const tr = o.trainers || []; h += `<h2>Treinadores (${tr.length})</h2>`;
   h += tr.length ? tr.map(t => { const left = t.demo_until ? Math.ceil((new Date(t.demo_until + 'T23:59:59') - Date.now()) / 864e5) : null;
-    const st = t.plan === 'pro' ? '<span class=badge>Liberado (sem limite)</span>' : t.plan === 'bloqueado' ? '<span class="badge priv">Bloqueado</span>' : `<span class=badge>Teste · ${left > 0 ? `${left} dia${left === 1 ? '' : 's'}` : 'terminou'}</span>`;
+    const pd = t.paid_until ? new Date(t.paid_until + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+    const st = t.plan === 'pro' ? (t.paid_until ? (t.access_ok ? `<span class=badge>Pro · pago até ${pd}${t.price_cents ? ' · ' + brl(t.price_cents / 100) + '/mês' : ''}</span>` : `<span class="badge priv">Pro vencido em ${pd}</span>`) : '<span class=badge>Liberado (sem limite)</span>') : t.plan === 'bloqueado' ? '<span class="badge priv">Bloqueado</span>' : `<span class=badge>Teste · ${left > 0 ? `${left} dia${left === 1 ? '' : 's'}` : 'terminou'}</span>`;
     return `<div class=box2><b>${esc(t.brand || t.label || t.email)}</b> ${st}<br><small class=muted>${esc(t.email || '')}${t.label ? ' · convite: ' + esc(t.label) : ''} · desde ${dt(t.created_at)}</small>
       <div class=stats><div><b>${t.students}${t.plan === 'demo' ? '/' + (t.max || 1) : ''}</b><small>alunos</small></div><div><b>${t.sessions}</b><small>treinos feitos</small></div><div><b>${t.files}</b><small>arquivos</small></div><div><b>${t.wa ? '✓' : '–'}</b><small>WhatsApp</small></div></div>
       <small class=muted>Último treino de aluno: ${t.last ? new Date(t.last).toLocaleString('pt-BR') : 'nenhum ainda'}</small><br>
-      ${t.plan !== 'pro' ? `<button class=sm data-ext=${t.id}>+2 dias</button> <button class=sm data-max=${t.id} data-m=${(t.max || 1) + 1}>+1 aluno</button> ` : ''}${t.plan === 'bloqueado' ? `<button class=sm data-unb=${t.id}>Desbloquear</button> ` : `<button class="sm danger" data-blk=${t.id}>Bloquear</button> `}${t.plan === 'pro' ? `<button class=sm data-dem=${t.id}>Voltar para teste</button>` : `<button class=sm data-pro=${t.id}>Liberar sem limite</button>`}</div>`; }).join('') : '<p class=muted>Nenhum treinador entrou ainda. Gere um convite acima e envie.</p>';
+      ${t.plan !== 'pro' ? `<button class=sm data-ext=${t.id}>+2 dias</button> <button class=sm data-max=${t.id} data-m=${(t.max || 1) + 1}>+1 aluno</button> ` : ''}${t.plan === 'bloqueado' ? `<button class=sm data-unb=${t.id}>Desbloquear</button> ` : `<button class="sm danger" data-blk=${t.id}>Bloquear</button> `}${t.plan === 'pro' ? `<button class=sm data-dem=${t.id}>Voltar para teste</button>` : `<button class=sm data-pro=${t.id}>Liberar sem limite</button>`} <button class="sm p" data-pay=${t.id} data-pc=${t.price_cents || ''}>💳 Registrar pagamento</button></div>`; }).join('') : '<p class=muted>Nenhum treinador entrou ainda. Gere um convite acima e envie.</p>';
   const iv = o.invites || []; h += `<h2>Convites (${iv.length})</h2>` + (iv.length ? iv.map(i => `<div class=row><div><b>${esc(i.code)}</b>${i.label ? ' · ' + esc(i.label) : ''}<br><small class=muted>${i.max} aluno${i.max > 1 ? 's' : ''} · ${i.days} dias · criado ${dt(i.created_at)}</small><br>${i.revoked ? '<small class=err>Cancelado</small>' : i.used_at ? `<small class=ok>Usado por ${esc(i.used_by_email || '')} em ${dt(i.used_at)}</small>` : `<small class=warn>Aguardando o treinador</small><br><button class=sm data-cp="${esc(link(i.code))}">Copiar link</button> <a class="btn sm" target=_blank rel=noopener href="https://wa.me/?text=${encodeURIComponent(wtxt(i.code, i.days))}">Enviar no WhatsApp</a> <button class=sm data-rv=${esc(i.code)}>Cancelar</button>`}</div></div>`).join('') : '<p class=muted>Nenhum convite ainda.</p>');
   $('#ad').innerHTML = h;
   const act = async (fn, args) => { const r = await sb.rpc(fn, args); if (r.error) return alert(r.error.message); admin(); };
@@ -379,6 +427,13 @@ async function admin() {
   app.querySelectorAll('[data-blk]').forEach(b => b.onclick = () => confirm('Bloquear este treinador? Ele e os alunos dele perdem o acesso (nada é apagado).') && act('admin_set_trainer', { p_id: b.dataset.blk, p_plan: 'bloqueado' }));
   app.querySelectorAll('[data-unb]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.unb, p_plan: 'demo', p_extra_days: 0 }));
   app.querySelectorAll('[data-pro]').forEach(b => b.onclick = () => confirm('Liberar este treinador sem limite de alunos e sem prazo?') && act('admin_set_trainer', { p_id: b.dataset.pro, p_plan: 'pro' }));
+  app.querySelectorAll('[data-drok]').forEach(b => b.onclick = () => confirm('Marcar este pedido como concluído?') && act('admin_close_data_request', { p_id: b.dataset.drok, p_status: 'concluido' }));
+  app.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => { const sug = b.dataset.pc ? (b.dataset.pc / 100).toFixed(2).replace('.', ',') : '49,90';
+    const v = prompt('Valor recebido (R$). Ex.: 49,90 para 1 mês ou 479,00 para 12 meses:', sug); if (v === null) return; const cents = Math.round(parseFloat(String(v).replace(/\./g, '').replace(',', '.')) * 100); if (!(cents > 0)) return alert('Valor inválido.');
+    const m = prompt('Quantos meses esse pagamento cobre? (1 a 24)', '1'); if (m === null) return; const months = parseInt(m, 10); if (!(months >= 1 && months <= 24)) return alert('Número de meses inválido.');
+    const met = prompt('Forma de pagamento (Pix, cartão, dinheiro…):', 'Pix'); if (met === null) return;
+    const lim = prompt('Limite de alunos neste plano (deixe vazio para ilimitado):', ''); if (lim === null) return; const max = lim.trim() ? parseInt(lim, 10) : null;
+    act('admin_register_payment', { p_id: b.dataset.pay, p_amount_cents: cents, p_months: months, p_method: met.trim() || null, p_note: null, p_max_students: max > 0 ? max : null }); });
   app.querySelectorAll('[data-dem]').forEach(b => b.onclick = () => act('admin_set_trainer', { p_id: b.dataset.dem, p_plan: 'demo', p_extra_days: 2 }));
 }
 
@@ -519,6 +574,31 @@ async function studentView(token, preview = false) {
   if (!offline) setTimeout(() => { const urls = new Set(); P.workouts.forEach(w => w.items.forEach(i => i.exercise?.image && urls.add(i.exercise.image))); urls.forEach(u => fetch(u).catch(() => {})); }, 1500);
   window.addEventListener('online', async () => { if (!offline) return; try { const r = await sb.rpc('student_plan', { p_token: token }); if (!r.error && r.data) { localStorage.setItem(planKey, JSON.stringify(r.data)); offline = false; const b = $('#offb'); if (b) b.remove(); } } catch {} });
   document.body.classList.add('aluno');
+  // LGPD: aceite do aluno (uma vez) + rodapé com privacidade, cópia dos dados e exclusão
+  if (!preview) {
+    const tk = 'dh_terms_stu_' + token; let accepted = false; try { accepted = localStorage.getItem(tk) === 'v1.0'; } catch {}
+    if (P.terms_ok) { accepted = true; try { localStorage.setItem(tk, 'v1.0'); } catch {} }
+    if (!accepted && !offline) { const d = mdl(`<h3>Bem-vindo ao DE HOJE 👋</h3><p class=muted>Seu treinador usa o DE HOJE para enviar seus treinos. Antes de começar, leia e aceite:</p>
+        <p><a href="legal.html#termos" target=_blank rel=noopener>Termos de Uso</a> · <a href="legal.html#privacidade" target=_blank rel=noopener>Política de Privacidade</a></p>
+        <label class=chk><input type=checkbox id=sc1> Li e aceito os Termos de Uso e a Política de Privacidade.</label>
+        <label class=chk><input type=checkbox id=sc2> Autorizo o uso dos meus dados de saúde (medidas, fotos, avaliações e laudos) para o meu treinador acompanhar minha evolução.</label>
+        <small class=muted>A segunda opção é opcional. Você escolhe, arquivo por arquivo, o que o treinador pode ver.</small>
+        <button class=p id=scb>Começar</button><p id=scm class=err></p>`);
+      d.querySelector('#scb').onclick = async () => { if (!d.querySelector('#sc1').checked) return d.querySelector('#scm').textContent = 'Marque a primeira opção para continuar.';
+        const ua = navigator.userAgent.slice(0, 300); d.querySelector('#scb').disabled = true;
+        const r = await sb.rpc('student_accept_terms', { p_token: token, p_doc: 'termos', p_version: 'v1.0', p_ua: ua });
+        if (r.error) { d.querySelector('#scb').disabled = false; return d.querySelector('#scm').textContent = ptErr(r.error.message); }
+        await sb.rpc('student_accept_terms', { p_token: token, p_doc: 'privacidade', p_version: 'v1.0', p_ua: ua });
+        if (d.querySelector('#sc2').checked) await sb.rpc('student_accept_terms', { p_token: token, p_doc: 'dados_saude', p_version: 'v1.0', p_ua: ua });
+        try { localStorage.setItem(tk, 'v1.0'); } catch {} d.close(); }; }
+    const ft = document.createElement('footer'); ft.className = 'lgpd';
+    ft.innerHTML = `<a href="legal.html#privacidade" target=_blank rel=noopener>Privacidade</a> · <a href="#" id=ldx>Baixar meus dados</a> · <a href="#" id=ldd>Pedir exclusão</a>`;
+    document.body.appendChild(ft);
+    ft.querySelector('#ldx').onclick = async e => { e.preventDefault(); const r = await sb.rpc('student_export', { p_token: token }); if (r.error) return alert(ptErr(r.error.message));
+      const b = new Blob([JSON.stringify(r.data, null, 2)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'meus-dados-dehoje.json'; document.body.appendChild(a); a.click(); a.remove(); };
+    ft.querySelector('#ldd').onclick = async e => { e.preventDefault(); if (!confirm('Pedir a exclusão de todos os seus dados no DE HOJE? Seu treinador e o responsável pelo app vão confirmar com você antes de apagar.')) return;
+      const r = await sb.rpc('student_data_request', { p_token: token, p_kind: 'excluir' }); alert(r.error ? ptErr(r.error.message) : 'Pedido registrado. Vamos responder em até 15 dias.'); };
+  }
   // o app é sempre DE HOJE; a marca do treinador aparece logo abaixo
   const BR = P.brand || {}; const trName = BR.name && BR.name !== 'DE HOJE' ? BR.name : ''; document.title = 'DE HOJE';
   const tb = document.createElement('div'); tb.className = 'trbar';

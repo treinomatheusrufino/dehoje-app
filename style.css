@@ -99,3 +99,13 @@ label.muted{display:block;margin-top:6px}
 .oops{position:fixed;left:10px;right:10px;top:10px;z-index:50;background:#FFF3F2;border:1px solid #f1b5b0;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 18px #0002}.oops small{flex:1;color:#7a271a}.oops button{padding:6px 10px}
 .pvbar{background:#1B2A49;color:#fff;padding:8px 16px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pvbar button{padding:4px 10px;margin-left:auto}
 a.btn.pv{border-color:var(--od);color:var(--od);font-weight:600}
+/* LGPD e painel de números */
+.chk{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:15px;line-height:1.4}
+.chk input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0}
+footer.lgpd{text-align:center;font-size:13px;color:var(--g);padding:24px 16px 32px}
+footer.lgpd a{color:var(--g)}
+.stats div{flex:1;min-width:0}.stats b{font-size:20px;word-break:break-word}.stats small{font-size:12px}
+.wkbars{display:flex;gap:4px;align-items:flex-end;height:90px}
+.wkbars div{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.wkbars i{display:block;width:100%;background:var(--o);border-radius:4px 4px 0 0;min-height:3px}
+.wkbars small{font-size:10px;color:var(--g);margin-top:2px}
