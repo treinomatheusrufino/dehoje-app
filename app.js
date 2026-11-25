@@ -417,7 +417,7 @@ const linkOf = tk => location.origin + location.pathname + '?a=' + tk + '#/a/' +
 async function iaView(o = {}) {
   app.innerHTML = 'Carregando…';
   const [{ montarIA }, { data: al }] = await Promise.all([import('./ia_ui.js'), sb.from('students').select('name').eq('trainer_id', session.user.id).order('name')]);
-  montarIA(app, { nome: o.nome || '', modelo: t => import('./extras.js').then(m => m.salvarModelo(xctx(), t)), alunos: (al || []).map(a => a.name), usar: texto => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'imp')); imp(texto); scrollTo(0, 0); } });
+  montarIA(app, { sb, nome: o.nome || '', modelo: t => import('./extras.js').then(m => m.salvarModelo(xctx(), t)), alunos: (al || []).map(a => a.name), usar: texto => { nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === 'imp')); imp(texto); scrollTo(0, 0); } });
 }
 // ---------- importar ficha
 async function recog(f, byId) { // liga cada linha da ficha a um exercício da biblioteca (com desenho)
@@ -425,7 +425,7 @@ async function recog(f, byId) { // liga cada linha da ficha a um exercício da b
   for (const s of f.sessoes) for (const it of s.itens) {
     const ex0 = it.tipo === 'ex' && byName[it.texto.toLowerCase()]; // nome igual ao da biblioteca (ex.: treino do DE HOJE.IA)
     if (ex0) { it.ex = ex0; if (it.alt) it.obs = (it.obs || '').split(' · ').filter(x => x !== it.alt).join(' · '); continue; }
-    let q = it.tipo === 'cardio' ? it.texto.replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim() : it.busca; it.ex = null;
+    let q = it.tipo === 'cardio' ? it.texto.split(/\s+\|\s+/)[0].replace(/^livre:?\s*/i, '').replace(/preferencialmente/i, '').trim() : it.busca; it.ex = null;
     if (/copenhagen/i.test(q) && /joelho/i.test(it.obs || '')) q += ' com joelho apoiado'; else if (/copenhagen/i.test(q) && /p[eé]/i.test(it.obs || '') && /apoiad/i.test(it.obs || '')) q += ' com pé apoiado';
     if (q.length > 3) { const { data } = await sb.rpc('match_exercise', { p_text: q }); const m = data?.[0]; const e = m && byId[m.exercise_id];
       if (e && m.score >= 0.6 && (it.tipo !== 'cardio' || e.muscle_group === 'Cardio')) it.ex = e; else if (e && it.tipo === 'ex') it.sug = e; }
