@@ -23,6 +23,18 @@ const PH = {
 };
 const LOADING = ['Lendo o seu pedido…', 'Escolhendo os exercícios da base…', 'Montando séries, pausas e métodos…', 'Conferindo as quantidades que você pediu…', 'Finalizando a ficha…'];
 
+// gerar/refinar rodam em segundo plano no servidor: o app pergunta o resultado a cada 3 s (continua mesmo se você sair do app e voltar)
+async function esperar(sb, job) {
+  const fim = Date.now() + 240000;
+  while (Date.now() < fim) {
+    await new Promise(r => setTimeout(r, 3000));
+    if (document.hidden) continue;
+    let d; try { d = await chamar(sb, { action: 'resultado', job }); } catch (e) { if (/Failed to send|fetch|network/i.test(e.message)) continue; throw e; }
+    if (!d.pendente) return d;
+  }
+  throw new Error('A IA demorou demais. Tente de novo.');
+}
+
 async function chamar(sb, body) {
   const { data, error } = await sb.functions.invoke('dehoje-ia', { body });
   if (data?.error) throw new Error(data.error);
@@ -233,20 +245,20 @@ function montarAvancada(root, { alunos = [], usar, nome = '', modelo, sb }, stat
     if (briefing.tipo === 'personalizado' && !briefing.preset_id && briefing.descricao.length < 15) { ped.focus(); erro('No tipo Personalizado, descreva como você quer o treino (quantos exercícios, foco, métodos…).'); return; }
     const salvar = $('#ia-salvar').checked, pn = $('#ia-pnome').value.trim();
     if (salvar && pn.length < 2) { $('#ia-pnome').focus(); erro('Dê um nome para o seu tipo de treino.'); return; }
-    carregando(true); $('#ia-res').innerHTML = '<p class=muted>A IA está montando o treino. Isso leva de 20 a 60 segundos.</p>';
+    carregando(true); $('#ia-res').innerHTML = '<p class=muted>A IA está montando o treino. Isso leva de 20 a 90 segundos. Pode sair do app e voltar: o treino continua sendo montado.</p>';
     try {
       if (salvar && briefing.descricao.length >= 10) {
         const { id } = await chamar(sb, { action: 'salvar_preset', nome: pn, base_type: briefing.tipo, descricao: briefing.descricao, params: { volume: briefing.volume, metodos: briefing.metodos, divisao: briefing.divisao } });
         presets = [...presets.filter(p => p.id !== id && p.name !== pn), { id, name: pn, base_type: briefing.tipo, description: briefing.descricao }];
         $('#ia-salvar').checked = false; $('#ia-pnome').hidden = true; $('#ia-tipos').innerHTML = tiposHtml(); ligaTipos();
       }
-      mostrar(await chamar(sb, { action: 'gerar', briefing }));
+      const { job } = await chamar(sb, { action: 'gerar', briefing }); mostrar(await esperar(sb, job));
     } catch (e) { erro(e); } finally { carregando(false); }
   };
   const ajustar = async () => {
     const pedido = $('#ia-ajuste').value.trim(); if (!pedido || !ultimo) { $('#ia-ajuste').focus(); return; }
     const btn = $('#ia-ajbtn'); btn.disabled = true; btn.textContent = 'Ajustando…';
-    try { const { texto_ficha, ...ant } = ultimo; mostrar(await chamar(sb, { action: 'refinar', briefing: briefing || montarBriefing(), anterior: ant, pedido })); }
+    try { const { pendencias, ...ant } = ultimo; const { job } = await chamar(sb, { action: 'refinar', briefing: briefing || montarBriefing(), anterior: ant, pedido }); mostrar(await esperar(sb, job)); }
     catch (e) { btn.disabled = false; btn.textContent = 'Ajustar'; alert(e.message); }
   };
   $('#ia-go').onclick = gerar;
