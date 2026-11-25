@@ -607,7 +607,7 @@ async function aluno(id) {
   const [s, w, h, ev, bm] = await Promise.all([
     sb.from('students').select('*').eq('id', id).single(),
     sb.from('workouts').select('id,name,position,day_note,created_at,workout_blocks(id,position,set_type,sets,rest_seconds,block_items(id,position,raw_text,note,reps,kind,exercise_id,exercises(name,image_path)))').eq('student_id', id).eq('active', true).order('position'),
-    sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,notified_at,notify_error,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
+    sb.from('workout_sessions').select('id,trainer_reply,started_at,rating,comment,notified_at,notify_error,pse_media,workouts(name),set_logs(set_number,reps,load_kg,block_items(raw_text)),exercise_efforts(pse,block_items(raw_text,position))').eq('student_id', id).order('started_at', { ascending: false }).limit(10),
     sb.from('set_logs').select('load_kg,reps,created_at,block_items(raw_text,exercises(name)),workout_sessions!inner(student_id)').eq('workout_sessions.student_id', id).not('load_kg', 'is', null).order('created_at').limit(3000),
     sb.from('body_measurements').select('*').eq('student_id', id).order('measured_on')]);
   if (s.error) return app.innerHTML = `<p class=err>${esc(s.error.message)}</p>`;
@@ -636,7 +636,7 @@ async function aluno(id) {
   x += `</div><h2>Arquivos e fotos</h2><div class=box2><b>Enviar para ${esc(st.name.split(' ')[0])}</b><select id=tk>${Object.entries(KINDS).map(([k, v]) => `<option value=${k}>${v}</option>`).join('')}</select><input id=tf type=file accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"><input id=tn placeholder="Observação (opcional)">
    <fieldset class=share><legend><b>Deixar visível para o aluno?</b></legend><label><input type=radio name=tsh value=1> Sim, o aluno também vê</label><label><input type=radio name=tsh value=0> Não, só eu vejo</label></fieldset><button class=p id=tsv>Enviar arquivo</button> <small id=tm></small>
    <div id=tl class=flist>Carregando…</div><small class=muted>Fotos, avaliações e laudos que o aluno marcar como “só eu vejo” não aparecem aqui — é escolha dele.</small></div>`;
-  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>${z.notified_at ? '<br><small class=ok>✓ enviado ao seu WhatsApp</small>' : z.notify_error ? `<br><small class=warn>Não foi para o WhatsApp: ${esc(z.notify_error)}</small>` : ''}` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
+  x += '<h2>Histórico</h2>' + ((h.data || []).length ? h.data.map(z => `<div class=row><div><b>${esc(z.workouts?.name || '')}</b> <small class=muted>${new Date(z.started_at).toLocaleString('pt-BR')}</small>${z.rating ? ' ' + '★'.repeat(z.rating) : ''}${z.pse_media != null ? `<br><small class=psel>💪 Esforço médio <b>${String(z.pse_media).replace('.', ',')}/10</b>${(z.exercise_efforts || []).length ? ' — ' + [...new Map(z.exercise_efforts.map(e => [e.block_items?.raw_text, e])).values()].map(e => `${esc(e.block_items?.raw_text || '')} ${e.pse}`).join(' · ') : ''}</small>` : ''}${z.comment ? `<br><small class=pre>${esc(z.comment)}</small>${z.notified_at ? '<br><small class=ok>✓ enviado ao seu WhatsApp</small>' : z.notify_error ? `<br><small class=warn>Não foi para o WhatsApp: ${esc(z.notify_error)}</small>` : ''}` : ''}${z.trainer_reply ? `<br><small class=ok>Você respondeu: ${esc(z.trainer_reply)}</small>` : ''}<br><button class=sm data-rp=${z.id}>${z.trainer_reply ? 'Editar resposta' : 'Responder'}</button><br><small class=muted>${(z.set_logs || []).filter(l => l.load_kg || l.reps).map(l => `${esc(l.block_items?.raw_text || '')} s${l.set_number}: ${l.load_kg ?? '-'}kg×${l.reps ?? '-'}`).join(' · ')}</small></div></div>`).join('') : '<p class=muted>O aluno ainda não registrou treinos.</p>');
   x += '<p><button id=dl class=danger>Arquivar aluno</button> <small class=muted>O link para de funcionar, mas nada é apagado. Dá para reativar.</small></p>'; app.innerHTML = x;
   import('./extras.js').then(m => m.alunoExtras(xctx(() => aluno(id)), $('#xtra'), st, w.data || [])).catch(oops);
   app.querySelectorAll('[data-vx]').forEach(b => b.onclick = () => { const e = lbq.find(z => z.id == b.dataset.vx); if (e) exModal(e, () => {}); });
@@ -893,6 +893,17 @@ async function studentView(token, preview = false) {
   // --- um exercício por vez (bi-set: os dois juntos)
   const stepDone = (n, st) => { const x = steps[n]; if (!x) return false; if (x.cardio) return !!st['c' + x.items[0].id]; for (let k = 1; k <= x.sets; k++) if (!st[`d_${n}_${k}`]) return false; return true; };
   const stepPart = (n, st) => { const x = steps[n]; if (!x || x.cardio) return false; for (let k = 1; k <= x.sets; k++) if (st[`d_${n}_${k}`]) return true; return false; };
+  // --- esforço percebido (PSE 0 a 10) ao terminar cada exercício
+  const PSE_TXT = ['Nenhum cansaço', 'Muito, muito leve', 'Muito leve', 'Leve', 'Moderado', 'Um pouco difícil', 'Difícil', 'Muito difícil', 'Muito, muito difícil', 'Quase na falha', 'Falha total'];
+  const pseCor = v => `hsl(${Math.round(130 - v * 13)} 70% ${v >= 8 ? 40 : 38}%)`;
+  const pseHtml = (n, st, msg) => { const v = st['pse_' + n]; return `<div class="pse${msg ? ' alerta' : ''}" id=pse><b>Como foi esse exercício?</b><small>0 = sem cansaço nenhum · 10 = muito exaustivo, falha total</small>
+    <div class=pse-esc>${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(x => `<button type=button data-pse=${x} class="${v === x ? 'on' : ''}" style="--c:${pseCor(x)}">${x}</button>`).join('')}</div>
+    <p class=pse-lab>${v != null ? `<b style="color:${pseCor(v)}">${v} · ${PSE_TXT[v]}</b>` : msg ? '<span class=err>Antes de seguir, toque em um número de 0 a 10.</span>' : '&nbsp;'}</p></div>`; };
+  const pseShow = (n, msg, rolar) => { const box = app.querySelector('#psebox'); if (!box) return; const st = ld(wk.id);
+    if (!stepDone(n, st) && !msg && st['pse_' + n] == null) { box.innerHTML = ''; return; }
+    box.innerHTML = pseHtml(n, st, msg);
+    box.querySelectorAll('[data-pse]').forEach(b => b.onclick = () => { upd(o => { o['pse_' + n] = +b.dataset.pse; }); pseShow(n); paintSegs(); });
+    if (rolar) box.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   const alvo = (s, i) => `${s.sets} série${s.sets > 1 ? 's' : ''} × ${esc(i.reps || '—')}${/^\d+(-\d+)?$/.test(i.reps || '') ? ' reps' : ''} · pausa ${s.rest}s`;
   const play = () => {
     if (idx >= steps.length) return finish();
@@ -913,10 +924,13 @@ async function studentView(token, preview = false) {
         h += `<div class="setrow${dn ? ' done' : ''}"><span class=sn>${k}</span><div class=ins>${s.items.map((i, ix) => `<div class=pair>${s.biset ? `<small>${'ABC'[ix] || ix + 1}</small>` : ''}<label class=fl><input inputmode=decimal placeholder="${esc(i.last?.load ?? '')}" data-i=${i.id} data-s=${k} data-f=load value="${esc(st[`${i.id}_${k}_load`] || '')}"><span>kg</span></label><label class=fl><input inputmode=numeric placeholder="${esc(i.reps || '')}" data-i=${i.id} data-s=${k} data-f=reps value="${esc(st[`${i.id}_${k}_reps`] || '')}"><span>reps</span></label></div>`).join('')}</div><button class="okb${dn ? ' on' : ''}" data-d=${k} aria-label="Série ${k} feita">✓</button></div>`; }
       h += '</div>';
       h += `<details class=anot${s.items.some(i => st['n_' + i.id]) ? ' open' : ''}><summary>📝 Minhas anotações ${s.items.some(i => st['n_' + i.id]) ? '✓' : ''}</summary><small class=muted>Seu treinador vai ver.</small>${s.items.map((i, ix) => `<textarea data-n=${i.id} placeholder="${s.biset ? 'Exercício ' + ('ABC'[ix] || ix + 1) + ': ' : ''}Ex.: senti o ombro, aumentei a carga…">${esc(st['n_' + i.id] || '')}</textarea>`).join('')}</details>`; }
+    h += '<div id=psebox></div>';
     h += `<div class=pbar><button data-prev ${idx ? '' : 'disabled'}>‹ Anterior</button><button data-skip>Pular</button><button class=p data-next>${idx === steps.length - 1 ? 'Concluir ›' : 'Próximo ›'}</button></div>`;
     app.innerHTML = h; paintRest();
     app.querySelector('[data-home]').onclick = home; app.querySelector('[data-prev]').onclick = () => go(idx - 1);
-    app.querySelector('[data-next]').onclick = () => go(idx + 1); app.querySelector('[data-skip]').onclick = () => go(idx + 1);
+    app.querySelector('[data-next]').onclick = () => { const st2 = ld(wk.id); if ((stepDone(idx, st2) || stepPart(idx, st2)) && st2['pse_' + idx] == null) return pseShow(idx, true, true); go(idx + 1); };
+    app.querySelector('[data-skip]').onclick = () => go(idx + 1);
+    pseShow(idx);
     app.querySelectorAll('[data-g]').forEach(b => b.onclick = () => go(+b.dataset.g));
     app.querySelector('[data-fin]').onclick = () => { stopRest(); upd(o => { o.idx = idx; }); finish(); };
     app.querySelector('[data-cancel]').onclick = () => { if (!confirm('Cancelar este treino? O que você marcou hoje será apagado e nada será enviado ao treinador.')) return; stopRest(); try { localStorage.removeItem(key(wk.id)); } catch {} home(); };
@@ -925,9 +939,9 @@ async function studentView(token, preview = false) {
     app.querySelectorAll('[data-sug]').forEach(b => b.onclick = () => { upd(o => { for (let k = 1; k <= s.sets; k++) o[`${b.dataset.sug}_${k}_load`] = String(b.dataset.kg).replace('.', ','); }); play(); });
     const rp = app.querySelector('[data-rep]'); if (rp) rp.onclick = () => { upd(o => { s.items.forEach(i => { if (!i.last) return; for (let k = 1; k <= s.sets; k++) { if (!o[`${i.id}_${k}_load`] && i.last.load != null) o[`${i.id}_${k}_load`] = String(i.last.load); if (!o[`${i.id}_${k}_reps`] && i.last.reps != null) o[`${i.id}_${k}_reps`] = String(i.last.reps); } }); }); play(); };
     const ivb = app.querySelector('[data-iv]'); if (ivb) ivb.onclick = () => runIntervals(s.items[0], intervalOf(s.items[0].text) || intervalOf(s.items[0].note));
-    app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { upd(o => { o['c' + e.dataset.c] = e.checked; }); paintSegs(); });
+    app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { upd(o => { o['c' + e.dataset.c] = e.checked; }); paintSegs(); pseShow(idx, false, e.checked); });
     app.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; let now; upd(o => { now = !o[`d_${idx}_${k}`]; o[`d_${idx}_${k}`] = now; });
-      b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); paintSegs();
+      b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); paintSegs(); pseShow(idx, false, now && stepDone(idx, ld(wk.id)));
       if (now) { if (stepDone(idx, ld(wk.id)) && idx < steps.length - 1) startRest(s.rest, { title: 'Exercício concluído ✓ — descanse e vá para o próximo' }); else startRest(s.rest); } });
   };
   const paintSegs = () => { const st = ld(wk.id); app.querySelectorAll('.seg').forEach((b, n) => { b.classList.toggle('on', stepDone(n, st)); b.classList.toggle('part', !stepDone(n, st) && stepPart(n, st)); }); };
@@ -937,8 +951,10 @@ async function studentView(token, preview = false) {
   const finish = () => { stopRest(); const o = ld(wk.id); let feitas = 0; Object.keys(o).forEach(k => { if (/^d_/.test(k) && o[k]) feitas++; });
     let vol = 0; const prs = []; wk.items.forEach(i => { if (i.kind === 'cardio') return; let mx = 0; for (let k = 1; k <= 12; k++) { const l = num(o[`${i.id}_${k}_load`]), r = num(o[`${i.id}_${k}_reps`]); vol += l * r; mx = Math.max(mx, l); } if (mx > 0 && i.best != null && mx > Number(i.best)) prs.push(`${i.exercise ? i.exercise.name : i.text}: ${mx} kg`); });
     const min = o.t0 ? Math.max(1, Math.round((Date.now() - o.t0) / 60000)) : null;
+    const pses = steps.map((x, n) => ({ n, v: o['pse_' + n], nome: x.items.map(i => i.exercise ? i.exercise.name.replace(/^Cardio:\s*/, '') : i.text).join(' + ') })).filter(x => x.v != null);
+    const media = pses.length ? Math.round(pses.reduce((t, x) => t + x.v, 0) / pses.length * 10) / 10 : null;
     app.innerHTML = `<div class=ptop><button data-back>←</button><b>Treino concluído?</b><span></span></div><div class=bar><i style="width:100%"></i></div>
-      <div class=box2><div class=stats><div><b>${feitas}</b><small>séries</small></div><div><b>${Math.round(vol)}</b><small>kg levantados</small></div>${min ? `<div><b>${min}</b><small>min</small></div>` : ''}</div>${prs.length ? `<div class=pr>🏆 <b>Novo recorde!</b><br>${prs.map(esc).join('<br>')}</div>` : ''}<p><b>Como foi o treino de hoje?</b></p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
+      <div class=box2><div class=stats><div><b>${feitas}</b><small>séries</small></div><div><b>${Math.round(vol)}</b><small>kg levantados</small></div>${min ? `<div><b>${min}</b><small>min</small></div>` : ''}</div>${prs.length ? `<div class=pr>🏆 <b>Novo recorde!</b><br>${prs.map(esc).join('<br>')}</div>` : ''}${media != null ? `<div class=pse-media><div><small>Esforço médio do treino</small><b style="color:${pseCor(Math.round(media))}">${String(media).replace('.', ',')}<span>/10</span></b><small>${PSE_TXT[Math.round(media)]}</small></div><ul>${pses.map(x => `<li><span>${esc(x.nome)}</span><b style="background:${pseCor(x.v)}">${x.v}</b></li>`).join('')}</ul><small class=muted>Vai junto com o seu feedback para o treinador.</small></div>` : ''}<p><b>Como foi o treino de hoje?</b></p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
       <textarea id=cm placeholder="${(o.rating || 0) && o.rating <= 2 ? 'Conte o que não foi bem (obrigatório para 1 ou 2 estrelas)' : 'Comentário (opcional)'}">${esc(o.comment || '')}</textarea><button class=p id=fin>Enviar e concluir</button><p id=fm></p></div>`;
     app.querySelector('[data-back]').onclick = () => go(Math.min(o.idx ?? steps.length - 1, steps.length - 1));
     app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { upd(z => { z.comment = $('#cm').value; z.rating = +b.dataset.r; }); finish(); });
@@ -950,6 +966,7 @@ async function studentView(token, preview = false) {
       const notas = []; wk.items.forEach(i => { const t = String(z['n_' + i.id] || '').trim(); if (t) notas.push(`📝 ${i.exercise ? i.exercise.name : i.text}: ${t}`); });
       const comentario = [String(z.comment || '').trim(), ...notas].filter(Boolean).join('\n');
       wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
+      steps.forEach((x, n) => { const v = z['pse_' + n]; if (v != null) x.items.forEach(i => logs.push({ item: i.id, pse: v })); });
       $('#fm').textContent = 'Enviando…'; $('#fin').disabled = true;
       if (!z.cid) { z.cid = uuid(); sv(wk.id, z); }
       const args = { p_token: token, p_workout: wk.id, p_rating: z.rating || 0, p_comment: comentario, p_logs: logs, p_client: z.cid };
