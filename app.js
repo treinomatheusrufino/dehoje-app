@@ -730,14 +730,15 @@ async function studentView(token, preview = false) {
     const ft = document.createElement('footer'); ft.className = 'lgpd';
     ft.innerHTML = `<a href="#" id=lmu>📚 Didática: músculos, mobilidade e alongamentos</a><br><a href="legal.html#privacidade" target=_blank rel=noopener>Privacidade</a> · <a href="#" id=ldx>Baixar meus dados</a> · <a href="#" id=ldd>Pedir exclusão</a>`;
     document.body.appendChild(ft);
-    ft.querySelector('#lmu').onclick = async e => { e.preventDefault(); const { montarDidatica } = await import('./didatica.js');
-      const d = mdl('<div id=atlasBox></div><button class=p id=atx style="margin-top:12px">Fechar</button>'); d.classList.add('full'); let videos = {}; try { const r = await sb.rpc('student_videos', { p_token: token }); videos = r.data || {}; } catch {}
-      montarDidatica(d.querySelector('#atlasBox'), { videos }); d.querySelector('#atx').onclick = d.close; };
+    ft.querySelector('#lmu').onclick = e => { e.preventDefault(); abrirDidatica(); };
     ft.querySelector('#ldx').onclick = async e => { e.preventDefault(); const r = await sb.rpc('student_export', { p_token: token }); if (r.error) return alert(ptErr(r.error.message));
       const b = new Blob([JSON.stringify(r.data, null, 2)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'meus-dados-dehoje.json'; document.body.appendChild(a); a.click(); a.remove(); };
     ft.querySelector('#ldd').onclick = async e => { e.preventDefault(); if (!confirm('Pedir a exclusão de todos os seus dados no DE HOJE? Seu treinador e o responsável pelo app vão confirmar com você antes de apagar.')) return;
       const r = await sb.rpc('student_data_request', { p_token: token, p_kind: 'excluir' }); alert(r.error ? ptErr(r.error.message) : 'Pedido registrado. Vamos responder em até 15 dias.'); };
   }
+  async function abrirDidatica() { const { montarDidatica } = await import('./didatica.js');
+    const d = mdl('<div id=atlasBox></div><button class=p id=atx style="margin-top:12px">Fechar</button>'); d.classList.add('full'); let videos = {}; try { const r = await sb.rpc('student_videos', { p_token: token }); videos = r.data || {}; } catch {}
+    montarDidatica(d.querySelector('#atlasBox'), { videos }); d.querySelector('#atx').onclick = d.close; }
   // o app é sempre DE HOJE; a marca do treinador aparece logo abaixo
   const BR = P.brand || {}; const trName = BR.name && BR.name !== 'DE HOJE' ? BR.name : ''; document.title = 'DE HOJE';
   const tb = document.createElement('div'); tb.className = 'trbar';
@@ -790,11 +791,12 @@ async function studentView(token, preview = false) {
   // --- início: escolher o treino do dia
   const home = () => { stopRest(); wk = null; document.title = 'DE HOJE'; unwake();
     let h = `${offline ? '<div class=msg id=offb><b>📴 Modo offline</b><p>Pode treinar normalmente. Seus resultados ficam guardados no celular e vão para o treinador quando a internet voltar.</p></div>' : ''}<h2>Olá, ${esc(P.student.name.split(' ')[0])}</h2>`;
-    if (!P.workouts.length) { app.innerHTML = h + '<div id=xtA></div><div id=agBox></div><p class=muted>Seu treino ainda não foi cadastrado.</p>'; minhasAulas(); if (AX) try { AX.cartoesAluno({ P, token, sb, mdl, box: $('#xtA'), preview }); } catch (e) { oops(e); } return; }
+    if (!P.workouts.length) { app.innerHTML = h + atalhos() + '<div id=xtA></div><div id=agBox></div><p class=muted>Seu treino ainda não foi cadastrado.</p>'; minhasAulas(); if (AX) try { AX.cartoesAluno({ P, token, sb, mdl, box: $('#xtA'), preview }); } catch (e) { oops(e); } ligaAtalhos(); return; }
     const now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), dow = (d0.getDay() + 6) % 7, mon = new Date(d0); mon.setDate(d0.getDate() - dow);
     const ss = (P.sessions || []).map(x => new Date(x)), wkc = ss.filter(x => x >= mon).length, m30 = ss.filter(x => now - x < 30 * 864e5).length;
     const days = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, n) => { const a = new Date(mon); a.setDate(mon.getDate() + n); const b = new Date(a); b.setDate(a.getDate() + 1); const did = ss.some(x => x >= a && x < b); return `<span class="dot${did ? ' on' : ''}${n === dow ? ' today' : ''}">${l}</span>`; }).join('');
     h += `<div class=week><div class=dots>${days}</div><small class=muted><b>${wkc}</b> treino${wkc === 1 ? '' : 's'} esta semana · <b>${m30}</b> nos últimos 30 dias</small></div>`;
+    h += atalhos();
     if (P.student.message) h += `<div class=msg><b>Recado do treinador</b><p class=pre>${esc(P.student.message)}</p></div>`;
     (P.replies || []).slice(0, 2).forEach(r => { h += `<div class=msg><small class=muted>Resposta do treinador · ${new Date(r.at).toLocaleDateString('pt-BR')}</small><p class=pre>${esc(r.text)}</p></div>`; });
     const pl = P.plan_end ? Math.ceil((new Date(P.plan_end + 'T23:59:59') - Date.now()) / 864e5) : null;
@@ -802,7 +804,7 @@ async function studentView(token, preview = false) {
     const ms = P.measures || []; if (ms.length) { const a = ms[0], z = ms[ms.length - 1], df = (k, u) => ms.length > 1 && a[k] != null && z[k] != null ? ` (${z[k] - a[k] > 0 ? '+' : ''}${String(Math.round((z[k] - a[k]) * 10) / 10).replace('.', ',')} ${u})` : '';
       const parts = []; if (z.weight != null) parts.push(`Peso <b>${String(z.weight).replace('.', ',')} kg</b>${df('weight', 'kg')}`); if (z.waist != null) parts.push(`Cintura <b>${String(z.waist).replace('.', ',')} cm</b>${df('waist', 'cm')}`); if (z.fat != null) parts.push(`Gordura <b>${String(z.fat).replace('.', ',')}%</b>${df('fat', '%')}`);
       if (parts.length) h += `<div class=week><b>Seu progresso</b><br><small>${parts.join('<br>')}</small></div>`; }
-    h += '<div id=xtA></div><p class=muted>Qual treino você vai fazer hoje?</p>';
+    h += '<div id=xtA></div><p class=muted id=treinos>Qual treino você vai fazer hoje?</p>';
     P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
       const nEx = stepsOf(w).length;
       h += `<div class=wcard><div class=wc1><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${nEx} exercício${nEx === 1 ? '' : 's'}</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
@@ -812,7 +814,33 @@ async function studentView(token, preview = false) {
     if (BR.phone) h += `<p><a class=btn href="https://wa.me/${esc(BR.phone)}" target=_blank rel=noopener>💬 Falar com meu treinador</a></p>`;
     if (P.student.code) h += `<p class=muted><small>Seu ID: <b>${esc(P.student.code)}</b></small></p>`;
     h += '<p class=muted style="margin-top:18px"><small>Dica: no menu do navegador, toque em “Adicionar à tela inicial” para abrir como um app. Depois de aberto uma vez com internet, o treino funciona mesmo sem internet.</small></p>';
-    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; minhasAulas(); if (AX) try { AX.cartoesAluno({ P, token, sb, mdl, box: $('#xtA'), preview }); } catch (e) { oops(e); } };
+    app.innerHTML = h; app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => start(b.dataset.w)); app.querySelector('[data-files]').onclick = files; minhasAulas(); if (AX) try { AX.cartoesAluno({ P, token, sb, mdl, box: $('#xtA'), preview }); } catch (e) { oops(e); } ligaAtalhos(); };
+  // --- acesso rápido: tudo o que o aluno tem, em botões grandes logo no topo
+  const atalhos = () => { const f = P.fee, t = [];
+    const dias = f ? Math.ceil((new Date(f.venc + 'T23:59:59') - Date.now()) / 864e5) : null;
+    if (P.workouts.length) t.push(['treinos', '🏋️', 'Meus treinos', '']);
+    t.push(['didatica', '📚', 'Didática', 'Músculos, mobilidade e alongamentos']);
+    if (f) t.push(['fin', '💳', 'Financeiro', f.pago ? 'Pago ✓' : dias < 0 ? 'Vencida' : dias <= 5 ? (dias === 0 ? 'Vence hoje' : `Vence em ${dias}d`) : `Todo dia ${f.dia}`, !f.pago && dias <= 5]);
+    t.push(['arquivos', '📁', 'Meus arquivos', 'Fotos, avaliações e exames']);
+    t.push(['aulas', '📅', 'Minhas aulas', '']);
+    t.push(['mes', '📊', 'Meu mês', 'Treinos e recordes']);
+    if ((P.assess || []).length) t.push(['aval', '📏', 'Avaliação física', 'Sua evolução']);
+    if (!P.anamnese_ok && !preview) t.push(['ficha', '🩺', 'Ficha de saúde', 'Preencher', true]);
+    if (BR.phone) t.push(['zap', '💬', 'Falar com o treinador', 'WhatsApp']);
+    return `<div class=atalhos>${t.map(([k, ic, nm, sub, alerta]) => `<button type=button data-at=${k} class="${alerta ? 'alerta' : ''}"><span class=ati>${ic}</span><b>${nm}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</button>`).join('')}</div>`; };
+  const rolar = sel => { const el = app.querySelector(sel); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const clicar = sel => { const b = app.querySelector(sel); if (b) b.click(); };
+  const verFinanceiro = () => { const f = P.fee; if (!f) return; const brl = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const dias = Math.ceil((new Date(f.venc + 'T23:59:59') - Date.now()) / 864e5), venc = new Date(f.venc + 'T12:00:00').toLocaleDateString('pt-BR');
+    const d = mdl(`<h3>💳 Financeiro</h3><div class=fin-al><div><small>Mensalidade</small><b>${brl(f.valor)}</b></div><div><small>Vencimento</small><b>todo dia ${f.dia}</b></div></div>
+      <p>${f.pago ? '<span class="ag-st ag-ok">Este mês está pago ✓</span>' : dias < 0 ? `<span class="ag-st ag-no">Venceu em ${venc}</span>` : `<span class="ag-st ag-wait">Próximo vencimento: ${venc}${dias <= 5 ? ` (${dias === 0 ? 'hoje' : `em ${dias} dia${dias > 1 ? 's' : ''}`})` : ''}</span>`}</p>
+      ${f.pix ? `<p><small class=muted>Chave PIX do seu treinador</small><br><b class=pixk>${esc(f.pix)}</b></p><button class=p id=fpx>Copiar chave PIX</button>` : ''}${BR.phone ? `<a class=btn href="https://wa.me/${esc(BR.phone)}?text=${encodeURIComponent('Olá! Segue o comprovante da mensalidade.')}" target=_blank rel=noopener>💬 Enviar comprovante ao treinador</a>` : ''}<button id=fcl>Fechar</button>`);
+    d.querySelector('#fcl').onclick = d.close; const px = d.querySelector('#fpx'); if (px) px.onclick = async () => { try { await navigator.clipboard.writeText(f.pix); px.textContent = 'Copiado ✓'; } catch { prompt('Copie a chave PIX:', f.pix); } }; };
+  const ligaAtalhos = () => app.querySelectorAll('[data-at]').forEach(b => b.onclick = () => ({
+    treinos: () => rolar('#treinos'), didatica: abrirDidatica, fin: verFinanceiro, arquivos: files,
+    aulas: () => rolar('#agBox'), mes: () => clicar('[data-ax=rel]'), aval: () => clicar('[data-ax=av]'), ficha: () => clicar('[data-ax=ficha]'),
+    zap: () => window.open(`https://wa.me/${BR.phone}`, '_blank', 'noopener'),
+  })[b.dataset.at]?.());
   // --- lembrete diário no celular (notificação)
   const VAPID = 'BFm8CvaeBGiulH7lhBGC5RRVFkLJ2jweVdYC08Nh-FjObAbFEikDVx678BS3KK7YnK-J01IhpnbTDllqPG7SHBg';
   const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
