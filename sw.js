@@ -1,5 +1,5 @@
-const V='dehoje-v41', LIB='dehoje-lib-1', IMG='dehoje-img-1';
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','index.html','app.js','style.css','manifest.webmanifest','icons/icon-192.png','icons/icon.svg','icons/apple-touch-icon.png','atlas.js','didatica.js','didatica_dados.js','ia.js','ia_ui.js','aluno_extras.js','extras.js'])))});
+const V='dehoje-v42', LIB='dehoje-lib-1', IMG='dehoje-img-1';
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','index.html','app.js','style.css','manifest.webmanifest','icons/icon-192.png','icons/icon.svg','icons/apple-touch-icon.png','icons/logo-horizontal.svg','atlas.js','didatica.js','didatica_dados.js','ia.js','ia_ui.js','aluno_extras.js','extras.js'])))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>![V,LIB,IMG].includes(x)).map(x=>caches.delete(x)))).then(()=>clients.claim())));
 const put=(n,r,res)=>{if(res&&(res.ok||res.type==='opaque')){const cp=res.clone();caches.open(n).then(c=>c.put(r,cp))}return res};
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);

@@ -1,7 +1,7 @@
 :root{--o:#16A34A;--od:#15803D;--n:#1B2A49;--g:#6b7280;--b:#e3e5ec;--bg:#fff}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;color:var(--n);background:var(--bg)}
 header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:3px solid var(--o);position:sticky;top:0;background:#fff;z-index:5}
-header b{font-size:18px;flex:1}header img{width:30px;height:30px;border-radius:8px}
+header b{font-size:18px;flex:1}header img{width:30px;height:30px;border-radius:8px}header img.logo{width:auto;height:28px;border-radius:0}
 nav{display:flex;gap:6px;padding:8px 16px;overflow:auto}nav button{flex:none}
 button{font:inherit;padding:9px 14px;border-radius:10px;border:1px solid var(--b);background:#fff;color:var(--n)}
 button.on,button.p{background:var(--od);border-color:var(--od);color:#fff}
