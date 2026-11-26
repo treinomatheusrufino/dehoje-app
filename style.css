@@ -243,3 +243,15 @@ footer.lgpd a{color:var(--g)}
 @media(min-width:620px){.atalhos{grid-template-columns:repeat(4,1fr)}}
 .fin-al{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.fin-al div{border:1px solid var(--b);border-radius:12px;padding:10px}.fin-al small{display:block;color:var(--g)}.fin-al b{font-size:20px}
 .pixk{word-break:break-all}
+
+/* v45 — pausa entre séries em tela cheia: fundo ofuscado + semicírculo branco */
+#rest.ov{inset:0;bottom:0;padding:0;z-index:30;pointer-events:auto}
+.restov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(12,18,32,.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:ovin .2s ease-out}
+@keyframes ovin{from{opacity:0}to{opacity:1}}
+.ovin{width:100%;max-width:420px;text-align:center;color:#fff}
+.restov .rtit{font-size:18px;color:#fff;margin:0 0 4px}.ovinfo{margin:0 0 10px;font-size:15px;color:#ffffffd9}
+.restov .gauge{max-width:320px;filter:drop-shadow(0 0 14px #ffffff40)}
+.restov .gt{stroke:#ffffff33}.restov .ga{stroke:#fff}.restov .gs{fill:#fff;font-size:50px}.restov .gl{fill:#ffffffcc;font-size:11px}
+.restov .rbtn{margin-top:10px}.restov .rbtn button{background:transparent;color:#fff;border:1.5px solid #ffffff99;border-radius:12px;padding:9px 18px;font-weight:600}
+.ovact{display:flex;gap:10px;margin-top:16px}.ovact button{flex:1;padding:14px 8px;font-weight:700;border-radius:14px;background:#fff;color:var(--n);border:0}
+.ovact button.p{background:var(--o);color:#fff}

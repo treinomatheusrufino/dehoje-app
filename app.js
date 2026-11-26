@@ -770,8 +770,16 @@ async function studentView(token, preview = false) {
 
   // --- cronômetro de pausa (semicírculo)
   const LEN = Math.PI * 80;
-  const stopRest = () => { rest = null; clearInterval(tick); tick = null; const r = $('#rest'); if (r) r.innerHTML = ''; };
-  const paintRest = () => { const r = $('#rest'); if (!r) return; if (!rest) return r.innerHTML = ''; const iv = rest.kind !== 'rest';
+  const stopRest = () => { rest = null; clearInterval(tick); tick = null; const r = $('#rest'); if (r) { r.innerHTML = ''; r.classList.remove('ov'); } };
+  const paintRest = () => { const r = $('#rest'); if (!r) return; r.classList.remove('ov'); if (!rest) return r.innerHTML = ''; const iv = rest.kind !== 'rest';
+    // pausa entre séries: tela cheia, fundo ofuscado e semicírculo branco em destaque (v45)
+    if (!iv) { r.classList.add('ov'); const prox = idx < steps.length - 1;
+      r.innerHTML = `<div class=restov role=dialog aria-label="Pausa"><div class=ovin>${rest.title ? `<b class=rtit>${esc(rest.title)}</b>` : ''}${rest.info ? `<p class=ovinfo>${esc(rest.info)}</p>` : ''}<svg viewBox="0 0 200 112" class=gauge><path d="M20 100 A80 80 0 0 1 180 100" class=gt /><path id=arc d="M20 100 A80 80 0 0 1 180 100" class=ga stroke-dasharray="${LEN} ${LEN}" /><text id=sec x=100 y=88 text-anchor=middle class=gs></text><text x=100 y=108 text-anchor=middle class=gl>${esc(rest.label)}</text></svg>
+        <div class=rbtn><button data-r="-15">−15s</button><button data-r="15">+15s</button></div><div class=ovact><button data-r="skip">Encerrar pausa</button>${prox ? '<button class=p data-r="next">Próximo exercício ›</button>' : ''}</div></div></div>`;
+      r.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const a = b.dataset.r; if (a === 'skip') return stopRest();
+        if (a === 'next') { stopRest(); const nb = app.querySelector('[data-next]'); return nb ? nb.click() : go(idx + 1); }
+        const d = +a * 1000; rest.end = Math.max(Date.now() + 1000, rest.end + d); rest.total = Math.max(5, rest.total + d / 1000); frame(); });
+      return frame(); }
     r.innerHTML = `<div class="restbox${rest.kind === 'work' ? ' work' : ''}">${rest.title ? `<b class=rtit>${esc(rest.title)}</b>` : ''}<svg viewBox="0 0 200 112" class=gauge><path d="M20 100 A80 80 0 0 1 180 100" class=gt /><path id=arc d="M20 100 A80 80 0 0 1 180 100" class=ga stroke-dasharray="${LEN} ${LEN}" /><text id=sec x=100 y=88 text-anchor=middle class=gs></text><text x=100 y=108 text-anchor=middle class=gl>${esc(rest.label)}</text></svg>
       <div class=rbtn><button data-r="-15">−15s</button><button data-r="skip">${iv ? 'Avançar' : 'Pular pausa'}</button><button data-r="15">+15s</button>${iv ? '<button data-r="stop">Parar</button>' : ''}</div></div>`;
     r.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const a = b.dataset.r; if (a === 'stop') return stopRest(); if (a === 'skip') { if (rest.onEnd) { const f = rest.onEnd; rest = null; return f(); } return stopRest(); }
@@ -780,8 +788,8 @@ async function studentView(token, preview = false) {
   const frame = () => { if (!rest) return; const left = Math.max(0, rest.end - Date.now()), sec = Math.ceil(left / 1000); const t = $('#sec'), a = $('#arc'); if (t) t.textContent = sec; if (a) a.setAttribute('stroke-dasharray', `${LEN * Math.min(1, left / (rest.total * 1000))} ${LEN}`);
     if (left <= 0) { clearInterval(tick); tick = null; beep(); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {}
       if (rest.onEnd) { const f = rest.onEnd; rest = null; return f(); }
-      const r = $('#rest'); if (r) r.innerHTML = '<div class=restbox><b class=ok>Pausa concluída! Bora para a próxima série 💪</b></div>'; rest = null; setTimeout(() => { if (!rest && $('#rest')) $('#rest').innerHTML = ''; }, 3500); } };
-  const startRest = (sec, o = {}) => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec, label: o.label || 'segundos de pausa', title: o.title || '', kind: o.kind || 'rest', onEnd: o.onEnd || null }; paintRest(); tick = setInterval(frame, 250); };
+      const r = $('#rest'); if (r) r.classList.remove('ov'); if (r) r.innerHTML = '<div class=restbox><b class=ok>Pausa concluída! Bora para a próxima série 💪</b></div>'; rest = null; setTimeout(() => { if (!rest && $('#rest')) $('#rest').innerHTML = ''; }, 3500); } };
+  const startRest = (sec, o = {}) => { clearInterval(tick); rest = { end: Date.now() + sec * 1000, total: sec, label: o.label || 'segundos de pausa', title: o.title || '', kind: o.kind || 'rest', onEnd: o.onEnd || null, info: o.info || '' }; paintRest(); tick = setInterval(frame, 250); };
   const runIntervals = (item, cfg) => { let r = 1;
     const work = () => startRest(cfg.work, { kind: 'work', title: `Rodada ${r} de ${cfg.n}`, label: 'segundos — execução', onEnd: () => {
       if (r >= cfg.n) { upd(o => { o['c' + item.id] = true; }); stopRest(); play(); const z = $('#rest'); if (z) z.innerHTML = '<div class=restbox><b class=ok>Intervalos concluídos! 🔥</b></div>'; return; }
@@ -970,7 +978,8 @@ async function studentView(token, preview = false) {
     app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { upd(o => { o['c' + e.dataset.c] = e.checked; }); paintSegs(); pseShow(idx, false, e.checked); });
     app.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; let now; upd(o => { now = !o[`d_${idx}_${k}`]; o[`d_${idx}_${k}`] = now; });
       b.classList.toggle('on', now); b.closest('.setrow').classList.toggle('done', now); paintSegs(); pseShow(idx, false, now && stepDone(idx, ld(wk.id)));
-      if (now) { if (stepDone(idx, ld(wk.id)) && idx < steps.length - 1) startRest(s.rest, { title: 'Exercício concluído ✓ — descanse e vá para o próximo' }); else startRest(s.rest); } });
+      if (now) { const st3 = ld(wk.id), info = `Série ${k} de ${s.sets} · ` + s.items.map((i, ix) => { const l = st3[`${i.id}_${k}_load`], rp = st3[`${i.id}_${k}_reps`]; return (s.biset ? ('ABC'[ix] || ix + 1) + ': ' : '') + `${l ? l + ' kg' : '— kg'} × ${rp || '—'}`; }).join(' | ');
+        if (stepDone(idx, st3) && idx < steps.length - 1) startRest(s.rest, { title: 'Exercício concluído ✓', info }); else startRest(s.rest, { title: 'Série feita ✓', info }); } });
   };
   const paintSegs = () => { const st = ld(wk.id); app.querySelectorAll('.seg').forEach((b, n) => { b.classList.toggle('on', stepDone(n, st)); b.classList.toggle('part', !stepDone(n, st) && stepPart(n, st)); }); };
 
