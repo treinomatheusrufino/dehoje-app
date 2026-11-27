@@ -1,5 +1,5 @@
 // Conte Comigo — service worker (notificações + abrir offline)
-const VERSAO = 'cc-v1';
+const VERSAO = 'cc-v2';
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
