@@ -156,6 +156,50 @@ label.f>span{display:block;font-size:13px;font-weight:600;color:var(--muted);mar
 .emojigrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:6px}
 .emojigrid button{font-size:22px;padding:6px 0;border-radius:10px}
 .emojigrid button.on{background:var(--pri-soft)}
+
+/* cartões */
+.ccard{position:relative;border-radius:18px;padding:16px;color:#fff;margin:12px 0;overflow:hidden;cursor:pointer;box-shadow:0 8px 22px rgba(26,34,64,.16)}
+.ccard::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.1)}
+.ccard .h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ccard .h b{font-size:17px;display:block}
+.ccard .h span{font-size:12px;opacity:.85}
+.ccard .tag{font-size:11px;font-weight:700;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.ccard .inv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.ccard .inv div{background:rgba(0,0,0,.14);border-radius:12px;padding:9px 10px}
+.ccard .inv small{display:block;font-size:11px;opacity:.85}
+.ccard .inv b{font-size:16px}
+.ccard .lim{margin-top:10px;font-size:12px;opacity:.9}
+.ccard .lim .bar{background:rgba(255,255,255,.25);margin-top:5px;height:6px}
+.ccard .lim .bar i{background:#fff}
+.mini{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);width:100%;text-align:left}
+.mini:first-of-type{border-top:0}
+.mini .sw{width:38px;height:26px;border-radius:6px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.mini .mid{flex:1;min-width:0}
+.mini .mid b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .mid span{font-size:12px;color:var(--muted)}
+.mini .val{text-align:right;font-size:13px;color:var(--muted)}
+.mini .val b{display:block;font-size:15px;color:var(--ink)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:40px;height:40px;border-radius:12px;background:var(--pri-soft);color:var(--pri);font-size:22px;font-weight:700}
+.stepper b{min-width:44px;text-align:center;font-size:18px}
+.hint{font-size:13px;color:var(--pri);background:var(--pri-soft);border-radius:12px;padding:9px 12px;margin-top:10px}
+.colors{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.colors button{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.colors button.on{outline:3px solid var(--ink);outline-offset:2px}
+.imp-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.imp-row:first-child{border-top:0}
+.imp-row input[type=checkbox]{width:22px;height:22px;margin:2px 0 0;accent-color:var(--pri);flex:none}
+.imp-row .mid{flex:1;min-width:0}
+.imp-row .t{display:flex;justify-content:space-between;gap:8px}
+.imp-row .t b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imp-row select{margin-top:6px;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);font-size:13px;max-width:100%}
+.imp-row.dup{opacity:.55}
+.badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--warn-soft);color:var(--warn);margin-left:6px}
+.inv-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;margin:8px 0}
+.inv-nav button{width:36px;height:36px;border-radius:50%;font-size:20px;color:var(--pri)}
+.inv-nav div{text-align:center}
+.inv-nav div b{display:block;font-size:20px}
+.inv-nav div span{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -215,6 +259,10 @@ label.f>span{display:block;font-size:13px;font-weight:600;color:var(--muted);mar
         <div class="people" id="peopleList"></div>
       </div>
       <div class="card">
+        <h3>Cartões <a href="#" data-go="cartoes">ver faturas</a></h3>
+        <div id="homeCards"></div>
+      </div>
+      <div class="card">
         <h3>Orçamentos <a href="#" data-go="orcamento">ver todos</a></h3>
         <div id="homeBudgets"></div>
       </div>
@@ -239,8 +287,20 @@ label.f>span{display:block;font-size:13px;font-weight:600;color:var(--muted);mar
       <button class="btn sec" id="addCatBtn">+ Nova categoria</button>
     </section>
 
+    <!-- CARTÕES -->
+    <section id="v-cartoes" class="hide">
+      <button class="scan" id="impOpen" style="margin-top:6px">📸 <span>Importar print da fatura</span></button>
+      <div id="cardsList"></div>
+      <button class="btn sec" id="addCardBtn">+ Novo cartão</button>
+    </section>
+
     <!-- AJUSTES -->
     <section id="v-ajustes" class="hide">
+      <div class="card">
+        <h3>Cartões <a href="#" data-go="cartoes">faturas</a></h3>
+        <div id="setCards"></div>
+        <button class="btn sec" id="addCardBtn2">+ Novo cartão</button>
+      </div>
       <div class="card">
         <h3>Renda do mês <span class="muted small" id="rendaMes"></span></h3>
         <p class="muted small" style="margin:-4px 0 6px">Quanto cada um recebe neste mês. Se não mudar, o app usa o valor do mês anterior.</p>
@@ -301,13 +361,86 @@ label.f>span{display:block;font-size:13px;font-weight:600;color:var(--muted);mar
     <label class="f"><span>Data</span><input class="in" id="tDate" type="date"></label>
     <label class="f"><span>Local</span><input class="in" id="tPlace" placeholder="opcional" maxlength="60"></label>
   </div>
-  <label class="f"><span>Pagamento</span></label>
+  <label class="f"><span>Forma de pagamento</span></label>
   <div class="chips" id="tPay"></div>
+  <div id="tCardWrap" class="hide">
+    <label class="f"><span id="tCardLbl">Qual cartão</span></label>
+    <div class="chips" id="tCard"></div>
+  </div>
+  <div id="tParcWrap" class="hide">
+    <label class="f"><span>Parcelas</span></label>
+    <div class="row" style="align-items:center">
+      <div class="stepper"><button type="button" id="pMenos">−</button><b id="pN">1x</b><button type="button" id="pMais">+</button></div>
+      <div class="muted small" id="pVal" style="text-align:right"></div>
+    </div>
+  </div>
+  <div id="tHint"></div>
   <div id="tSplit"></div>
   <div id="tItems"></div>
   <div class="err" id="tErr"></div>
   <button class="btn" id="tSave">Lançar gasto</button>
   <button class="btn danger hide" id="tDel">Apagar lançamento</button>
+  <button class="btn danger hide" id="tDelAll">Apagar todas as parcelas</button>
+</div>
+
+<!-- ============ FOLHA: CARTÃO ============ -->
+<div class="sheet" id="sheetCard">
+  <div class="grab"></div>
+  <div class="sheet-h"><h2 id="kTitle">Novo cartão</h2><button class="x" data-close>✕</button></div>
+  <label class="f"><span>Banco</span><input class="in" id="kBank" list="bancos" placeholder="Ex.: Santander" maxlength="30"></label>
+  <datalist id="bancos"><option>Santander</option><option>Bradesco</option><option>Itaú</option><option>Azul Itaú</option><option>Nubank</option><option>Inter</option><option>XP</option><option>C6 Bank</option><option>Caixa</option><option>Banco do Brasil</option><option>Sicredi</option><option>Mercado Pago</option><option>PicPay</option></datalist>
+  <label class="f"><span>Nome do cartão (como vai aparecer)</span><input class="in" id="kName" placeholder="Ex.: Santander Matheus" maxlength="30"></label>
+  <label class="f"><span>De quem é</span></label>
+  <div class="seg" id="kOwner"></div>
+  <label class="f"><span>Tipo</span></label>
+  <div class="seg" id="kKind">
+    <button type="button" data-k="credito">Crédito</button>
+    <button type="button" data-k="multiplo">Crédito e débito</button>
+    <button type="button" data-k="debito">Débito</button>
+  </div>
+  <div id="kCredit">
+    <div class="row">
+      <label class="f"><span>Fecha dia</span><input class="in" id="kClose" inputmode="numeric" placeholder="Ex.: 3" maxlength="2"></label>
+      <label class="f"><span>Vence dia</span><input class="in" id="kDue" inputmode="numeric" placeholder="Ex.: 10" maxlength="2"></label>
+    </div>
+    <label class="f"><span>Limite (opcional)</span><input class="in" id="kLimit" inputmode="decimal" placeholder="Ex.: 8.000,00"></label>
+  </div>
+  <label class="f"><span>Final do cartão (opcional)</span><input class="in" id="kLast4" inputmode="numeric" placeholder="Ex.: 6385" maxlength="4"></label>
+  <label class="f"><span>Cor</span></label>
+  <div class="colors" id="kColors"></div>
+  <div class="err" id="kErr"></div>
+  <button class="btn" id="kSave">Salvar cartão</button>
+  <button class="btn danger hide" id="kDel">Remover cartão</button>
+</div>
+
+<!-- ============ FOLHA: FATURA ============ -->
+<div class="sheet" id="sheetInv">
+  <div class="grab"></div>
+  <div class="sheet-h"><h2 id="iTitle">Fatura</h2><button class="x" data-close>✕</button></div>
+  <div class="inv-nav"><button id="iPrev">‹</button><div><span id="iLbl"></span><b class="num" id="iTot"></b><span id="iSub"></span></div><button id="iNext">›</button></div>
+  <div class="card" style="padding:4px 14px" id="iList"></div>
+  <div class="row">
+    <button class="btn sec" id="iImp">📸 Importar print</button>
+    <button class="btn sec" id="iEdit">Editar cartão</button>
+  </div>
+</div>
+
+<!-- ============ FOLHA: IMPORTAR FATURA ============ -->
+<div class="sheet" id="sheetImp">
+  <div class="grab"></div>
+  <div class="sheet-h"><h2>Importar fatura</h2><button class="x" data-close>✕</button></div>
+  <p class="muted small" style="margin:0 2px 4px">Tire print da tela da fatura no app do banco (pode ser mais de um print, rolando a lista). Eu leio os lançamentos e você confere antes de importar.</p>
+  <label class="f"><span>De qual cartão</span></label>
+  <div class="chips" id="mCards"></div>
+  <label class="f"><span>Quem usou</span></label>
+  <div class="seg" id="mWho"></div>
+  <button class="scan" id="mPick" style="margin-top:14px"><span id="mIco">🖼️</span><span id="mTxt">Escolher prints</span></button>
+  <input type="file" id="mFiles" accept="image/*" multiple class="hide">
+  <div id="mInfo"></div>
+  <div class="card hide" style="padding:4px 14px" id="mList"></div>
+  <label class="split hide" id="mFutWrap"><input type="checkbox" id="mFut" checked><div><b>Lançar também as parcelas futuras</b><div class="muted small">Compras parceladas já entram nas próximas faturas, para você ver o que vem pela frente.</div></div></label>
+  <div class="err" id="mErr"></div>
+  <button class="btn hide" id="mSave">Importar</button>
 </div>
 
 <!-- ============ FOLHA: CATEGORIA ============ -->
@@ -348,13 +481,15 @@ const parseBRL = (s) => {
 const fmtIn = (n) => n == null ? '' : Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const hojeISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-const PAGTOS = ['Crédito', 'Débito', 'Pix', 'Dinheiro'];
+const PAGTOS = ['Crédito', 'Débito', 'Pix', 'Dinheiro', 'Boleto'];
+const CORES_CARTAO = ['#ec0000', '#cc092f', '#ec7000', '#820ad1', '#ff7a00', '#1a1a1a', '#0070af', '#0038a8', '#2a4fb8', '#e8559a', '#0f8a6a', '#6b7280'];
+const COR_BANCO = { santander: '#ec0000', bradesco: '#cc092f', 'itaú': '#ec7000', itau: '#ec7000', 'azul itaú': '#0038a8', nubank: '#820ad1', inter: '#ff7a00', xp: '#1a1a1a', c6: '#1a1a1a', 'c6 bank': '#1a1a1a', caixa: '#0070af', 'banco do brasil': '#0038a8', sicredi: '#0f8a6a', 'mercado pago': '#00a1e4', picpay: '#11c76f' };
 const EMOJIS = ['🛒', '🏠', '🧾', '🍽️', '🚗', '⛽', '💊', '🧸', '🎉', '🛍️', '📚', '✈️', '📦', '🐶', '💡', '📱', '🍷', '☕', '🏋️', '💇', '🎁', '👕', '🔧', '💳', '🏥', '🎬', '🍕', '🚌', '💰', '❤️', '👶', '🌱'];
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
 const st = {
-  user: null, me: null, house: null, members: [], cats: [], incomes: [], tx: [],
+  user: null, me: null, house: null, members: [], cats: [], incomes: [], tx: [], cards: [], cardTx: [],
   month: hojeISO().slice(0, 7), view: 'inicio', filter: { q: '', who: null, cat: null },
 };
 
@@ -372,6 +507,37 @@ function monthRange(m) {
 }
 function monthLabel(m) { const [y, mo] = m.split('-').map(Number); return `${MESES[mo - 1]} ${y}`; }
 function shiftMonth(m, d) { const [y, mo] = m.split('-').map(Number); const x = new Date(Date.UTC(y, mo - 1 + d, 1)); return x.toISOString().slice(0, 7); }
+const pad2 = (n) => String(n).padStart(2, '0');
+const dim = (y, m0) => new Date(Date.UTC(y, m0 + 1, 0)).getUTCDate();
+const isoD = (y, m0, d) => { const x = new Date(Date.UTC(y, m0, 1)); const yy = x.getUTCFullYear(), mm = x.getUTCMonth(); return `${yy}-${pad2(mm + 1)}-${pad2(Math.min(d, dim(yy, mm)))}`; };
+const addMonths = (iso, k) => { const [y, m, d] = iso.split('-').map(Number); return isoD(y, m - 1 + k, d); };
+const ddmm = (iso) => iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) : '';
+const isCredit = (c) => c && c.kind !== 'debito' && c.closing_day && c.due_day;
+// vencimento da fatura em que cai uma compra feita em `data`
+function vencimentoDe(data, c) {
+  const [y, m, d] = data.split('-').map(Number);
+  const mf = d < Math.min(c.closing_day, dim(y, m - 1)) ? m - 1 : m;
+  return isoD(y, c.due_day > c.closing_day ? mf : mf + 1, c.due_day);
+}
+function fechamentoDe(venc, c) { const [y, m] = venc.split('-').map(Number); return isoD(y, c.due_day > c.closing_day ? m - 1 : m - 2, c.closing_day); }
+const contaNaFatura = (t) => t.payment !== 'Débito';
+function faturas(c) {
+  // agrupa os lançamentos do cartão por vencimento
+  const map = new Map();
+  for (const t of st.cardTx) if (t.card_id === c.id && contaNaFatura(t)) { const v = vencimentoDe(t.spent_on, c); if (!map.has(v)) map.set(v, []); map.get(v).push(t); }
+  return map;
+}
+function resumoCartao(c) {
+  const hoje = hojeISO();
+  const aberta = vencimentoDe(hoje, c);
+  const fechada = addMonths(aberta, -1) >= hoje ? addMonths(aberta, -1) : null;
+  const F = faturas(c);
+  const soma = (v) => (F.get(v) || []).reduce((a, t) => a + Number(t.amount), 0);
+  let futuras = 0;
+  for (const [v, ts] of F) if (v > aberta) futuras += ts.reduce((a, t) => a + Number(t.amount), 0);
+  return { aberta, fechada, totAberta: soma(aberta), totFechada: fechada ? soma(fechada) : 0, futuras, fechaEm: fechamentoDe(aberta, c) };
+}
+const cardById = (id) => st.cards.find((c) => c.id === id);
 const memberById = (id) => st.members.find((m) => m.user_id === id);
 const catById = (id) => st.cats.find((c) => c.id === id);
 const first = (n) => String(n || '').split(' ')[0];
@@ -428,14 +594,15 @@ $('#authForm').onsubmit = async (e) => {
 /* ---------- carregar dados ---------- */
 async function loadBase() {
   const uid = st.user.id;
-  const [{ data: me }, { data: members }, { data: cats }, { data: incomes }] = await Promise.all([
+  const [{ data: me }, { data: members }, { data: cats }, { data: incomes }, { data: cards }] = await Promise.all([
     sb.from('members').select('*').eq('user_id', uid).maybeSingle(),
     sb.from('members').select('*').order('created_at'),
     sb.from('categories').select('*').eq('archived', false).order('sort').order('name'),
     sb.from('incomes').select('*'),
+    sb.from('cards').select('*').eq('archived', false).order('created_at'),
   ]);
   if (!me) { toast('Sua conta não está ligada a nenhuma casa.'); await sb.auth.signOut(); return false; }
-  st.me = me; st.members = members || []; st.cats = cats || []; st.incomes = incomes || [];
+  st.me = me; st.members = members || []; st.cats = cats || []; st.incomes = incomes || []; st.cards = cards || [];
   const { data: house } = await sb.from('households').select('*').eq('id', me.household_id).maybeSingle();
   st.house = house;
   return true;
@@ -446,7 +613,12 @@ async function loadTx() {
   if (error) { toast('Não consegui carregar os gastos.'); return; }
   st.tx = data || [];
 }
-async function reloadAll() { if (await loadBase()) { await loadTx(); render(); } }
+async function loadCardTx() {
+  const ini = addMonths(hojeISO(), -4), fim = addMonths(hojeISO(), 30);
+  const { data } = await sb.from('expenses').select('*').not('card_id', 'is', null).gte('spent_on', ini).lte('spent_on', fim).order('spent_on', { ascending: false });
+  st.cardTx = data || [];
+}
+async function reloadAll() { if (await loadBase()) { await Promise.all([loadTx(), loadCardTx()]); render(); } }
 let reloadT;
 const reloadSoon = () => { clearTimeout(reloadT); reloadT = setTimeout(reloadAll, 250); };
 
@@ -457,7 +629,7 @@ function subscribe() {
   const hid = st.me.household_id;
   channel = sb.channel('casa-' + hid)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses', filter: `household_id=eq.${hid}` }, (p) => {
-      if (p.eventType === 'INSERT' && p.new.created_by && p.new.created_by !== st.user.id) {
+      if (p.eventType === 'INSERT' && p.new.created_by && p.new.created_by !== st.user.id && (!p.new.installment_no || p.new.installment_no === 1) && p.new.source !== 'fatura') {
         const m = memberById(p.new.created_by); const c = catById(p.new.category_id);
         toast(`${first(m?.name) || 'Alguém'} lançou ${brl(p.new.amount)}${c ? ' · ' + c.emoji + ' ' + c.name : ''}`, 3500);
       }
@@ -466,6 +638,7 @@ function subscribe() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'incomes', filter: `household_id=eq.${hid}` }, reloadSoon)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter: `household_id=eq.${hid}` }, reloadSoon)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'members', filter: `household_id=eq.${hid}` }, reloadSoon)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cards', filter: `household_id=eq.${hid}` }, reloadSoon)
     .subscribe();
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && st.me) reloadAll(); });
@@ -475,7 +648,7 @@ function go(v) {
   st.view = v;
   $$('section[id^="v-"]').forEach((s) => s.classList.toggle('hide', s.id !== 'v-' + v));
   $$('.tabs button[data-go]').forEach((b) => b.classList.toggle('on', b.dataset.go === v));
-  $('#monthSw').classList.toggle('hide', v === 'ajustes' && false);
+  $('#monthSw').classList.toggle('hide', v === 'cartoes');
   window.scrollTo(0, 0);
   render();
 }
@@ -506,7 +679,8 @@ function calc() {
 /* ---------- desenho ---------- */
 function txRow(t) {
   const c = catById(t.category_id); const m = memberById(t.user_id);
-  const sub = [c ? c.name : 'Sem categoria', first(m?.name), t.place].filter(Boolean).join(' · ');
+  const k = cardById(t.card_id);
+  const sub = [c ? c.name : 'Sem categoria', first(m?.name), k ? '💳 ' + k.name : t.payment, t.installment_total > 1 ? `${t.installment_no}/${t.installment_total}` : ''].filter(Boolean).join(' · ');
   return `<button class="tx" data-tx="${t.id}"><div class="emoji">${c ? c.emoji : '🏷️'}</div><div class="mid"><b>${esc(t.description || c?.name || 'Gasto')}</b><span>${esc(sub)}</span></div><div class="val num">${brl(t.amount)}</div></button>`;
 }
 function budgetRow(c, gasto, compact = false) {
@@ -527,6 +701,7 @@ function render() {
   if (st.view === 'lancamentos') renderLanc();
   if (st.view === 'orcamento') renderOrc(C);
   if (st.view === 'ajustes') renderAjustes();
+  if (st.view === 'cartoes') renderCartoes();
 }
 
 function renderInicio(C) {
@@ -543,6 +718,14 @@ function renderInicio(C) {
     const g = C.porPessoa.get(r.m.user_id) || 0;
     return `<div class="person">${avatar(r.m)}<div class="info"><b>${esc(first(r.m.name))}${r.m.user_id === st.user.id ? ' <span class="muted small">(você)</span>' : ''}</b><span class="muted small">Renda ${r.vazio ? '<a href="#" data-go="ajustes" class="link">cadastrar</a>' : brl(r.amount)}</span></div><div class="vals"><b class="num">${brl(g)}</b><div class="muted small">gastou</div></div></div>`;
   }).join('') + (st.members.length < 2 ? `<p class="muted small" style="margin:4px 0 0">Convide a outra pessoa em <a href="#" data-go="ajustes" class="link">Ajustes</a>.</p>` : '');
+
+  const credito = st.cards.filter(isCredit);
+  $('#homeCards').innerHTML = credito.length ? credito.map((c) => {
+    const r = resumoCartao(c);
+    const linha = r.fechada && r.totFechada > 0 ? `Fechada ${brl(r.totFechada)} · vence ${ddmm(r.fechada)}` : `Vence ${ddmm(r.aberta)} · fecha ${ddmm(r.fechaEm)}`;
+    return `<button class="mini" data-inv="${c.id}"><div class="sw" style="background:${esc(c.color)}"></div><div class="mid"><b>${esc(c.name)}</b><span>${linha}</span></div><div class="val"><b class="num">${brl(r.totAberta)}</b>${r.futuras ? 'futuras ' + brl(r.futuras) : 'fatura atual'}</div></button>`;
+  }).join('') : `<div class="empty" style="padding:10px"><span class="muted small">Cadastre seus cartões para ver as faturas. <a href="#" id="homeAddCard" class="link">Adicionar cartão</a></span></div>`;
+  const hac = $('#homeAddCard'); if (hac) hac.onclick = (e) => { e.preventDefault(); openCard(null); };
 
   const comOrc = st.cats.filter((c) => Number(c.budget) > 0)
     .map((c) => ({ c, g: C.porCat.get(c.id) || 0 }))
@@ -606,6 +789,7 @@ function renderAjustes() {
     const hint = r.herdado ? `usando ${brl(r.amount)} de ${monthLabel(r.de)}` : r.vazio ? 'ainda não cadastrada' : 'definida para este mês';
     return `<div class="set-item">${avatar(m)}<div class="mid"><b>${esc(first(m.name))}</b><div class="muted small">${hint}</div></div><input class="in num" style="width:132px;text-align:right" inputmode="decimal" data-renda="${m.user_id}" placeholder="0,00" value="${r.vazio ? '' : fmtIn(r.amount)}"></div>`;
   }).join('');
+  $('#setCards').innerHTML = st.cards.length ? st.cards.map((c) => `<button class="mini" data-card="${c.id}"><div class="sw" style="background:${esc(c.color)}"></div><div class="mid"><b>${esc(c.name)}</b><span>${esc(first(memberById(c.owner_id)?.name) || '')} · ${c.kind === 'debito' ? 'débito' : c.kind === 'credito' ? 'crédito' : 'crédito e débito'}${isCredit(c) ? ` · fecha dia ${c.closing_day}, vence dia ${c.due_day}` : ''}</span></div><span class="muted">›</span></button>`).join('') : '<p class="muted small" style="margin:0">Nenhum cartão ainda.</p>';
   $('#inviteCode').textContent = st.house?.invite_code || '';
   $('#meNome').value = st.me.name; $('#casaNome').value = st.house?.name || '';
   $('#meEmail').textContent = st.user.email;
@@ -646,18 +830,63 @@ $('#ov').onclick = closeSheets;
 $$('[data-close]').forEach((b) => b.onclick = closeSheets);
 
 /* ---------- gasto ---------- */
-const tx = { id: null, cat: null, who: null, pay: null, items: null, groups: null, split: false };
+const tx = { id: null, cat: null, who: null, pay: null, card: null, parc: 1, group: null, items: null, groups: null, split: false };
+const lastCard = (pay) => { try { return localStorage.getItem('cc-card-' + pay + '-' + st.user.id); } catch { return null; } };
+const saveLastCard = (pay, id) => { try { localStorage.setItem('cc-card-' + pay + '-' + st.user.id, id); } catch { } };
 function drawTxChips() {
   $('#tCats').innerHTML = st.cats.map((c) => `<button type="button" class="chip ${tx.cat === c.id ? 'on' : ''}" data-c="${c.id}">${c.emoji} ${esc(c.name)}</button>`).join('');
   $('#tWho').innerHTML = st.members.map((m) => `<button type="button" class="${tx.who === m.user_id ? 'on' : ''}" data-w="${m.user_id}">${esc(first(m.name))}</button>`).join('');
-  $('#tPay').innerHTML = PAGTOS.map((p) => `<button type="button" class="chip ${tx.pay === p ? 'on' : ''}" data-p="${p}">${p}</button>`).join('');
+  $('#tPay').innerHTML = PAGTOS.map((p) => `<button type="button" class="chip ${tx.pay === p ? 'on' : ''}" data-p="${p}">${{ 'Crédito': '💳', 'Débito': '💳', 'Pix': '⚡', 'Dinheiro': '💵', 'Boleto': '🧾' }[p]} ${p}</button>`).join('');
+  const usaCartao = tx.pay === 'Crédito' || tx.pay === 'Débito';
+  $('#tCardWrap').classList.toggle('hide', !usaCartao);
+  if (usaCartao) {
+    const ok = st.cards.filter((c) => tx.pay === 'Crédito' ? c.kind !== 'debito' : c.kind !== 'credito');
+    $('#tCardLbl').textContent = tx.pay === 'Crédito' ? 'Em qual cartão de crédito' : 'De qual cartão / conta saiu';
+    $('#tCard').innerHTML = ok.map((c) => `<button type="button" class="chip ${tx.card === c.id ? 'on' : ''}" data-k="${c.id}"><span class="sw" style="width:14px;height:14px;border-radius:4px;background:${esc(c.color)};display:inline-block"></span>${esc(c.name)}</button>`).join('') + `<button type="button" class="chip" data-k="novo">+ Novo cartão</button>`;
+  }
+  const parc = tx.pay === 'Crédito' && !tx.id && !tx.split;
+  $('#tParcWrap').classList.toggle('hide', !parc);
+  if (!parc) tx.parc = 1;
+  drawHint();
+}
+function drawHint() {
+  $('#pN').textContent = tx.parc + 'x';
+  const v = parseBRL($('#tAmount').value);
+  $('#pVal').textContent = tx.parc > 1 && v ? `${tx.parc}x de ${brl(v / tx.parc)}` : tx.parc > 1 ? 'digite o valor total' : 'à vista';
+  const c = cardById(tx.card);
+  let h = '';
+  if (tx.pay === 'Crédito' && isCredit(c)) {
+    const d = $('#tDate').value || hojeISO();
+    const v1 = vencimentoDe(d, c);
+    h = tx.parc > 1 ? `Entra na fatura de ${ddmm(v1)} até a de ${ddmm(vencimentoDe(addMonths(d, tx.parc - 1), c))}.` : `Entra na fatura que vence em ${ddmm(v1)}.`;
+  } else if (tx.pay === 'Crédito' && c && !isCredit(c)) h = 'Cadastre o dia de fechamento e vencimento deste cartão para ver em qual fatura cai.';
+  $('#tHint').innerHTML = h ? `<div class="hint">${h}</div>` : '';
+}
+$('#tCard').onclick = (e) => {
+  const b = e.target.closest('[data-k]'); if (!b) return;
+  if (b.dataset.k === 'novo') { cardReturnToTx = true; openCard(null, tx.pay === 'Débito' ? 'debito' : 'credito'); return; }
+  tx.card = tx.card === b.dataset.k ? null : b.dataset.k;
+  if (tx.card) saveLastCard(tx.pay, tx.card);
+  drawTxChips();
+};
+$('#pMenos').onclick = () => { tx.parc = Math.max(1, tx.parc - 1); drawHint(); };
+$('#pMais').onclick = () => { tx.parc = Math.min(24, tx.parc + 1); drawHint(); };
+$('#tAmount').addEventListener('input', drawHint);
+$('#tDate').addEventListener('change', drawHint);
+function escolhePagto(p) {
+  tx.pay = p;
+  if (p === 'Crédito' || p === 'Débito') {
+    const cur = cardById(tx.card);
+    const ok = (c) => c && (p === 'Crédito' ? c.kind !== 'debito' : c.kind !== 'credito');
+    if (!ok(cur)) { const l = cardById(lastCard(p)); const meus = st.cards.filter((c) => ok(c) && c.owner_id === tx.who); tx.card = ok(l) ? l.id : meus.length === 1 ? meus[0].id : null; }
+  } else tx.card = null;
 }
 $('#tCats').onclick = (e) => { const b = e.target.closest('[data-c]'); if (b) { tx.cat = tx.cat === b.dataset.c ? null : b.dataset.c; drawTxChips(); } };
 $('#tWho').onclick = (e) => { const b = e.target.closest('[data-w]'); if (b) { tx.who = b.dataset.w; drawTxChips(); } };
-$('#tPay').onclick = (e) => { const b = e.target.closest('[data-p]'); if (b) { tx.pay = tx.pay === b.dataset.p ? null : b.dataset.p; drawTxChips(); } };
+$('#tPay').onclick = (e) => { const b = e.target.closest('[data-p]'); if (b) { escolhePagto(tx.pay === b.dataset.p ? null : b.dataset.p); drawTxChips(); } };
 
 function openTx(t) {
-  Object.assign(tx, { id: t?.id || null, cat: t?.category_id || null, who: t?.user_id || st.user.id, pay: t?.payment || null, items: t?.items || null, groups: null, split: false });
+  Object.assign(tx, { id: t?.id || null, cat: t?.category_id || null, who: t?.user_id || st.user.id, pay: t?.payment || null, card: t?.card_id || null, parc: 1, group: t?.installment_group || null, items: t?.items || null, groups: null, split: false });
   $('#txTitle').textContent = t ? 'Editar gasto' : 'Novo gasto';
   $('#tAmount').value = t ? fmtIn(t.amount) : '';
   $('#tDesc').value = t?.description || '';
@@ -666,27 +895,30 @@ function openTx(t) {
   $('#tErr').textContent = '';
   $('#tSave').textContent = t ? 'Salvar alterações' : 'Lançar gasto';
   $('#tDel').classList.toggle('hide', !t);
+  $('#tDel').textContent = t?.installment_total > 1 ? `Apagar só esta parcela (${t.installment_no}/${t.installment_total})` : 'Apagar lançamento';
+  $('#tDelAll').classList.toggle('hide', !(t?.installment_group && t.installment_total > 1));
   $('#scanBtn').classList.toggle('hide', !!t);
   drawTxChips(); drawItems();
   openSheet('#sheetTx');
   if (!t) setTimeout(() => $('#tAmount').focus(), 320);
 }
 $('#fab').onclick = () => openTx(null);
-document.addEventListener('click', (e) => { const r = e.target.closest('[data-tx]'); if (r) openTx(st.tx.find((t) => t.id === r.dataset.tx)); });
+document.addEventListener('click', (e) => { const r = e.target.closest('[data-tx]'); if (r) openTx(st.tx.find((t) => t.id === r.dataset.tx) || st.cardTx.find((t) => t.id === r.dataset.tx)); });
 
 function drawItems() {
   const its = tx.items || [];
   $('#tItems').innerHTML = its.length ? `<details class="items"><summary>🧾 ${its.length} ite${its.length > 1 ? 'ns' : 'm'} do cupom</summary>${its.map((i) => `<div class="it"><span>${i.quantidade && i.quantidade !== 1 ? i.quantidade + '× ' : ''}${esc(i.descricao)}</span><b class="num">${brl(i.valor_final)}</b></div>`).join('')}</details>` : '';
   const g = tx.groups;
   $('#tSplit').innerHTML = !tx.id && g && g.length > 1 ? `<label class="split"><input type="checkbox" id="tSplitChk" ${tx.split ? 'checked' : ''}><div><b>Separar por categoria</b><div class="muted small">${g.map((x) => `${x.cat ? x.cat.emoji + ' ' + esc(x.cat.name) : 'Outros'} ${brl(x.total)}`).join(' · ')}</div><div class="muted small">Vira ${g.length} lançamentos, um para cada categoria.</div></div></label>` : '';
-  const chk = $('#tSplitChk'); if (chk) chk.onchange = () => { tx.split = chk.checked; $('#tSave').textContent = tx.split ? `Lançar ${g.length} gastos` : 'Lançar gasto'; };
+  const chk = $('#tSplitChk'); if (chk) chk.onchange = () => { tx.split = chk.checked; $('#tSave').textContent = tx.split ? `Lançar ${g.length} gastos` : 'Lançar gasto'; drawTxChips(); };
 }
 
 $('#tSave').onclick = async () => {
   const amount = parseBRL($('#tAmount').value);
   const err = $('#tErr'); err.textContent = '';
   if (!amount || amount <= 0) { err.textContent = 'Digite o valor.'; return; }
-  const base = { household_id: st.me.household_id, user_id: tx.who, description: $('#tDesc').value.trim(), place: $('#tPlace').value.trim() || null, payment: tx.pay, spent_on: $('#tDate').value || hojeISO() };
+  if ((tx.pay === 'Crédito' || tx.pay === 'Débito') && !tx.card && st.cards.some((c) => tx.pay === 'Crédito' ? c.kind !== 'debito' : c.kind !== 'credito')) { err.textContent = 'Escolha em qual cartão foi.'; return; }
+  const base = { household_id: st.me.household_id, user_id: tx.who, description: $('#tDesc').value.trim(), place: $('#tPlace').value.trim() || null, payment: tx.pay, card_id: tx.card, spent_on: $('#tDate').value || hojeISO() };
   const btn = $('#tSave'); btn.disabled = true; const label = btn.textContent; btn.innerHTML = '<span class="spin"></span>';
   try {
     if (tx.id) {
@@ -701,15 +933,21 @@ $('#tSave').onclick = async () => {
         rows = tx.groups.map((g) => ({ ...base, created_by: st.user.id, category_id: g.cat?.id || null, amount: Math.round(g.total / soma * amount * 100) / 100, items: g.items, description: base.description ? `${base.description} · ${g.cat?.name || 'Outros'}` : (g.cat?.name || 'Outros') }));
         const dif = Math.round((amount - rows.reduce((a, r) => a + r.amount, 0)) * 100) / 100;
         rows.sort((a, b) => b.amount - a.amount)[0].amount = Math.round((rows[0].amount + dif) * 100) / 100;
+      } else if (tx.parc > 1) {
+        const n = tx.parc, g = crypto.randomUUID ? crypto.randomUUID() : null;
+        const parte = Math.floor(amount / n * 100) / 100;
+        const primeira = Math.round((amount - parte * (n - 1)) * 100) / 100;
+        const desc = base.description || catById(tx.cat)?.name || 'Compra parcelada';
+        rows = Array.from({ length: n }, (_, i) => ({ ...base, created_by: st.user.id, category_id: tx.cat, items: i === 0 ? tx.items : null, amount: i === 0 ? primeira : parte, spent_on: addMonths(base.spent_on, i), description: `${desc} (${i + 1}/${n})`, installment_no: i + 1, installment_total: n, installment_group: g }));
       } else rows = [{ ...base, created_by: st.user.id, amount, category_id: tx.cat, items: tx.items }];
       const { data, error } = await sb.from('expenses').insert(rows).select('id');
       if (error) throw error;
-      toast(rows.length > 1 ? `${rows.length} gastos lançados ✓` : 'Gasto lançado ✓');
-      for (const r of data || []) sb.functions.invoke('avisar', { body: { acao: 'gasto', id: r.id } }).catch(() => { });
+      toast(tx.parc > 1 ? `Lançado em ${tx.parc}x ✓` : rows.length > 1 ? `${rows.length} gastos lançados ✓` : 'Gasto lançado ✓');
+      sb.functions.invoke('avisar', { body: { acao: 'gasto', ids: (data || []).map((r) => r.id) } }).catch(() => { });
       const m = (base.spent_on || '').slice(0, 7);
       if (m && m !== st.month) st.month = m;
     }
-    closeSheets(); await loadTx(); render();
+    closeSheets(); await Promise.all([loadTx(), loadCardTx()]); render();
   } catch (e) {
     err.textContent = 'Não consegui salvar: ' + (e.message || e);
   } finally { btn.disabled = false; btn.textContent = label; }
@@ -718,7 +956,13 @@ $('#tDel').onclick = async () => {
   if (!confirm('Apagar este lançamento?')) return;
   const { error } = await sb.from('expenses').delete().eq('id', tx.id);
   if (error) { toast('Não consegui apagar.'); return; }
-  toast('Lançamento apagado'); closeSheets(); await loadTx(); render();
+  toast('Lançamento apagado'); closeSheets(); await Promise.all([loadTx(), loadCardTx()]); render();
+};
+$('#tDelAll').onclick = async () => {
+  if (!confirm('Apagar todas as parcelas desta compra?')) return;
+  const { error } = await sb.from('expenses').delete().eq('installment_group', tx.group);
+  if (error) { toast('Não consegui apagar.'); return; }
+  toast('Parcelas apagadas'); closeSheets(); await Promise.all([loadTx(), loadCardTx()]); render();
 };
 $('#tAmount').addEventListener('blur', (e) => { const v = parseBRL(e.target.value); if (v) e.target.value = fmtIn(v); });
 
@@ -754,7 +998,7 @@ $('#scanFile').onchange = async (e) => {
     if (c.descricao_curta && !$('#tDesc').value) $('#tDesc').value = c.descricao_curta;
     if (/^\d{4}-\d{2}-\d{2}$/.test(c.data || '')) $('#tDate').value = c.data;
     const pg = String(c.forma_pagamento || '').toLowerCase();
-    tx.pay = /cr[eé]d/.test(pg) ? 'Crédito' : /d[eé]b/.test(pg) ? 'Débito' : /pix/.test(pg) ? 'Pix' : /dinheiro/.test(pg) ? 'Dinheiro' : tx.pay;
+    escolhePagto(/cr[eé]d/.test(pg) ? 'Crédito' : /d[eé]b/.test(pg) ? 'Débito' : /pix/.test(pg) ? 'Pix' : /dinheiro/.test(pg) ? 'Dinheiro' : tx.pay);
     const byName = (n) => st.cats.find((x) => x.name === n) || null;
     if (c.categoria) tx.cat = byName(c.categoria)?.id || tx.cat;
     tx.items = (c.itens || []).map((i) => ({ descricao: i.descricao, quantidade: i.quantidade ?? 1, valor_final: Number(i.valor_final) || 0, categoria: i.categoria || null }));
@@ -798,6 +1042,229 @@ $('#cDel').onclick = async () => {
   const { error } = await sb.from('categories').update({ archived: true }).eq('id', catEdit.id);
   if (error) { toast('Não consegui remover.'); return; }
   toast('Categoria removida'); closeSheets(); reloadAll();
+};
+
+/* ---------- cartões ---------- */
+function renderCartoes() {
+  $('#cardsList').innerHTML = st.cards.length ? st.cards.map((c) => {
+    const dono = first(memberById(c.owner_id)?.name);
+    const head = `<div class="h"><div><b>${esc(c.name)}</b><span>${esc([dono, c.last4 ? '•••• ' + c.last4 : ''].filter(Boolean).join(' · '))}</span></div><span class="tag">${c.kind === 'debito' ? 'DÉBITO' : c.kind === 'credito' ? 'CRÉDITO' : 'CRÉDITO E DÉBITO'}</span></div>`;
+    if (!isCredit(c)) {
+      const [ini, fim] = monthRange(hojeISO().slice(0, 7));
+      const deb = st.cardTx.filter((t) => t.card_id === c.id && t.spent_on >= ini && t.spent_on < fim).reduce((a, t) => a + Number(t.amount), 0);
+      return `<div class="ccard" style="background:${esc(c.color)}" data-card="${c.id}">${head}<div class="inv"><div><small>Gasto este mês</small><b class="num">${brl(deb)}</b></div><div><small>${c.kind === 'debito' ? 'Débito em conta' : 'Toque para informar'}</small><b>${c.kind === 'debito' ? '—' : 'fechamento'}</b></div></div></div>`;
+    }
+    const r = resumoCartao(c);
+    const usado = r.totFechada + r.totAberta + r.futuras;
+    const lim = Number(c.credit_limit || 0);
+    return `<div class="ccard" style="background:${esc(c.color)}" data-inv="${c.id}">${head}
+      <div class="inv">
+        ${r.fechada && r.totFechada > 0 ? `<div><small>Fechada · vence ${ddmm(r.fechada)}</small><b class="num">${brl(r.totFechada)}</b></div>` : ''}
+        <div><small>Aberta · vence ${ddmm(r.aberta)}</small><b class="num">${brl(r.totAberta)}</b></div>
+        <div><small>Próximas faturas</small><b class="num">${brl(r.futuras)}</b></div>
+        ${!(r.fechada && r.totFechada > 0) ? `<div><small>Fecha em</small><b>${ddmm(r.fechaEm)}</b></div>` : ''}
+      </div>
+      ${lim ? `<div class="lim">Limite usado ${brl(usado)} de ${brl(lim)}<div class="bar"><i style="width:${Math.min(100, usado / lim * 100)}%"></i></div></div>` : ''}
+    </div>`;
+  }).join('') : `<div class="empty"><div class="e">💳</div>Nenhum cartão ainda.<br>Cadastre os cartões de vocês para separar os gastos e acompanhar as faturas.</div>`;
+}
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-inv]'); if (a) { openInv(cardById(a.dataset.inv)); return; }
+  const k = e.target.closest('[data-card]'); if (k && !k.closest('.sheet')) openCard(cardById(k.dataset.card));
+});
+$('#addCardBtn').onclick = () => openCard(null);
+$('#addCardBtn2').onclick = () => openCard(null);
+
+let cardEdit = null, cardReturnToTx = false;
+const kf = { owner: null, kind: 'credito', color: CORES_CARTAO[8] };
+function drawCardForm() {
+  $('#kOwner').innerHTML = st.members.map((m) => `<button type="button" class="${kf.owner === m.user_id ? 'on' : ''}" data-o="${m.user_id}">${esc(first(m.name))}</button>`).join('');
+  $$('#kKind button').forEach((b) => b.classList.toggle('on', b.dataset.k === kf.kind));
+  $('#kCredit').classList.toggle('hide', kf.kind === 'debito');
+  $('#kColors').innerHTML = CORES_CARTAO.map((c) => `<button type="button" class="${kf.color === c ? 'on' : ''}" data-c="${c}" style="background:${c}"></button>`).join('');
+}
+$('#kOwner').onclick = (e) => { const b = e.target.closest('[data-o]'); if (b) { kf.owner = b.dataset.o; drawCardForm(); } };
+$('#kKind').onclick = (e) => { const b = e.target.closest('[data-k]'); if (b) { kf.kind = b.dataset.k; drawCardForm(); } };
+$('#kColors').onclick = (e) => { const b = e.target.closest('[data-c]'); if (b) { kf.color = b.dataset.c; drawCardForm(); } };
+$('#kBank').addEventListener('change', () => {
+  const b = $('#kBank').value.trim(); const cor = COR_BANCO[b.toLowerCase()];
+  if (cor && !cardEdit) kf.color = cor;
+  if (!$('#kName').value.trim() && b) $('#kName').value = `${b} ${first(memberById(kf.owner)?.name) || ''}`.trim();
+  drawCardForm();
+});
+function openCard(c, kind) {
+  cardEdit = c || null;
+  Object.assign(kf, { owner: c?.owner_id || st.user.id, kind: c?.kind || kind || 'credito', color: c?.color || CORES_CARTAO[8] });
+  $('#kTitle').textContent = c ? 'Editar cartão' : 'Novo cartão';
+  $('#kBank').value = c?.bank || ''; $('#kName').value = c?.name || '';
+  $('#kClose').value = c?.closing_day || ''; $('#kDue').value = c?.due_day || '';
+  $('#kLimit').value = c?.credit_limit ? fmtIn(c.credit_limit) : ''; $('#kLast4').value = c?.last4 || '';
+  $('#kErr').textContent = ''; $('#kDel').classList.toggle('hide', !c);
+  drawCardForm();
+  $('#ov').classList.add('on'); $('#sheetCard').classList.add('on'); document.body.style.overflow = 'hidden';
+}
+function closeCardSheet() {
+  $('#sheetCard').classList.remove('on');
+  if (!$$('.sheet.on').length) closeSheets();
+}
+$('#sheetCard [data-close]').onclick = () => { cardReturnToTx = false; closeCardSheet(); };
+$('#kSave').onclick = async () => {
+  const name = $('#kName').value.trim() || $('#kBank').value.trim();
+  const err = $('#kErr'); err.textContent = '';
+  if (name.length < 2) { err.textContent = 'Dê um nome ao cartão.'; return; }
+  const fecha = parseInt($('#kClose').value, 10), vence = parseInt($('#kDue').value, 10);
+  if (kf.kind !== 'debito' && (!(fecha >= 1 && fecha <= 31) || !(vence >= 1 && vence <= 31))) { err.textContent = 'Informe o dia de fechamento e o de vencimento (1 a 31).'; return; }
+  const lt = $('#kLimit').value.trim(); const lim = lt ? parseBRL(lt) : null;
+  if (lt && lim == null) { err.textContent = 'Limite inválido.'; return; }
+  const row = { name, bank: $('#kBank').value.trim() || null, owner_id: kf.owner, kind: kf.kind, closing_day: kf.kind === 'debito' ? null : fecha, due_day: kf.kind === 'debito' ? null : vence, credit_limit: kf.kind === 'debito' ? null : lim, last4: ($('#kLast4').value.replace(/\D/g, '') || null), color: kf.color };
+  const res = cardEdit ? await sb.from('cards').update(row).eq('id', cardEdit.id).select().single()
+    : await sb.from('cards').insert({ ...row, household_id: st.me.household_id }).select().single();
+  if (res.error) { err.textContent = 'Não consegui salvar o cartão.'; return; }
+  toast('Cartão salvo ✓');
+  await loadBase();
+  if (cardReturnToTx && !cardEdit) { cardReturnToTx = false; tx.card = res.data.id; saveLastCard(tx.pay, res.data.id); closeCardSheet(); drawTxChips(); return; }
+  closeSheets(); reloadAll();
+};
+$('#kDel').onclick = async () => {
+  if (!confirm(`Remover o cartão "${cardEdit.name}"? Os gastos já lançados continuam.`)) return;
+  const { error } = await sb.from('cards').update({ archived: true }).eq('id', cardEdit.id);
+  if (error) { toast('Não consegui remover.'); return; }
+  toast('Cartão removido'); closeSheets(); reloadAll();
+};
+
+/* ---------- fatura ---------- */
+const inv = { card: null, venc: null };
+function openInv(c) {
+  if (!c) return;
+  if (!isCredit(c)) { openCard(c); return; }
+  inv.card = c; const r = resumoCartao(c); inv.venc = r.fechada && r.totFechada > 0 ? r.fechada : r.aberta;
+  drawInv(); openSheet('#sheetInv');
+}
+function drawInv() {
+  const c = inv.card, v = inv.venc, hoje = hojeISO();
+  const ts = (faturas(c).get(v) || []).slice().sort((a, b) => b.spent_on.localeCompare(a.spent_on));
+  const tot = ts.reduce((a, t) => a + Number(t.amount), 0);
+  const fecha = fechamentoDe(v, c);
+  const status = v < hoje ? 'vencida/paga' : fecha <= hoje ? 'fechada' : vencimentoDe(hoje, c) === v ? 'aberta' : 'futura';
+  $('#iTitle').textContent = c.name;
+  $('#iLbl').textContent = `Fatura ${status} · vence ${ddmm(v)}/${v.slice(2, 4)}`;
+  $('#iTot').textContent = brl(tot);
+  $('#iSub').textContent = `fecha ${ddmm(fecha)} · ${ts.length} lançamento${ts.length === 1 ? '' : 's'}`;
+  $('#iList').innerHTML = ts.length ? ts.map(txRow).join('') : `<div class="empty">Nada nesta fatura.</div>`;
+}
+const shiftVenc = (k) => { const [y, m] = inv.venc.split('-').map(Number); inv.venc = isoD(y, m - 1 + k, inv.card.due_day); drawInv(); };
+$('#iPrev').onclick = () => shiftVenc(-1);
+$('#iNext').onclick = () => shiftVenc(1);
+$('#iEdit').onclick = () => { const c = inv.card; closeSheets(); setTimeout(() => openCard(c), 250); };
+$('#iImp').onclick = () => { const c = inv.card; closeSheets(); setTimeout(() => openImp(c), 250); };
+
+/* ---------- importar print da fatura ---------- */
+const imp = { card: null, who: null, rows: [], total: null };
+const normTxt = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\(\d+\/\d+\)/, '').replace(/[^a-z0-9]/g, '').slice(0, 14);
+function openImp(c) {
+  imp.card = c?.id || (st.cards.length === 1 ? st.cards[0].id : null);
+  imp.who = cardById(imp.card)?.owner_id || st.user.id;
+  imp.rows = []; imp.total = null;
+  $('#mErr').textContent = ''; $('#mInfo').innerHTML = '';
+  $('#mTxt').textContent = 'Escolher prints';
+  drawImp(); openSheet('#sheetImp');
+}
+$('#impOpen').onclick = () => openImp(null);
+function marcaDuplicados() {
+  const k = imp.card;
+  for (const r of imp.rows) {
+    const cents = Math.round(r.valor * 100);
+    r.dup = st.cardTx.some((t) => t.card_id === k && Math.round(Number(t.amount) * 100) === cents && (
+      r.parcela_total > 1 ? (t.installment_total === r.parcela_total && t.installment_no === r.parcela_atual && normTxt(t.description) === normTxt(r.descricao)) : t.spent_on === r.data));
+    if (r.dup) r.sel = false;
+  }
+}
+function drawImp() {
+  $('#mCards').innerHTML = st.cards.length ? st.cards.map((c) => `<button type="button" class="chip ${imp.card === c.id ? 'on' : ''}" data-k="${c.id}"><span style="width:14px;height:14px;border-radius:4px;background:${esc(c.color)};display:inline-block"></span>${esc(c.name)}</button>`).join('') + `<button type="button" class="chip" data-k="novo">+ Novo cartão</button>`
+    : `<button type="button" class="chip" data-k="novo">+ Cadastrar o cartão primeiro</button>`;
+  $('#mWho').innerHTML = st.members.map((m) => `<button type="button" class="${imp.who === m.user_id ? 'on' : ''}" data-w="${m.user_id}">${esc(first(m.name))}</button>`).join('');
+  const rows = imp.rows;
+  $('#mList').classList.toggle('hide', !rows.length);
+  $('#mSave').classList.toggle('hide', !rows.length);
+  $('#mFutWrap').classList.toggle('hide', !rows.some((r) => r.parcela_total > 1 && r.parcela_atual < r.parcela_total));
+  if (!rows.length) return;
+  const catOpts = (sel) => `<option value="">Sem categoria</option>` + st.cats.map((c) => `<option value="${c.id}" ${sel === c.id ? 'selected' : ''}>${c.emoji} ${esc(c.name)}</option>`).join('');
+  $('#mList').innerHTML = rows.map((r, i) => `<div class="imp-row ${r.dup ? 'dup' : ''}"><input type="checkbox" data-i="${i}" ${r.sel ? 'checked' : ''}><div class="mid"><div class="t"><b>${esc(r.descricao)}</b><span class="num">${brl(r.valor)}</span></div><div class="muted small">${ddmm(r.data)}${r.parcela_total > 1 ? ` · parcela ${r.parcela_atual}/${r.parcela_total}` : ''}${r.dup ? '<span class="badge">já lançado</span>' : ''}</div><select data-c="${i}">${catOpts(r.cat)}</select></div></div>`).join('');
+  const sel = rows.filter((r) => r.sel);
+  const tot = sel.reduce((a, r) => a + r.valor, 0);
+  const dups = rows.filter((r) => r.dup).length;
+  $('#mInfo').innerHTML = `<div class="hint">${rows.length} lançamentos lidos${dups ? ` · ${dups} já estavam no app` : ''}.<br>Selecionados: <b>${sel.length}</b> · ${brl(tot)}${imp.total ? `<br>Total da fatura no print: ${brl(imp.total)}` : ''}</div>`;
+  $('#mSave').textContent = sel.length ? `Importar ${sel.length} gasto${sel.length > 1 ? 's' : ''}` : 'Selecione os gastos';
+  $('#mSave').disabled = !sel.length;
+}
+$('#mCards').onclick = (e) => {
+  const b = e.target.closest('[data-k]'); if (!b) return;
+  if (b.dataset.k === 'novo') { closeSheets(); setTimeout(() => openCard(null, 'credito'), 250); return; }
+  imp.card = b.dataset.k; imp.who = cardById(imp.card)?.owner_id || imp.who; marcaDuplicados(); drawImp();
+};
+$('#mWho').onclick = (e) => { const b = e.target.closest('[data-w]'); if (b) { imp.who = b.dataset.w; drawImp(); } };
+$('#mList').addEventListener('change', (e) => {
+  const c = e.target.closest('[data-i]'); if (c) { imp.rows[+c.dataset.i].sel = c.checked; drawImp(); return; }
+  const s = e.target.closest('[data-c]'); if (s) imp.rows[+s.dataset.c].cat = s.value || null;
+});
+$('#mPick').onclick = () => { if (!imp.card) { $('#mErr').textContent = 'Escolha primeiro de qual cartão é a fatura.'; return; } $('#mFiles').click(); };
+$('#mFiles').onchange = async (e) => {
+  const files = [...(e.target.files || [])]; e.target.value = ''; if (!files.length) return;
+  const btn = $('#mPick'); btn.disabled = true; $('#mErr').textContent = '';
+  const byName = (n) => st.cats.find((x) => x.name === n)?.id || null;
+  let lidos = 0;
+  try {
+    for (let i = 0; i < files.length; i++) {
+      $('#mIco').innerHTML = '<span class="spin"></span>';
+      $('#mTxt').textContent = files.length > 1 ? `Lendo print ${i + 1} de ${files.length}…` : 'Lendo o print…';
+      const dataUrl = await resizeImage(files[i], 2000);
+      const { data, error } = await sb.functions.invoke('ler-cupom', { body: { modo: 'fatura', imagem: dataUrl, mime: 'image/jpeg' } });
+      if (error) throw new Error('Sem conexão com o servidor.');
+      if (data?.error) { $('#mErr').textContent = (files.length > 1 ? `Print ${i + 1}: ` : '') + data.error; continue; }
+      const f = data.fatura;
+      if (f.total_fatura) imp.total = f.total_fatura;
+      for (const t of f.transacoes || []) {
+        if (t.tipo !== 'compra' || !(Number(t.valor) > 0) || !/^\d{4}-\d{2}-\d{2}$/.test(t.data || '')) continue;
+        const row = { data: t.data, descricao: String(t.descricao || 'Compra').slice(0, 80), valor: Math.round(Number(t.valor) * 100) / 100, parcela_atual: t.parcela_total > 1 ? Math.max(1, t.parcela_atual || 1) : null, parcela_total: t.parcela_total > 1 ? t.parcela_total : null, cat: byName(t.categoria), sel: true };
+        if (imp.rows.some((r) => r.data === row.data && Math.round(r.valor * 100) === Math.round(row.valor * 100) && normTxt(r.descricao) === normTxt(row.descricao))) continue;
+        imp.rows.push(row); lidos++;
+      }
+    }
+    imp.rows.sort((a, b) => b.data.localeCompare(a.data));
+    marcaDuplicados(); drawImp();
+    if (lidos) toast(`${lidos} lançamentos lidos ✓ Confira e importe`);
+  } catch (ex) { $('#mErr').textContent = ex.message; }
+  finally { btn.disabled = false; $('#mIco').textContent = '🖼️'; $('#mTxt').textContent = 'Adicionar mais prints'; }
+};
+$('#mSave').onclick = async () => {
+  const c = cardById(imp.card); if (!c) { $('#mErr').textContent = 'Escolha o cartão.'; return; }
+  const sel = imp.rows.filter((r) => r.sel); if (!sel.length) return;
+  const fut = $('#mFut').checked; const hoje = hojeISO();
+  const pay = c.kind === 'debito' ? 'Débito' : 'Crédito';
+  const rows = [], atuais = [];
+  for (const r of sel) {
+    const base = { household_id: st.me.household_id, user_id: imp.who, created_by: st.user.id, category_id: r.cat, card_id: c.id, payment: pay, source: 'fatura' };
+    if (r.parcela_total > 1) {
+      const g = crypto.randomUUID ? crypto.randomUUID() : null;
+      const nome = r.descricao.replace(/\s*\(?\d+\s*(\/|de)\s*\d+\)?\s*$/i, '').trim();
+      // a data do print costuma ser a da compra original; se ficar longe demais no futuro, é a data da parcela atual
+      const dataAtual = addMonths(r.data, r.parcela_atual - 1) > addMonths(hoje, 1) ? r.data : addMonths(r.data, r.parcela_atual - 1);
+      const ate = fut ? r.parcela_total : r.parcela_atual;
+      for (let k = r.parcela_atual; k <= ate; k++) {
+        if (k > r.parcela_atual && st.cardTx.some((t) => t.card_id === c.id && t.installment_no === k && t.installment_total === r.parcela_total && normTxt(t.description) === normTxt(nome) && Math.round(Number(t.amount) * 100) === Math.round(r.valor * 100))) continue;
+        rows.push({ ...base, amount: r.valor, description: `${nome} (${k}/${r.parcela_total})`, spent_on: addMonths(dataAtual, k - r.parcela_atual), installment_no: k, installment_total: r.parcela_total, installment_group: g });
+        if (k === r.parcela_atual) atuais.push(rows.length - 1);
+      }
+    } else { rows.push({ ...base, amount: r.valor, description: r.descricao, spent_on: r.data }); atuais.push(rows.length - 1); }
+  }
+  const btn = $('#mSave'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+  const { data, error } = await sb.from('expenses').insert(rows).select('id');
+  btn.disabled = false;
+  if (error) { $('#mErr').textContent = 'Não consegui importar: ' + error.message; drawImp(); return; }
+  toast(`${sel.length} gastos importados ✓${rows.length > sel.length ? ` (+${rows.length - sel.length} parcelas futuras)` : ''}`, 3500);
+  const ids = atuais.map((i) => data?.[i]?.id).filter(Boolean);
+  if (ids.length) sb.functions.invoke('avisar', { body: { acao: 'gasto', ids } }).catch(() => { });
+  closeSheets(); await Promise.all([loadTx(), loadCardTx()]); render();
 };
 
 /* ---------- notificações ---------- */
@@ -875,7 +1342,7 @@ async function start(session) {
   }
   $('#auth').classList.add('hide');
   if (!(await loadBase())) return;
-  await loadTx();
+  await Promise.all([loadTx(), loadCardTx()]);
   $('#app').classList.remove('hide');
   subscribe(); go(st.view);
 }
