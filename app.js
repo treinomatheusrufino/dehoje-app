@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import * as RUN from './corrida.js';
 const sb = createClient('https://hvqtgnlqcidutvnlxtpd.supabase.co', 'sb_publishable_4bsl7qLRH1N38ZbEahcH4A_u-34P_EU');
 const $ = s => document.querySelector(s), app = $('#app'), nav = $('#nav');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -432,11 +433,12 @@ async function recog(f, byId) { // liga cada linha da ficha a um exercício da b
   }
 }
 async function imp(pre) {
-  app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p>${profile?.plan === 'demo' ? '<p class=dnote>🧪 Dica para o teste: use o nome de alguém próximo (namorada, marido, esposa…) como aluno e mande o link para o celular dessa pessoa.</p>' : ''}
+  app.innerHTML = `<h2>Importar ficha</h2><p class=muted>Cole o treino do aluno do jeito que você escreve. O app separa os treinos (A, B, C…), reconhece os exercícios e mostra o desenho. Depois você salva para o aluno.</p><p class=muted><small>🏃 <b>Corrida:</b> cole a planilha com “Semana 1 – Treino 1”, “Semana 1 – Treino 2”… e o app separa cada treino em sequência e pinta cada trecho pela zona.</small></p>${profile?.plan === 'demo' ? '<p class=dnote>🧪 Dica para o teste: use o nome de alguém próximo (namorada, marido, esposa…) como aluno e mande o link para o celular dessa pessoa.</p>' : ''}
   <div class=bar2><button id=mdl_open>📁 Meus modelos</button><button id=mdl_ia>✨ Montar com DE HOJE.IA</button></div><textarea id=t placeholder="NOME DO ALUNO&#10;&#10;TREINO A&#10;1. Supino reto&#10;2. Remada baixa"></textarea><button class=p id=go>Reconhecer exercícios</button><div id=r></div>`;
   $('#mdl_open').onclick = () => import('./extras.js').then(m => m.abrirModelos(xctx(), t => { $('#t').value = t; $('#go').click(); }));
   $('#mdl_ia').onclick = () => show('ia');
   $('#go').onclick = async () => {
+    if (RUN.ehCorrida($('#t').value)) return impCorrida($('#t').value);
     const f = parseFicha($('#t').value); const lb = await getLib(); const byId = Object.fromEntries(lb.map(x => [x.id, x]));
     if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei exercícios. Escreva um por linha, com séries e repetições (ex.: "Supino reto 4x10").</p>';
     $('#r').innerHTML = 'Lendo…';
@@ -463,14 +465,57 @@ async function imp(pre) {
   };
   if (pre) { $('#t').value = pre; $('#go').click(); }
 }
+// ---------- importar planilha de corrida (Semana X · Treino Y, zonas por cor)
+function impCorrida(texto) {
+  const f = RUN.parseCorrida(texto);
+  if (!f.sessoes.length) return $('#r').innerHTML = '<p class=warn>Não encontrei os trechos da corrida. Escreva um por linha, com tempo ou distância (ex.: “10 min aquecimento”, “6x 400m forte / 1 min pausa”).</p>';
+  const view = () => { const sems = [...new Set(f.sessoes.map(s => s.semana))];
+    let h = `<div class=dnote>🏃 <b>Treino de corrida reconhecido</b> — ${f.sessoes.length} treino${f.sessoes.length > 1 ? 's' : ''} em ${sems.length} semana${sems.length > 1 ? 's' : ''}, em sequência. Toque na zona de um trecho para trocar a cor.</div>${RUN.legenda()}
+      <label class=muted>Nome do aluno</label><input id=an value="${esc(f.aluno)}">`;
+    if (f.meta.length) h += `<p class=muted>${f.meta.map(esc).join('<br>')}</p>`;
+    if (f.geral.length) h += `<details><summary>Orientações gerais (${f.geral.length})</summary><ul>${f.geral.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>`;
+    let semAt = 0;
+    f.sessoes.forEach((s, si) => { if (s.semana !== semAt) { semAt = s.semana; h += `<h2 class=rsem>Semana ${s.semana}</h2>`; }
+      h += `<div class=rcard><b>${esc(s.nome)}</b>${s.foco ? ` <small class=muted>· ${esc(s.foco)}</small>` : ''}<small class=muted style="float:right">${RUN.resumo(s.segs)}</small>${RUN.barra(s.segs)}${s.obs ? `<p class=dnote>📌 ${esc(s.obs)}</p>` : ''}
+        <div class=rsegs>${s.segs.map((g, gi) => { const pt = g.partes.map((p, pi) => { const z = RUN.ZONAS[p.zona]; return `<div class=rz style="--z:${z.cor};--zt:${z.txt}"><button class=rzl data-z="${si},${gi},${pi}">${z.nome} ▾</button><b>${esc(p.texto)}</b></div>`; }).join('');
+          return (g.n > 1 || g.partes.length > 1 ? `<div class=rrep><span class=rrn>${g.n > 1 ? `Repetir ${g.n}×` : 'Sequência'}</span>${pt}</div>` : pt) + (g.obs ? `<small class=rzo>${esc(g.obs)}</small>` : ''); }).join('')}</div></div>`; });
+    $('#r').innerHTML = h + '<button class=p id=sv>Salvar para o aluno</button> <button id=svm>📁 Salvar como modelo</button><p id=sm></p>';
+    $('#r').querySelectorAll('[data-z]').forEach(b => b.onclick = () => { const [si, gi, pi] = b.dataset.z.split(',').map(Number), p = f.sessoes[si].segs[gi].partes[pi];
+      const d = mdl(`<h3>Zona do trecho</h3><p class=muted>${esc(p.texto)}</p><div class=rzpick>${RUN.ORDEM.map(k => `<button data-k=${k} style="--z:${RUN.ZONAS[k].cor};--zt:${RUN.ZONAS[k].txt}" class="${p.zona === k ? 'on' : ''}">${RUN.ZONAS[k].nome}</button>`).join('')}</div><button id=zc>Cancelar</button>`);
+      d.querySelector('#zc').onclick = d.close; d.querySelectorAll('[data-k]').forEach(x => x.onclick = () => { p.zona = x.dataset.k; f.aluno = $('#an').value; d.close(); view(); }); });
+    $('#sv').onclick = () => salvarCorrida(f, $('#an').value.trim());
+    $('#svm').onclick = () => import('./extras.js').then(m => m.salvarModelo(xctx(), $('#t').value, 'Corrida · ' + f.sessoes.length + ' treinos'));
+  };
+  view();
+}
+async function salvarCorrida(f, nome) {
+  const msg = $('#sm'); if (!nome) return msg.innerHTML = '<span class=err>Digite o nome do aluno.</span>';
+  msg.textContent = 'Salvando…'; const uid = session.user.id;
+  try {
+    let { data: ex } = await sb.from('students').select('id,token,notes').eq('trainer_id', uid).ilike('name', nome).limit(1); let st = ex && ex[0];
+    const notes = [...f.meta, ...f.geral].join('\n');
+    if (st) { if (!confirm(`Já existe o aluno "${nome}". Substituir os treinos de CORRIDA atuais pelos novos? (os treinos de musculação e o histórico dele são mantidos)`)) return msg.textContent = '';
+      await sb.from('workouts').update({ active: false }).eq('student_id', st.id).ilike('name', '%' + RUN.MARCA.trim() + '%');
+      if (notes && !st.notes) await sb.from('students').update({ notes }).eq('id', st.id); }
+    else { const r = await sb.from('students').insert({ trainer_id: uid, name: nome, notes }).select('id,token').single(); if (r.error) throw r.error; st = r.data; }
+    for (let si = 0; si < f.sessoes.length; si++) { const s = f.sessoes[si];
+      const w = await sb.from('workouts').insert({ trainer_id: uid, student_id: st.id, name: s.nome + RUN.MARCA + (s.foco ? ' · ' + s.foco : ''), position: 100 + si, day_note: s.obs || null, raw_text: RUN.textoTrechos(s.segs) }).select('id').single(); if (w.error) throw w.error;
+      const bl = RUN.linhasBanco(s);
+      const br = await sb.from('workout_blocks').insert(bl.map((b, i) => ({ workout_id: w.data.id, position: i, set_type: b.set_type, sets: b.sets, rest_seconds: null }))).select('id,position'); if (br.error) throw br.error;
+      const rows = []; bl.forEach((b, i) => { const bid = br.data.find(x => x.position === i).id; b.items.forEach((it, k) => rows.push({ block_id: bid, position: k, ...it })); });
+      const ir = await sb.from('block_items').insert(rows); if (ir.error) throw ir.error; }
+    msg.innerHTML = `<span class=ok>Treinos de corrida salvos!</span> <button class=p id=op>Abrir aluno e enviar link</button>`; $('#op').onclick = () => { show('stu'); aluno(st.id); };
+    return st.id;
+  } catch (e) { msg.innerHTML = `<span class=err>${esc(e.message)}</span>`; return null; }
+}
 async function salvar(f, nome, rd) {
   const msg = $('#sm'); if (!nome) return msg.innerHTML = '<span class=err>Digite o nome do aluno.</span>';
   msg.textContent = 'Salvando…'; const uid = session.user.id;
   try {
     let { data: ex } = await sb.from('students').select('id,token').eq('trainer_id', uid).ilike('name', nome).limit(1); let st = ex && ex[0];
     const notes = [...f.meta, ...f.geral].join('\n');
-    if (st) { if (!confirm(`Já existe o aluno "${nome}". Substituir os treinos atuais pelos novos? (o histórico dele é mantido)`)) return msg.textContent = '';
-      await sb.from('workouts').update({ active: false }).eq('student_id', st.id); await sb.from('students').update({ notes }).eq('id', st.id); }
+    if (st) { if (!confirm(`Já existe o aluno "${nome}". Substituir os treinos de musculação atuais pelos novos? (os treinos de corrida e o histórico dele são mantidos)`)) return msg.textContent = '';
+      await sb.from('workouts').update({ active: false }).eq('student_id', st.id).not('name', 'ilike', '%' + RUN.MARCA.trim() + '%'); await sb.from('students').update({ notes }).eq('id', st.id); }
     else { const r = await sb.from('students').insert({ trainer_id: uid, name: nome, notes }).select('id,token').single(); if (r.error) throw r.error; st = r.data; }
     for (let si = 0; si < f.sessoes.length; si++) {
       const s = f.sessoes[si];
@@ -622,7 +667,10 @@ async function aluno(id) {
   x += `<div class=box2><b>Recado para o aluno</b> <small class=muted>(aparece na tela inicial dele)</small><textarea id=msg placeholder="Ex.: Semana que vem trocamos a ficha. Bom treino!">${esc(st.message || '')}</textarea><button class=p id=ms>Salvar recado</button></div>`;
   x += `<div class=box2><b>Plano</b><div class=bar2><input id=pn placeholder="Nome do plano (opcional)" value="${esc(st.plan_name || '')}"><input id=pe type=date value="${esc(st.plan_end || '')}"></div><small class=muted>Data em que o plano acaba — você recebe o aviso na aba Alunos, e o aluno também.</small><br><button class=p id=ps>Salvar plano</button></div><div id=xtra></div>`;
   const itemsById = {};
-  (w.data || []).forEach(wo => { x += `<h2>${esc(wo.name)}</h2><p class="${wo.day_note ? 'dnote' : ''}">${wo.day_note ? '📌 ' + esc(wo.day_note) + ' ' : ''}<button class=sm data-dn=${wo.id}>${wo.day_note ? 'Editar observação do dia' : '＋ Observação do dia'}</button></p>`;
+  (w.data || []).forEach(wo => { if (RUN.ehTreinoCorrida(wo.name)) { const segs = RUN.segsDosBlocos(wo.workout_blocks); wo.workout_blocks.forEach(b => b.block_items.forEach(i => { itemsById[i.id] = { i, b, wo }; }));
+      x += `<div class=rcard><b>🏃 ${esc(wo.name.replace(RUN.MARCA, ''))}</b><small class=muted style="float:right">${RUN.resumo(segs)}</small>${RUN.barra(segs)}${wo.day_note ? `<p class=dnote>📌 ${esc(wo.day_note)}</p>` : ''}<div class=rsegs>${segs.map(g => { const pt = g.partes.map(p => { const z = RUN.ZONAS[p.zona]; return `<div class=rz style="--z:${z.cor};--zt:${z.txt}"><span class=rzl>${z.nome}</span><b>${esc(p.texto)}</b><span class=rzb><button class=sm data-ed=${p.id}>✏️</button><button class=sm data-rm=${p.id}>×</button></span></div>`; }).join('');
+        return (g.n > 1 || g.partes.length > 1 ? `<div class=rrep><span class=rrn>${g.n > 1 ? `Repetir ${g.n}×` : 'Sequência'}</span>${pt}</div>` : pt) + (g.obs ? `<small class=rzo>${esc(g.obs)}</small>` : ''); }).join('')}</div><button class=sm data-dn=${wo.id}>${wo.day_note ? 'Editar observação do dia' : '＋ Observação do dia'}</button></div>`; return; }
+    x += `<h2>${esc(wo.name)}</h2><p class="${wo.day_note ? 'dnote' : ''}">${wo.day_note ? '📌 ' + esc(wo.day_note) + ' ' : ''}<button class=sm data-dn=${wo.id}>${wo.day_note ? 'Editar observação do dia' : '＋ Observação do dia'}</button></p>`;
     wo.workout_blocks.sort((a, b) => a.position - b.position).forEach(b => b.block_items.sort((a, c) => a.position - c.position).forEach(i => { itemsById[i.id] = { i, b, wo };
       const alvo = i.kind === 'cardio' ? '' : `<br><small class=alvo>${b.sets || 3} × ${esc(i.reps || '—')} · pausa ${b.rest_seconds || 60}s</small>`;
       x += `<div class="row${b.set_type === 'biset' ? ' birow' : ''}">${im(i.exercises?.image_path)}<div>${b.set_type === 'biset' ? '<span class="tag bi">bi-set</span> ' : ''}<b>${esc(i.raw_text)}</b>${i.exercises ? `<br><small class=muted>→ ${esc(i.exercises.name)}</small>` : ''}${alvo}${i.note ? `<br><small class=muted>${esc(i.note)}</small>` : ''}<br>
@@ -671,6 +719,14 @@ async function aluno(id) {
   $('#bk').onclick = students; if ($('#react')) $('#react').onclick = async () => { const r = await sb.from('students').update({ active: true }).eq('id', id); if (r.error) return alert(r.error.message); aluno(id); }; $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(url); $('#cp').textContent = 'Copiado!'; } catch { $('#lk').select(); } };
   app.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => pick(async e => { await sb.from('block_items').update({ exercise_id: e.id, needs_review: false }).eq('id', b.dataset.tr); aluno(id); }));
   app.querySelectorAll('[data-ed]').forEach(bt => bt.onclick = () => { const { i, b } = itemsById[bt.dataset.ed]; const cardio = i.kind === 'cardio';
+    if (i.kind === 'corrida') { const zn = RUN.ZONAS[i.reps] ? i.reps : RUN.zonaDe(i.raw_text);
+      const d = mdl(`<h3>Trecho da corrida</h3><label class=muted>Trecho (como o aluno vê)</label><input id=e_t value="${esc(i.raw_text)}"><label class=muted>Zona (cor)</label><div class=rzpick>${RUN.ORDEM.map(k => `<button data-k=${k} style="--z:${RUN.ZONAS[k].cor};--zt:${RUN.ZONAS[k].txt}" class="${zn === k ? 'on' : ''}">${RUN.ZONAS[k].nome}</button>`).join('')}</div><label class=muted>Repetições do bloco${b.block_items.length > 1 ? ' (vale para o estímulo e a pausa)' : ''}</label><input id=e_s type=number inputmode=numeric min=1 max=50 value="${b.sets || 1}"><label class=muted>Observação (o aluno vê)</label><textarea id=e_n style="min-height:70px">${esc(i.note || '')}</textarea><p id=e_m class=err></p><button class=p id=e_ok>Salvar</button> <button id=e_c>Cancelar</button>`);
+      let z = zn; d.querySelectorAll('[data-k]').forEach(x => x.onclick = () => { z = x.dataset.k; d.querySelectorAll('[data-k]').forEach(y => y.classList.toggle('on', y === x)); });
+      d.querySelector('#e_c').onclick = d.close;
+      d.querySelector('#e_ok').onclick = async () => { const q = s2 => d.querySelector(s2), t = q('#e_t').value.trim(); if (!t) return q('#e_m').textContent = 'O trecho não pode ficar vazio.';
+        const r1 = await sb.from('block_items').update({ raw_text: t, reps: z, note: q('#e_n').value.trim() || null }).eq('id', i.id); if (r1.error) return q('#e_m').textContent = r1.error.message;
+        const r2 = await sb.from('workout_blocks').update({ sets: Math.max(1, Math.min(50, parseInt(q('#e_s').value) || 1)) }).eq('id', b.id); if (r2.error) return q('#e_m').textContent = r2.error.message;
+        d.close(); aluno(id); }; return; }
     const d = mdl(`<h3>${esc(i.raw_text)}</h3>${cardio ? '' : `<div class=mgrid><label>Séries<input id=e_s type=number inputmode=numeric min=1 max=10 value="${b.sets || 3}"></label><label>Repetições<input id=e_r placeholder="ex.: 8-12, 40s, falha" value="${esc(i.reps || '')}"></label><label>Pausa (segundos)<input id=e_p type=number inputmode=numeric min=0 max=900 value="${b.rest_seconds ?? 60}"></label></div>${b.set_type === 'biset' ? '<p class=muted>Bi-set: séries e pausa valem para os dois exercícios.</p>' : ''}`}<label class=muted>${cardio ? 'Descrição do cardio (ex.: 4x 20s / 10s de pausa)' : 'Nome como o aluno vê'}</label><input id=e_t value="${esc(i.raw_text)}"><label class=muted>Observação do exercício (o aluno vê)</label><textarea id=e_n style="min-height:80px">${esc(i.note || '')}</textarea><p id=e_m class=err></p><button class=p id=e_ok>Salvar</button> <button id=e_c>Cancelar</button>`);
     d.querySelector('#e_c').onclick = d.close;
     d.querySelector('#e_ok').onclick = async () => { const q = z => d.querySelector(z); const t = q('#e_t').value.trim(); if (!t) return q('#e_m').textContent = 'O nome não pode ficar vazio.';
@@ -750,6 +806,7 @@ async function studentView(token, preview = false) {
   const upd = (fn) => { const o = ld(wk.id); fn(o); sv(wk.id, o); return o; };
   let wk = null, steps = [], idx = 0, rest = null, tick = null, AX = null;
   const stepsOf = w => { const out = [], seen = {};
+    if (w.items.length && w.items.every(i => i.kind === 'corrida')) return [{ run: true, items: w.items, segs: RUN.segsDoPlano(w.items) }];
     w.items.forEach(i => { if (i.kind === 'cardio') return out.push({ cardio: true, items: [i] });
       if (i.biset && seen[i.group]) return seen[i.group].items.push(i);
       const st = { items: [i], biset: i.biset }; if (i.biset) seen[i.group] = st; out.push(st); });
@@ -813,7 +870,16 @@ async function studentView(token, preview = false) {
       const parts = []; if (z.weight != null) parts.push(`Peso <b>${String(z.weight).replace('.', ',')} kg</b>${df('weight', 'kg')}`); if (z.waist != null) parts.push(`Cintura <b>${String(z.waist).replace('.', ',')} cm</b>${df('waist', 'cm')}`); if (z.fat != null) parts.push(`Gordura <b>${String(z.fat).replace('.', ',')}%</b>${df('fat', '%')}`);
       if (parts.length) h += `<div class=week><b>Seu progresso</b><br><small>${parts.join('<br>')}</small></div>`; }
     h += '<div id=xtA></div><p class=muted id=treinos>Qual treino você vai fazer hoje?</p>';
-    P.workouts.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
+    const runs = P.workouts.filter(w => RUN.ehTreinoCorrida(w.name)), fortes = P.workouts.filter(w => !RUN.ehTreinoCorrida(w.name));
+    if (runs.length) { let dn = []; try { dn = JSON.parse(localStorage.getItem((preview ? 'dhpv_rd_' : 'dh2_rd_') + token) || '[]'); } catch {}
+      const prox = runs.find(w => !dn.includes(w.id)); let sem = '';
+      h += `<div class=rhome><b>🏃 Meus treinos de corrida</b><small class=muted>${runs.filter(w => dn.includes(w.id)).length} de ${runs.length} feitos · faça na ordem</small>${RUN.legenda()}`;
+      runs.forEach(w => { const segs = RUN.segsDoPlano(w.items), nm = w.name.replace(RUN.MARCA, ''), [base, foco] = nm.split(' · ').length > 2 ? [nm.split(' · ').slice(0, 2).join(' · '), nm.split(' · ').slice(2).join(' · ')] : [nm, ''], sm = (base.match(/Semana \d+/) || [''])[0], o = ld(w.id), feito = dn.includes(w.id), ehProx = prox && prox.id === w.id;
+        if (sm !== sem) { sem = sm; h += `<h3 class=rsem>${esc(sm || 'Corrida')}</h3>`; }
+        h += `<div class="wcard rrun${feito ? ' feito' : ''}${ehProx ? ' prox' : ''}"><div class=wc1><div><b>${feito ? '✅ ' : ''}${esc(base.replace(/^Semana \d+ · /, ''))}</b>${ehProx ? ' <span class=tag>Próximo</span>' : ''}<br><small class=muted>${esc(foco)}${foco ? ' · ' : ''}${RUN.resumo(segs)}</small></div><button class="${feito ? '' : 'p'}" data-w=${w.id}>${o.started ? 'Continuar' : feito ? 'Refazer' : 'Começar'}</button></div>${RUN.barra(segs)}${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
+      h += '</div>'; }
+    if (runs.length && fortes.length) h += '<p class=muted><b>🏋️ Musculação</b></p>';
+    fortes.forEach(w => { const o = ld(w.id), p = w.name.split(' — ');
       const nEx = stepsOf(w).length;
       h += `<div class=wcard><div class=wc1><div><b>${esc(p[0])}</b><br><small class=muted>${esc(p.slice(1).join(' — '))}${p.length > 1 ? ' · ' : ''}${nEx} exercício${nEx === 1 ? '' : 's'}</small></div><button class=p data-w=${w.id}>${o.started ? 'Continuar' : 'Começar'}</button></div>${w.day_note ? `<p class=dnote>📌 ${esc(w.day_note)}</p>` : ''}</div>`; });
     if (P.student.notes) h += `<details><summary>Orientações do treinador</summary><p class=pre>${esc(P.student.notes)}</p></details>`;
@@ -927,8 +993,8 @@ async function studentView(token, preview = false) {
   const go = n => { idx = Math.max(0, Math.min(steps.length, n)); upd(o => { o.idx = idx; }); play(); window.scrollTo(0, 0); };
 
   // --- um exercício por vez (bi-set: os dois juntos)
-  const stepDone = (n, st) => { const x = steps[n]; if (!x) return false; if (x.cardio) return !!st['c' + x.items[0].id]; for (let k = 1; k <= x.sets; k++) if (!st[`d_${n}_${k}`]) return false; return true; };
-  const stepPart = (n, st) => { const x = steps[n]; if (!x || x.cardio) return false; for (let k = 1; k <= x.sets; k++) if (st[`d_${n}_${k}`]) return true; return false; };
+  const stepDone = (n, st) => { const x = steps[n]; if (!x) return false; if (x.run) return !!st.runok; if (x.cardio) return !!st['c' + x.items[0].id]; for (let k = 1; k <= x.sets; k++) if (!st[`d_${n}_${k}`]) return false; return true; };
+  const stepPart = (n, st) => { const x = steps[n]; if (!x || x.cardio || x.run) return false; for (let k = 1; k <= x.sets; k++) if (st[`d_${n}_${k}`]) return true; return false; };
   // --- esforço percebido (PSE 0 a 10) ao terminar cada exercício
   const PSE_TXT = ['Nenhum cansaço', 'Muito, muito leve', 'Muito leve', 'Leve', 'Moderado', 'Um pouco difícil', 'Difícil', 'Muito difícil', 'Muito, muito difícil', 'Quase na falha', 'Falha total'];
   const pseCor = v => `hsl(${Math.round(130 - v * 13)} 70% ${v >= 8 ? 40 : 38}%)`;
@@ -947,7 +1013,12 @@ async function studentView(token, preview = false) {
     let h = `<div class=ptop><button data-home aria-label=Início>←</button><b>${esc(p[0])}</b><span class=muted>${idx + 1} / ${steps.length}</span></div>
       <div class=segs>${steps.map((x, n) => `<button class="seg${stepDone(n, st) ? ' on' : stepPart(n, st) ? ' part' : ''}${n === idx ? ' cur' : ''}${x.biset ? ' bi' : ''}" data-g=${n} aria-label="Exercício ${n + 1}"></button>`).join('')}</div>
       <div class=acts><button class="sm danger" data-cancel>Cancelar treino</button><button class="sm p" data-fin>Finalizar treino</button></div><div id=rest></div>`;
-    if (s.cardio) { const i = s.items[0], iv = intervalOf(i.text) || intervalOf(i.note);
+    if (s.run) { const tt = RUN.resumo(s.segs);
+      h += `<div class=exv><h3>🏃 Corrida${tt ? ` <small class=muted>· ${tt}</small>` : ''}</h3>${wk.day_note ? `<p class=dnote>📌 ${esc(wk.day_note)}</p>` : ''}${RUN.barra(s.segs)}${RUN.segsHtml(s.segs)}${RUN.legenda()}
+        <button class="p rgo" data-run>▶ Iniciar corrida guiada</button><small class=muted>O celular avisa com bipe e vibração a cada troca de trecho, e a tela fica na cor da zona.</small>
+        <label class=chk><input type=checkbox data-runok ${st.runok ? 'checked' : ''}> Corrida concluída</label></div>
+        <details class=anot${st.n_run ? ' open' : ''}><summary>📝 Minhas anotações ${st.n_run ? '✓' : ''}</summary><small class=muted>Seu treinador vai ver.</small><textarea data-nrun placeholder="Ex.: fiz os tiros em 1:55, senti a panturrilha…">${esc(st.n_run || '')}</textarea></details>`; }
+    else if (s.cardio) { const i = s.items[0], iv = intervalOf(i.text) || intervalOf(i.note);
       h += `<div class=exv><h3>⏱ Cardio</h3>${i.exercise ? `<p><b>${esc(i.exercise.name.replace(/^Cardio:\s*/, ''))}</b></p><img src="${esc(i.exercise.image)}" alt="">` : ''}<p>${esc(i.text)}</p>${i.note ? `<p class=muted>${esc(i.note)}</p>` : ''}
         ${iv ? `<p class=alvo>${iv.n} rodadas · ${iv.work}s de execução${iv.rest ? ` · ${iv.rest}s de pausa` : ''}</p><button class=p data-iv>▶ Iniciar intervalos</button>` : ''}
         <label class=chk><input type=checkbox data-c=${i.id} ${st['c' + i.id] ? 'checked' : ''}> Cardio concluído</label></div>`; }
@@ -974,6 +1045,9 @@ async function studentView(token, preview = false) {
     app.querySelectorAll('textarea[data-n]').forEach(e => e.oninput = () => upd(o => { o['n_' + e.dataset.n] = e.value; }));
     app.querySelectorAll('[data-sug]').forEach(b => b.onclick = () => { upd(o => { for (let k = 1; k <= s.sets; k++) o[`${b.dataset.sug}_${k}_load`] = String(b.dataset.kg).replace('.', ','); }); play(); });
     const rp = app.querySelector('[data-rep]'); if (rp) rp.onclick = () => { upd(o => { s.items.forEach(i => { if (!i.last) return; for (let k = 1; k <= s.sets; k++) { if (!o[`${i.id}_${k}_load`] && i.last.load != null) o[`${i.id}_${k}_load`] = String(i.last.load); if (!o[`${i.id}_${k}_reps`] && i.last.reps != null) o[`${i.id}_${k}_reps`] = String(i.last.reps); } }); }); play(); };
+    const rb = app.querySelector('[data-run]'); if (rb) rb.onclick = () => RUN.guia(s.segs, { beep, onEnd: ok => { if (ok) upd(o => { o.runok = true; }); play(); if (ok) pseShow(idx, false, true); } });
+    const rk = app.querySelector('[data-runok]'); if (rk) rk.onchange = () => { upd(o => { o.runok = rk.checked; }); paintSegs(); pseShow(idx, false, rk.checked); };
+    const nr = app.querySelector('textarea[data-nrun]'); if (nr) nr.oninput = () => upd(o => { o.n_run = nr.value; });
     const ivb = app.querySelector('[data-iv]'); if (ivb) ivb.onclick = () => runIntervals(s.items[0], intervalOf(s.items[0].text) || intervalOf(s.items[0].note));
     app.querySelectorAll('input[data-c]').forEach(e => e.onchange = () => { upd(o => { o['c' + e.dataset.c] = e.checked; }); paintSegs(); pseShow(idx, false, e.checked); });
     app.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; let now; upd(o => { now = !o[`d_${idx}_${k}`]; o[`d_${idx}_${k}`] = now; });
@@ -986,12 +1060,12 @@ async function studentView(token, preview = false) {
   // --- final
   const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? 0 : n; };
   const finish = () => { stopRest(); const o = ld(wk.id); let feitas = 0; Object.keys(o).forEach(k => { if (/^d_/.test(k) && o[k]) feitas++; });
-    let vol = 0; const prs = []; wk.items.forEach(i => { if (i.kind === 'cardio') return; let mx = 0; for (let k = 1; k <= 12; k++) { const l = num(o[`${i.id}_${k}_load`]), r = num(o[`${i.id}_${k}_reps`]); vol += l * r; mx = Math.max(mx, l); } if (mx > 0 && i.best != null && mx > Number(i.best)) prs.push(`${i.exercise ? i.exercise.name : i.text}: ${mx} kg`); });
-    const min = o.t0 ? Math.max(1, Math.round((Date.now() - o.t0) / 60000)) : null;
-    const pses = steps.map((x, n) => ({ n, v: o['pse_' + n], nome: x.items.map(i => i.exercise ? i.exercise.name.replace(/^Cardio:\s*/, '') : i.text).join(' + ') })).filter(x => x.v != null);
+    let vol = 0; const prs = []; wk.items.forEach(i => { if (i.kind === 'cardio' || i.kind === 'corrida') return; let mx = 0; for (let k = 1; k <= 12; k++) { const l = num(o[`${i.id}_${k}_load`]), r = num(o[`${i.id}_${k}_reps`]); vol += l * r; mx = Math.max(mx, l); } if (mx > 0 && i.best != null && mx > Number(i.best)) prs.push(`${i.exercise ? i.exercise.name : i.text}: ${mx} kg`); });
+    const min = o.t0 ? Math.max(1, Math.round((Date.now() - o.t0) / 60000)) : null; const isRun = steps.some(x => x.run);
+    const pses = steps.map((x, n) => ({ n, v: o['pse_' + n], nome: x.run ? 'Corrida' : x.items.map(i => i.exercise ? i.exercise.name.replace(/^Cardio:\s*/, '') : i.text).join(' + ') })).filter(x => x.v != null);
     const media = pses.length ? Math.round(pses.reduce((t, x) => t + x.v, 0) / pses.length * 10) / 10 : null;
     app.innerHTML = `<div class=ptop><button data-back>←</button><b>Treino concluído?</b><span></span></div><div class=bar><i style="width:100%"></i></div>
-      <div class=box2><div class=stats><div><b>${feitas}</b><small>séries</small></div><div><b>${Math.round(vol)}</b><small>kg levantados</small></div>${min ? `<div><b>${min}</b><small>min</small></div>` : ''}</div>${prs.length ? `<div class=pr>🏆 <b>Novo recorde!</b><br>${prs.map(esc).join('<br>')}</div>` : ''}${media != null ? `<div class=pse-media><div><small>Esforço médio do treino</small><b style="color:${pseCor(Math.round(media))}">${String(media).replace('.', ',')}<span>/10</span></b><small>${PSE_TXT[Math.round(media)]}</small></div><ul>${pses.map(x => `<li><span>${esc(x.nome)}</span><b style="background:${pseCor(x.v)}">${x.v}</b></li>`).join('')}</ul><small class=muted>Vai junto com o seu feedback para o treinador.</small></div>` : ''}<p><b>Como foi o treino de hoje?</b></p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
+      <div class=box2><div class=stats>${isRun ? `<div><b>${o.runok ? '✓' : '—'}</b><small>corrida</small></div>${(() => { const t = RUN.totais(steps[0].segs); return t.dist ? `<div><b>${String(Math.round(t.dist / 100) / 10).replace('.', ',')}</b><small>km planejados</small></div>` : ''; })()}` : `<div><b>${feitas}</b><small>séries</small></div><div><b>${Math.round(vol)}</b><small>kg levantados</small></div>`}${min ? `<div><b>${min}</b><small>min</small></div>` : ''}</div>${prs.length ? `<div class=pr>🏆 <b>Novo recorde!</b><br>${prs.map(esc).join('<br>')}</div>` : ''}${media != null ? `<div class=pse-media><div><small>Esforço médio do treino</small><b style="color:${pseCor(Math.round(media))}">${String(media).replace('.', ',')}<span>/10</span></b><small>${PSE_TXT[Math.round(media)]}</small></div><ul>${pses.map(x => `<li><span>${esc(x.nome)}</span><b style="background:${pseCor(x.v)}">${x.v}</b></li>`).join('')}</ul><small class=muted>Vai junto com o seu feedback para o treinador.</small></div>` : ''}<p><b>Como foi o treino de hoje?</b></p><div class=stars>${[1, 2, 3, 4, 5].map(n => `<button data-r=${n} class="${(o.rating || 0) >= n ? 'on' : ''}">★</button>`).join('')}</div>
       <textarea id=cm placeholder="${(o.rating || 0) && o.rating <= 2 ? 'Conte o que não foi bem (obrigatório para 1 ou 2 estrelas)' : 'Comentário (opcional)'}">${esc(o.comment || '')}</textarea><button class=p id=fin>Enviar e concluir</button><p id=fm></p></div>`;
     app.querySelector('[data-back]').onclick = () => go(Math.min(o.idx ?? steps.length - 1, steps.length - 1));
     app.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { upd(z => { z.comment = $('#cm').value; z.rating = +b.dataset.r; }); finish(); });
@@ -1000,9 +1074,9 @@ async function studentView(token, preview = false) {
       if (preview) { try { localStorage.removeItem(key(wk.id)); } catch {} unwake(); app.innerHTML = `<h2>Treino concluído! 💪</h2><div class=msg><b>Visualização do treinador</b><p>No celular do aluno, aqui o treino é enviado para você: aparece em <b>Alunos → Atividade recente</b>, no histórico dele e, se tiver comentário, no seu WhatsApp (se estiver ativado).</p></div><button class=p id=hm>Voltar ao início</button>`; $('#hm').onclick = home; return; }
       if (!z.rating) return $('#fm').innerHTML = '<span class=err>Toque nas estrelas para dar uma nota ao treino.</span>';
       if (z.rating <= 2 && !String(z.comment || '').trim()) { $('#cm').focus(); return $('#fm').innerHTML = '<span class=err>Para nota 1 ou 2, escreva um comentário contando o que não foi bem.</span>'; }
-      const notas = []; wk.items.forEach(i => { const t = String(z['n_' + i.id] || '').trim(); if (t) notas.push(`📝 ${i.exercise ? i.exercise.name : i.text}: ${t}`); });
+      const notas = []; if (String(z.n_run || '').trim()) notas.push('📝 Corrida: ' + String(z.n_run).trim()); wk.items.forEach(i => { const t = String(z['n_' + i.id] || '').trim(); if (t) notas.push(`📝 ${i.exercise ? i.exercise.name : i.text}: ${t}`); });
       const comentario = [String(z.comment || '').trim(), ...notas].filter(Boolean).join('\n');
-      wk.items.forEach(i => { if (i.kind === 'cardio') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
+      wk.items.forEach(i => { if (i.kind === 'cardio' || i.kind === 'corrida') return; const n = Math.max(i.sets || 0, nsets(i.note || i.text), 10); for (let k = 1; k <= n; k++) { const l = z[`${i.id}_${k}_load`], r = z[`${i.id}_${k}_reps`]; if (l || r) logs.push({ item: i.id, set: k, load: l || '', reps: r || '' }); } });
       steps.forEach((x, n) => { const v = z['pse_' + n]; if (v != null) x.items.forEach(i => logs.push({ item: i.id, pse: v })); });
       $('#fm').textContent = 'Enviando…'; $('#fin').disabled = true;
       if (!z.cid) { z.cid = uuid(); sv(wk.id, z); }
@@ -1012,6 +1086,7 @@ async function studentView(token, preview = false) {
       if (r.error) { if (/inválido/.test(r.error.message)) { $('#fin').disabled = false; return $('#fm').innerHTML = `<span class=err>${esc(r.error.message)}</span>`; }
         try { const q = JSON.parse(localStorage.getItem(pk)) || []; q.push(args); localStorage.setItem(pk, JSON.stringify(q)); queued = true; } catch { return $('#fm').innerHTML = '<span class=err>Sem conexão. Tente novamente.</span>'; } }
       try { localStorage.removeItem(key(wk.id)); } catch {}
+      if (RUN.ehTreinoCorrida(wk.name)) try { const dk = (preview ? 'dhpv_rd_' : 'dh2_rd_') + token, dn = JSON.parse(localStorage.getItem(dk) || '[]'); if (!dn.includes(wk.id)) dn.push(wk.id); localStorage.setItem(dk, JSON.stringify(dn)); } catch {}
       unwake();
       if (!queued && comentario) notify(r.data);
       const antes = P.sessions || [], novos = AX ? AX.marcos(antes, [new Date().toISOString(), ...antes]) : [];
