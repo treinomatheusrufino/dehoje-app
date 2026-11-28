@@ -1,5 +1,6 @@
 // Recursos do treinador: painel Hoje, Financeiro, mensalidade/ficha de saúde/avaliação física/relatório na página do aluno,
 // modelos de treino e aviso de treino vencendo.
+import * as RUN from './corrida.js';
 import { brl, anamneseHTML, relatorioHTML, relatorioTexto, abrirRelatorio, calcAval, DOBRAS7, DOBRAS3, CIRC, grafico, nomeMes } from './aluno_extras.js';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const br = v => String(v).replace('.', ',');
@@ -130,7 +131,8 @@ export function salvarModelo(ctx, texto, sugestao = '') {
 // texto da ficha a partir dos treinos salvos do aluno
 export function textoDosTreinos(workouts) {
   const L = []; const letras = 'ABCDEFGHIJ';
-  (workouts || []).forEach((w, wi) => { const nm = w.name || ''; L.push(/^treino\s/i.test(nm) ? nm.replace(/^(Treino\s+\w+)\s+—\s+/i, '$1 – ') : `TREINO ${letras[wi]} – ${nm}`); if (w.day_note) L.push(w.day_note);
+  (workouts || []).forEach((w, wi) => { const nm = w.name || '';
+    if (RUN.ehTreinoCorrida(nm)) { const t = nm.replace(RUN.MARCA, '').split(' · '); L.push(t.slice(0, 2).join(' – ').toUpperCase() + (t.length > 2 ? ' – ' + t.slice(2).join(' · ') : '')); if (w.day_note) L.push('Obs: ' + w.day_note); L.push(RUN.textoTrechos(RUN.segsDosBlocos(w.workout_blocks))); L.push(''); return; } L.push(/^treino\s/i.test(nm) ? nm.replace(/^(Treino\s+\w+)\s+—\s+/i, '$1 – ') : `TREINO ${letras[wi]} – ${nm}`); if (w.day_note) L.push(w.day_note);
     let n = 0; [...w.workout_blocks].sort((a, b) => a.position - b.position).forEach(b => { const its = [...b.block_items].sort((a, c) => a.position - c.position); n++;
       its.forEach((i, k) => { if (i.kind === 'cardio') return L.push('CARDIO — ' + i.raw_text); const lt = its.length > 1 ? 'abc'[k] || '' : '';
         L.push(`${n}${lt}. ${i.exercises?.name || i.raw_text} — ${b.sets || 3}x ${i.reps || '10'}${k === its.length - 1 ? ` | Pausa: ${b.rest_seconds ?? 60}s` : ''}${i.note ? ' | ' + i.note : ''}`); }); });
